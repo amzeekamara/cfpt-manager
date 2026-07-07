@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Curator - Gestion des Utilisateurs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#d5e0f8",
+                        "on-surface": "#191c1e",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#545f73",
+                        "on-secondary-container": "#586377",
+                        "outline-variant": "#c2c7d1",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#2d6197",
+                        "on-primary-container": "#8ebdf9",
+                        "on-primary-fixed-variant": "#07497d",
+                        "tertiary-fixed-dim": "#ffb780",
+                        "secondary-fixed": "#d8e3fb",
+                        "primary-fixed-dim": "#a0c9ff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-variant": "#e0e3e5",
+                        "outline": "#727780",
+                        "surface-container-low": "#f2f4f6",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container": "#eceef0",
+                        "on-tertiary-fixed-variant": "#6f3800",
+                        "inverse-surface": "#2d3133",
+                        "primary": "#00355f",
+                        "primary-container": "#0f4c81",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-tertiary-fixed": "#2f1400",
+                        "inverse-primary": "#a0c9ff",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f7f9fb",
+                        "on-primary-fixed": "#001c37",
+                        "on-background": "#191c1e",
+                        "tertiary": "#532800",
+                        "background": "#f7f9fb",
+                        "tertiary-container": "#743b00",
+                        "on-tertiary-container": "#f9a767",
+                        "tertiary-fixed": "#ffdcc4",
+                        "surface-dim": "#d8dadc",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#111c2d",
+                        "surface-container-high": "#e6e8ea",
+                        "on-surface-variant": "#42474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-slate-50 dark:bg-slate-900 z-50">
+<div class="flex flex-col h-full py-8 px-4">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="school" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tighter text-blue-900 dark:text-white">The Curator</h1>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Portail Administratif</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 py-3 px-5 text-slate-500 dark:text-slate-400 font-manrope text-sm font-medium tracking-tight hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 py-3 text-blue-900 dark:text-blue-400 font-bold border-l-4 border-blue-900 dark:border-blue-400 pl-4 font-manrope text-sm tracking-tight transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span>Gestion des Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-5 text-slate-500 dark:text-slate-400 font-manrope text-sm font-medium tracking-tight hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span>SÉMINAIRES</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-5 text-slate-500 dark:text-slate-400 font-manrope text-sm font-medium tracking-tight hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+<span>Ressources</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-5 text-slate-500 dark:text-slate-400 font-manrope text-sm font-medium tracking-tight hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Paramètres</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-200/50">
+<button class="w-full py-3 px-4 bg-primary-container hover:opacity-90 text-white rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #0f4c81 0%, #00355f 100%);">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                    Nouveau Séminaire
+                </button>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center h-16 px-8 ml-0">
+<h2 class="font-manrope headline-sm font-semibold text-blue-800 dark:text-blue-300">Gestion des Utilisateurs</h2>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-2 focus:ring-primary/20" placeholder="Rechercher..." type="text"/>
+</div>
+<div class="flex items-center gap-4 text-slate-500">
+<span class="material-symbols-outlined cursor-pointer hover:text-blue-700 transition-opacity" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-blue-700 transition-opacity" data-icon="apps">apps</span>
+<div class="h-8 w-[1px] bg-slate-200 mx-1"></div>
+<div class="flex items-center gap-3 cursor-pointer">
+<img class="w-8 h-8 rounded-full border border-slate-200 object-cover" data-alt="Portrait photo of a professional male administrator in a light grey suit with soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWjKdFxW2vOrQqqLUCQqrz9Jsk9iBJzdZnS2lwoWZbnxKQG2jUCNy81G3QgOkHCtOI56wfMEIkOcS9GyHVCT2oJiSPZ9fzgQh6yr5E6Z0-upkytLfxkvRozjRgswLOY7R6Np0ec0ACl-eMroTyQMA5sz-5ZXLiI3DFv4SPI-VrirqwbZ_CPMCevtWDuBTYnxoG4dqwhe31crhlW_vzg8qX6zCDIsSwcE1ehy9r2w3DGEHl2cF6IjQd3Q_2INrm3R438HMmhYoZe3I"/>
+<span class="text-xs font-semibold text-on-surface">Aide</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-16 min-h-screen bg-surface">
+<div class="p-8 max-w-7xl mx-auto">
+<!-- Page Header & Actions -->
+<div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-1">
+<h1 class="text-4xl font-extrabold tracking-tight text-primary font-headline">Gestion des Comptes Utilisateurs</h1>
+<p class="text-on-secondary-container font-body body-md">Administrez les accès et rôles de l'institution.</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" data-icon="filter_list">filter_list</span>
+<select class="pl-11 pr-8 py-3 bg-surface-container-lowest border-none rounded-lg text-sm text-on-surface appearance-none focus:ring-2 focus:ring-primary/10 shadow-sm cursor-pointer">
+<option>Tous les rôles</option>
+<option>Admin</option>
+<option>Formateur</option>
+<option>Appui</option>
+</select>
+</div>
+<button class="bg-primary text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-blue-900/10" style="background: linear-gradient(135deg, #0f4c81 0%, #00355f 100%);">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+                        + Ajouter un Utilisateur
+                    </button>
+</div>
+</div>
+<!-- Bento Layout / Content Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_20px_40px_rgba(30,41,59,0.06)] overflow-hidden">
+<!-- Search & Filters Row -->
+<div class="p-6 bg-surface-container-low/30 border-b border-outline-variant/10 flex items-center justify-between">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all border-b-2 border-transparent focus:border-primary" placeholder="Rechercher par nom ou email..." type="text"/>
+</div>
+<div class="flex items-center gap-2 text-slate-400">
+<span class="text-xs font-semibold uppercase tracking-widest">3 Utilisateurs trouvés</span>
+</div>
+</div>
+<!-- Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Nom complet</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Email</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Rôle</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Date de Création</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Row 1 -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-sm">MB</div>
+<span class="font-semibold text-on-surface">M. BALDE</span>
+</div>
+</td>
+<td class="px-8 py-6 text-on-secondary-container body-md">admin@cfptsj.sn</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-blue-200">Admin</span>
+</td>
+<td class="px-8 py-6 text-on-secondary-container body-md">12 Jan 2024</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white rounded-lg text-primary transition-all shadow-sm">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-2 hover:bg-red-50 rounded-lg text-error transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm">AD</div>
+<span class="font-semibold text-on-surface">A. DIOP</span>
+</div>
+</td>
+<td class="px-8 py-6 text-on-secondary-container body-md">aicha.diop@example.sn</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 bg-teal-100 text-teal-800 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-teal-200">Formateur</span>
+</td>
+<td class="px-8 py-6 text-on-secondary-container body-md">05 Fév 2024</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white rounded-lg text-primary transition-all shadow-sm">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-2 hover:bg-red-50 rounded-lg text-error transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">MK</div>
+<span class="font-semibold text-on-surface">M. KONATE</span>
+</div>
+</td>
+<td class="px-8 py-6 text-on-secondary-container body-md">moussa.konate@example.sn</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-slate-300">Appui</span>
+</td>
+<td class="px-8 py-6 text-on-secondary-container body-md">15 Mars 2024</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white rounded-lg text-primary transition-all shadow-sm">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-2 hover:bg-red-50 rounded-lg text-error transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Pagination -->
+<div class="px-8 py-6 bg-surface-container-low/20 border-t border-outline-variant/10 flex items-center justify-between">
+<p class="text-sm text-on-secondary-container">Affichage de 1 à 3 sur 3 utilisateurs</p>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-slate-400 hover:bg-surface-container hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary-container text-white font-bold text-sm shadow-md shadow-blue-900/10">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-slate-400 hover:bg-surface-container hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Dashboard Style Stats (Editorial Asymmetry) -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-primary p-8 rounded-xl text-white relative overflow-hidden group shadow-xl shadow-blue-900/20">
+<div class="relative z-10">
+<h3 class="text-blue-200 text-xs font-bold uppercase tracking-[0.2em] mb-4">Admins Système</h3>
+<p class="text-5xl font-black mb-1">01</p>
+<p class="text-blue-100/60 text-sm">Accès total à la plateforme</p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-white/5 rotate-12 group-hover:rotate-0 transition-transform duration-500" data-icon="admin_panel_settings" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl border-l-4 border-teal-500 shadow-sm relative overflow-hidden">
+<h3 class="text-on-secondary-container text-xs font-bold uppercase tracking-[0.2em] mb-4">Formateurs Actifs</h3>
+<p class="text-5xl font-black text-on-surface mb-1">14</p>
+<p class="text-on-secondary-container text-sm">Gérant les sessions de séminaires</p>
+<div class="absolute right-8 top-1/2 -translate-y-1/2 w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center text-teal-600">
+<span class="material-symbols-outlined text-3xl" data-icon="school">school</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl border-l-4 border-slate-400 shadow-sm relative overflow-hidden">
+<h3 class="text-on-secondary-container text-xs font-bold uppercase tracking-[0.2em] mb-4">Personnel d'Appui</h3>
+<p class="text-5xl font-black text-on-surface mb-1">08</p>
+<p class="text-on-secondary-container text-sm">Support logistique et administratif</p>
+<div class="absolute right-8 top-1/2 -translate-y-1/2 w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-3xl" data-icon="support_agent">support_agent</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

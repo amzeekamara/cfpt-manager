@@ -6,6 +6,18 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    
+    /* Zenify UI Kit Colors */
+    --color-primary: #FF6321;
+    --color-primary-hover: #E8561B;
+    --color-background: #F9F9F9;
+    --color-surface: #FFFFFF;
+    --color-border: #EAECF0;
+    --color-text-main: #101828;
+    --color-text-muted: #667085;
+    
+    /* Roundness */
+    --radius-zn: 8px;
+    --radius-zn-lg: 12px;
 }

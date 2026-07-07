@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PFPT CFPT S-J | Tableau de Bord</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#727780",
+                        "on-secondary-container": "#586377",
+                        "on-primary-container": "#8ebdf9",
+                        "on-primary-fixed-variant": "#07497d",
+                        "on-error-container": "#93000a",
+                        "secondary": "#545f73",
+                        "primary-container": "#0f4c81",
+                        "on-primary-fixed": "#001c37",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary-fixed": "#111c2d",
+                        "surface-bright": "#f7f9fb",
+                        "primary": "#00355f",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d8dadc",
+                        "surface-container-high": "#e6e8ea",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "inverse-surface": "#2d3133",
+                        "primary-fixed": "#d2e4ff",
+                        "on-surface-variant": "#42474f",
+                        "tertiary-fixed-dim": "#ffb780",
+                        "secondary-container": "#d5e0f8",
+                        "on-background": "#191c1e",
+                        "tertiary-fixed": "#ffdcc4",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#532800",
+                        "inverse-primary": "#a0c9ff",
+                        "on-surface": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "secondary-fixed": "#d8e3fb",
+                        "surface-tint": "#2d6197",
+                        "on-tertiary-fixed-variant": "#6f3800",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "on-tertiary-container": "#f9a767",
+                        "primary-fixed-dim": "#a0c9ff",
+                        "outline-variant": "#c2c7d1",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary-container": "#743b00",
+                        "surface-container": "#eceef0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="text-on-surface antialiased">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-64 fixed left-0 top-0 overflow-y-auto border-r-0 bg-slate-50 dark:bg-slate-900 flex flex-col py-6 z-50">
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl tracking-tighter">CF</div>
+<div>
+<h1 class="text-xl font-bold tracking-tighter text-[#00355f] dark:text-white">PFPT CFPT S-J</h1>
+<p class="text-[10px] text-on-secondary-container uppercase tracking-widest font-semibold">The Digital Curator</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#00355f] dark:text-white font-bold border-r-4 border-[#00355f] bg-slate-200/50 dark:bg-slate-800/50 transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-headline tracking-tight text-sm">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#0f4c81] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-headline tracking-tight text-sm">Candidats</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#0f4c81] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-headline tracking-tight text-sm">Formateurs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#0f4c81] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-headline tracking-tight text-sm">Logistique &amp; Finances</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#0f4c81] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-headline tracking-tight text-sm">Archives</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-3 rounded-xl bg-primary-container text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="text-xs">Nouvelle Session</span>
+</button>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 z-40 w-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm flex items-center justify-between h-16 px-8">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+<span class="material-symbols-outlined text-lg">search</span>
+</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-[#0f4c81]/20 transition-all" placeholder="Rechercher..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<a class="text-[#00355f] font-semibold text-sm" href="#">2024</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#00355f] dark:hover:text-white transition-all text-sm" href="#">2025</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-slate-200">
+<div class="text-right">
+<p class="text-sm font-bold text-[#00355f]">M. BALDE</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-tighter">Administrateur</p>
+</div>
+<img alt="M. BALDE Avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-fixed" data-alt="Professional headshot of an African executive man in a tailored suit against a clean studio background, soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLIqjq-DgGpi2jlyZpjE-qZ9dq5hIf2vFwa4Kr0kZ6IlyFYEQuZNDuK3Ml2BhuLgmtVgndcvvSKAlgEKcePrIrczR0cT8lOcqsGhBo1pnRDdLrHrqJXqkWpLIWO7gC3k9uWBZwUV6fAoRMsZBIxnp_hQoRwfJvKjA6Ezu6_isxPQjLew1wvOI2CSujzs0heQ60M01j1JcWtGhaLfZG0CeTFUc7P1xqlKBo3BUEunjcfc9Tu0uVy-XGD9kd-wCyBHP78rb_JX91Qi4"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 max-w-7xl mx-auto space-y-12">
+<!-- Page Heading -->
+<section>
+<h2 class="text-4xl font-headline font-extrabold text-primary tracking-tight mb-2">Aperçu Global</h2>
+<p class="text-on-secondary-container font-body max-w-2xl">Bienvenue dans l'espace curatoriel du CFPT. Suivez les indicateurs clés de performance et l'évolution des sessions de formation en temps réel.</p>
+</section>
+<!-- Quick Stats Row (Editorial Bento) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-primary group hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary-container p-2 bg-secondary-fixed rounded-lg">groups</span>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+12%</span>
+</div>
+<p class="text-label-md text-on-secondary-container uppercase tracking-wider font-semibold mb-1">Total Candidats</p>
+<h3 class="text-3xl font-headline font-bold text-primary">200</h3>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-[#0f4c81] group hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary-container p-2 bg-secondary-fixed rounded-lg">public</span>
+</div>
+<p class="text-label-md text-on-secondary-container uppercase tracking-wider font-semibold mb-1">Pays Participants</p>
+<h3 class="text-3xl font-headline font-bold text-primary">18</h3>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-primary group hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary-container p-2 bg-secondary-fixed rounded-lg">record_voice_over</span>
+</div>
+<p class="text-label-md text-on-secondary-container uppercase tracking-wider font-semibold mb-1">Formateurs Actifs</p>
+<h3 class="text-3xl font-headline font-bold text-primary">12</h3>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-[#0f4c81] group hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary-container p-2 bg-secondary-fixed rounded-lg">payments</span>
+</div>
+<p class="text-label-md text-on-secondary-container uppercase tracking-wider font-semibold mb-1">Total Per Diem</p>
+<h3 class="text-2xl font-headline font-bold text-primary">5.000.000 <span class="text-sm font-normal text-slate-500 uppercase">CFA</span></h3>
+</div>
+</section>
+<!-- Main Analytics & Activity Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+<!-- Analytics Section -->
+<section class="lg:col-span-2 space-y-6">
+<div class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
+<div class="flex items-center justify-between mb-10">
+<h3 class="text-xl font-headline font-bold text-primary">Répartition des domaines de formation</h3>
+<button class="text-sm text-primary font-semibold flex items-center gap-1 hover:underline">
+                                Détails <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<!-- Pseudo-Chart Representation -->
+<div class="flex items-end justify-between h-64 gap-8 px-4">
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary-container/10 rounded-t-lg relative group transition-all" style="height: 85%">
+<div class="absolute inset-x-0 bottom-0 bg-primary-container rounded-t-lg transition-all h-full" style="height: 75%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">75%</div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase tracking-tight text-center">Réseaux</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary-container/10 rounded-t-lg relative group transition-all" style="height: 85%">
+<div class="absolute inset-x-0 bottom-0 bg-[#0f4c81] rounded-t-lg transition-all h-full" style="height: 45%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">45%</div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase tracking-tight text-center">Automatique</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary-container/10 rounded-t-lg relative group transition-all" style="height: 85%">
+<div class="absolute inset-x-0 bottom-0 bg-primary rounded-t-lg transition-all h-full" style="height: 90%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">90%</div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase tracking-tight text-center">Énergie</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary-container/10 rounded-t-lg relative group transition-all" style="height: 85%">
+<div class="absolute inset-x-0 bottom-0 bg-[#545f73] rounded-t-lg transition-all h-full" style="height: 30%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">30%</div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase tracking-tight text-center">Cloud</span>
+</div>
+</div>
+</div>
+<!-- Asymmetric Banner -->
+<div class="relative overflow-hidden rounded-2xl bg-primary-container text-white p-10 flex items-center min-h-[200px]">
+<div class="relative z-10 space-y-4 max-w-md">
+<h4 class="text-2xl font-headline font-bold">Rapport Trimestriel Disponible</h4>
+<p class="text-on-primary-container text-sm leading-relaxed">Les analyses de performance pour la session d'automne 2024 ont été compilées. Accédez aux recommandations stratégiques.</p>
+<button class="bg-white text-primary px-6 py-2 rounded-lg font-bold text-sm hover:bg-slate-100 transition-colors">Consulter le Rapport</button>
+</div>
+<div class="absolute right-0 top-0 w-1/2 h-full opacity-30 mix-blend-overlay">
+<img alt="Analytics background" class="w-full h-full object-cover" data-alt="Modern high-tech data center with glowing servers and blue accent lighting, shallow depth of field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAF7ncAY3Yb9OjBEFPM0NcVZ4ZLJ6PW2jy8pcJq69GzEHg1qHi0D9VRyxtydDvgJ904YXDDpaM6CphCJYzOXSSN_Y5KSwGOW_xCisM4I5v0NNOfOO4ZnlgnxQ6MZ-z8PTiVhxSIr28FV-A689oKr8vkB4RVFkHdXFcgKnqKN6R4A59pYNHwTh4iPVLKdmhGYV64L3vcgySsv0IYkvp_KL28BBhQ738WjV2YGWYMCUGj16_qk-lOL0Ct_h5Q3MxUXY23RvZJ9NGR2WM"/>
+</div>
+<div class="absolute -right-20 -bottom-20 w-80 h-80 bg-[#0f4c81] rounded-full blur-3xl opacity-50"></div>
+</div>
+</section>
+<!-- Recent Activity Section -->
+<section class="lg:col-span-1">
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm h-full flex flex-col">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-lg font-headline font-bold text-primary">Activités Récentes</h3>
+<button class="p-2 hover:bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-slate-400">more_vert</span>
+</button>
+</div>
+<div class="space-y-6 flex-1">
+<div class="flex items-start gap-4 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a professional West African woman in a modern office, natural lighting, looking confident" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHWKg_ZoRXi49FxbeWm7zc_n3uA4cnRAOl9ZAslk7y_FWgmL6ya1y8RtWagWPmLBpaOBUJybDGoCfc3ypf-thW8Bi_9P6M45s1NL7I7q1Fv1IKe4oDHdiOyfns4XXjFhZKVjZh0l3QG5FQr8d1GPYBIADvzfWED098aoJVeaWbRl16rVDqXFgnGJqu2zQJ3dIS-pdj4-vjb2IwE80R303U2picHHmbgDSzRW_Z7vgC_kKCQkvplsgz28ZapeD2GOoMluECvfZ3i0M"/>
+</div>
+<div class="border-b border-slate-100 pb-4 flex-1 group-hover:border-primary-container transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-primary">Aïcha Diop</p>
+<span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Confirmé</span>
+</div>
+<p class="text-[11px] text-slate-500">Sénégal • Réseaux</p>
+<p class="text-[10px] text-slate-400 mt-1">Il y a 2 heures</p>
+</div>
+</div>
+<div class="flex items-start gap-4 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a young West African man in business casual attire, warm lighting, blurred city background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjYA5WlukVjTB3RT9R61f2uqfhdtSiVFOzN4wbMFdieH285SuCcnbOKaBk9JdkUd80ewjZX9kt3DqJZCqpsawgrJS-T22a0i3QLZdqLhcrFauDrMjtXlIBPFVyQwLWwIev_HfxljGV866i0t1QJGWYeAZf3GCrARZZDQgr14m9prVtuT07K2oQSUf0hZKd4gA1kvJbE-rvAaxQ2HmSqBeIMV2JY-O1Mv2V35e6qAJkuEECkBz1su3Kz4yYt7j1MCJjMiHvInPBw5M"/>
+</div>
+<div class="border-b border-slate-100 pb-4 flex-1 group-hover:border-primary-container transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-primary">Moussa Konaté</p>
+<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase">En attente</span>
+</div>
+<p class="text-[11px] text-slate-500">Mali • Énergie</p>
+<p class="text-[10px] text-slate-400 mt-1">Il y a 5 heures</p>
+</div>
+</div>
+<div class="flex items-start gap-4 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Headshot of a middle-aged professional woman with glasses, smiling warmly, professional indoor setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2gYdN_m7-vghf02iPiVT_R75CAjlz-gG1t1inXa43m-f5HvXHM8BMZV9r5cuR36WxBi8-vsqogTyC_XGrA68rCKbGNMmLikWjx1CbTBf89ihbJ_mISdbOrv-FnTppi3bv_krh0EaVMrCdLIXk1AMhFEkHhgvEb2s3rAkfnXWya8kxgLYQsYxafcLIp1lN6tFJ8VMDIaJS5Vg82D_FkJS-JdfE_CpIkM-M9defdsWC9GRpx6rN747WKI6ofk0D_4Xch6dUUgn4VsI"/>
+</div>
+<div class="border-b border-slate-100 pb-4 flex-1 group-hover:border-primary-container transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-primary">Yasmine Traoré</p>
+<span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Confirmé</span>
+</div>
+<p class="text-[11px] text-slate-500">Côte d'Ivoire • Automatique</p>
+<p class="text-[10px] text-slate-400 mt-1">Hier</p>
+</div>
+</div>
+<div class="flex items-start gap-4 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a focused professional man in a bright workspace, modern clean aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGzznlaWZDcA2lCjls8CQx2lsZIlElbQYhqP8Wn8AJalNPpu9NAVOkl-UDu5aOkKYlTUkSfHXcsAtQsRMph4YmWg26MkI17lvO4lozhH7P8A6JsfGFKuWHiOD96nD0obmtxDct0spg2cdNQd4W3B-B0ljWzeZF9mwtqf6zX44H46FQ5kDVsTi76EGIxmCMOI-CgjAQ-_WnkmqpSE9WfQfniS7i02BaF6UvQtoSS9QeBJF5KYdsmOhJce15zV-f488MM-Z0NN9DkXs"/>
+</div>
+<div class="border-b border-slate-100 pb-4 flex-1 group-hover:border-primary-container transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-primary">Koffi Mensah</p>
+<span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Confirmé</span>
+</div>
+<p class="text-[11px] text-slate-500">Togo • Réseaux</p>
+<p class="text-[10px] text-slate-400 mt-1">Hier</p>
+</div>
+</div>
+<div class="flex items-start gap-4 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Headshot of a confident young professional woman, soft lighting, creative agency background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANh7rionCjHts-8FwsvBPpj1Ydrw9u3JLcKk7lYyDLOCG1RqlsGHEqvGdpwe3_qtCB0AVrfIyxNyL-TllODghl5dK5V5bvn6ZqtzLXl85RWPZ_KtvSC7Lyo-hH6r1qA3Na_tNEYshkZWpX-dtwvOXjJUrfeEfxbkkkA9XmKGszNr-w5yetdfyeai6caqWgvmO1LZDYJVVKVLtwsQv5HNsOgKhDHJkX0pEJZZpDgQERPJJg3sPsmt8ynsmdToStK6Xq9OGUb-srFL8"/>
+</div>
+<div class="pb-4 flex-1 group-hover:border-primary-container transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-sm font-bold text-primary">Fatou Sow</p>
+<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase">En attente</span>
+</div>
+<p class="text-[11px] text-slate-500">Sénégal • Cloud</p>
+<p class="text-[10px] text-slate-400 mt-1">2 jours</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 text-primary font-bold text-xs uppercase tracking-widest bg-primary-fixed/30 rounded-lg hover:bg-primary-fixed/50 transition-colors">
+                            Voir tout l'historique
+                        </button>
+</div>
+</section>
+</div>
+<!-- Focus Task Area: Dynamic Grid -->
+<section class="bg-surface-container-low rounded-3xl p-10">
+<div class="flex items-end justify-between mb-8">
+<div class="space-y-1">
+<span class="text-[10px] font-bold text-primary-container uppercase tracking-[0.2em]">Workflow Curatoriel</span>
+<h3 class="text-3xl font-headline font-bold text-primary">Actions Prioritaires</h3>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-white p-8 rounded-2xl border-b-4 border-primary transition-transform hover:-translate-y-1 cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-primary mb-6">description</span>
+<h4 class="text-lg font-bold text-primary mb-2">Valider Candidatures</h4>
+<p class="text-slate-500 text-sm leading-relaxed">24 nouveaux dossiers en attente de vérification pour la session Automatique.</p>
+</div>
+<div class="bg-white p-8 rounded-2xl border-b-4 border-[#0f4c81] transition-transform hover:-translate-y-1 cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-[#0f4c81] mb-6">calendar_month</span>
+<h4 class="text-lg font-bold text-primary mb-2">Planifier Session</h4>
+<p class="text-slate-500 text-sm leading-relaxed">Organiser les interventions des formateurs pour la période Décembre 2024.</p>
+</div>
+<div class="bg-white p-8 rounded-2xl border-b-4 border-primary transition-transform hover:-translate-y-1 cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-primary mb-6">receipt_long</span>
+<h4 class="text-lg font-bold text-primary mb-2">États Financiers</h4>
+<p class="text-slate-500 text-sm leading-relaxed">Générer les ordres de virement pour les per diems de la semaine passée.</p>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>
