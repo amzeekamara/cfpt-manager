@@ -39,6 +39,75 @@
         </form>
     </div>
 
+    <!-- Export Form -->
+    <div x-data="{ exportType: 'candidats' }" class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm mb-8">
+        <h2 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined">download</span> Exporter des données
+        </h2>
+        <form action="{{ route('admin.documents.export') }}" method="POST" class="flex flex-col gap-4">
+            @csrf
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div class="space-y-2 md:col-span-1">
+                    <label for="type" class="text-sm font-bold text-on-surface-variant">Type de données</label>
+                    <select name="type" x-model="exportType" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3">
+                        <option value="candidats">Candidats</option>
+                        <option value="formateurs">Formateurs / Intervenants</option>
+                        <option value="depenses">Dépenses</option>
+                    </select>
+                </div>
+                
+                <div class="space-y-2 md:col-span-1" x-show="exportType === 'candidats' || exportType === 'depenses'">
+                    <label for="date_from" class="text-sm font-bold text-on-surface-variant">Date de début</label>
+                    <input type="date" name="date_from" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5">
+                </div>
+                
+                <div class="space-y-2 md:col-span-1" x-show="exportType === 'candidats' || exportType === 'depenses'">
+                    <label for="date_to" class="text-sm font-bold text-on-surface-variant">Date de fin</label>
+                    <input type="date" name="date_to" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5">
+                </div>
+
+                <div class="space-y-2 md:col-span-1">
+                    <label for="edition_id" class="text-sm font-bold text-on-surface-variant">Édition</label>
+                    <select name="edition_id" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3">
+                        <option value="">Toutes les éditions</option>
+                        @foreach($editions as $edition)
+                            <option value="{{ $edition->id }}">{{ $edition->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-2 md:col-span-1">
+                    <label for="seminar_id" class="text-sm font-bold text-on-surface-variant">Séminaire</label>
+                    <select name="seminar_id" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3">
+                        <option value="">Tous les séminaires</option>
+                        @foreach($seminars as $seminar)
+                            <option value="{{ $seminar->id }}">{{ $seminar->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-2 md:col-span-1" x-show="exportType === 'formateurs'" style="display: none;">
+                    <label for="payment_status" class="text-sm font-bold text-on-surface-variant">Statut de paiement</label>
+                    <select name="payment_status" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3">
+                        <option value="">Tous</option>
+                        <option value="pending">En attente</option>
+                        <option value="paid">Payé</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-4">
+                <button type="submit" name="format" value="pdf" class="py-3 px-6 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined">picture_as_pdf</span> Exporter en PDF
+                </button>
+                <button type="submit" name="format" value="excel" class="py-3 px-6 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined">table_view</span> Exporter en Excel
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- Documents List -->
     <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden mb-8">
         <div class="px-6 py-4 bg-surface-container-low border-b border-outline-variant">

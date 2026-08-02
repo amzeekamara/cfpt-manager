@@ -57,11 +57,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('departments', \App\Http\Controllers\Admin\DepartmentController::class);
     
     Route::resource('documents', \App\Http\Controllers\Admin\DocumentController::class);
+    Route::post('documents/export', [\App\Http\Controllers\Admin\DocumentController::class, 'export'])->name('documents.export');
     Route::patch('documents/{document}/archive', [\App\Http\Controllers\Admin\DocumentController::class, 'archive'])->name('documents.archive');
     
     Route::resource('defenses', \App\Http\Controllers\Admin\DefenseController::class);
     
     Route::get('/archives', [\App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('archives');
+    Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->middleware('strict-admin');
 
     // Formulaires dynamiques partageables
@@ -78,4 +80,29 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Debugging (Local Only ideally, but grouped here for simplicity)
     Route::get('/debug/emails', [\App\Http\Controllers\Admin\DebugController::class, 'emails'])->name('debug.emails');
+});
+
+// Portails (Candidats et Formateurs)
+Route::prefix('portal')->name('portal.')->group(function () {
+    // Authentification Unifiée
+    Route::get('/login', [\App\Http\Controllers\Portal\AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Portal\AuthController::class, 'login']);
+    
+    // Fallback welcome redirecting to login
+    Route::get('/', function () {
+        return redirect()->route('portal.login');
+    })->name('welcome');
+    
+    Route::post('/logout', [\App\Http\Controllers\Portal\AuthController::class, 'logout'])->name('logout');
+
+    // Espace Candidat
+    Route::middleware('portal.auth:candidate')->prefix('candidat')->name('candidate.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Portal\CandidateController::class, 'dashboard'])->name('dashboard');
+    });
+
+    // Espace Formateur
+    Route::middleware('portal.auth:trainer')->prefix('formateur')->name('trainer.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Portal\TrainerController::class, 'dashboard'])->name('dashboard');
+        Route::post('/messages', [\App\Http\Controllers\Portal\TrainerController::class, 'sendMessage'])->name('messages.send');
+    });
 });
