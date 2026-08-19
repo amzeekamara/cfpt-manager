@@ -279,9 +279,7 @@
                         <div class="bg-gradient-to-br from-[#4B6A95] to-[#344d70] rounded-xl p-3.5 text-white flex flex-col justify-between shadow-sm h-32 relative overflow-hidden">
                             <div class="flex justify-between items-center relative z-10">
                                 <span class="text-xs font-bold opacity-90">Total Inscrits</span>
-                                <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                                    <i data-lucide="users" class="w-3.5 h-3.5 text-white"></i>
-                                </div>
+                                <i data-lucide="users" class="w-5 h-5 text-white/90"></i>
                             </div>
                             <div class="relative z-10">
                                 <div class="text-2xl sm:text-3xl font-black tracking-tight">{{ $stats['total_registrations'] ?? ($stats['pending_registrations_count'] + $stats['approved_registrations_count'] + $stats['rejected_registrations_count']) }}</div>
@@ -293,9 +291,7 @@
                         <div class="bg-white rounded-xl p-3.5 border border-slate-200 flex flex-col justify-between shadow-sm h-32">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-bold text-slate-700">À Examiner</span>
-                                <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-                                    <i data-lucide="hourglass" class="w-3.5 h-3.5"></i>
-                                </div>
+                                <i data-lucide="hourglass" class="w-5 h-5 text-amber-500"></i>
                             </div>
                             <div>
                                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{{ $stats['pending_registrations_count'] }}</div>
@@ -309,9 +305,7 @@
                         <div class="bg-white rounded-xl p-3.5 border border-slate-200 flex flex-col justify-between shadow-sm h-32">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-bold text-slate-700">Sélectionnés</span>
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-                                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                                </div>
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
                             </div>
                             <div>
                                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{{ $stats['approved_registrations_count'] }}</div>
@@ -325,9 +319,7 @@
                         <div class="bg-white rounded-xl p-3.5 border border-slate-200 flex flex-col justify-between shadow-sm h-32">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-bold text-slate-700">Non Retenus</span>
-                                <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                                    <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
-                                </div>
+                                <i data-lucide="x-circle" class="w-5 h-5 text-rose-500"></i>
                             </div>
                             <div>
                                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{{ $stats['rejected_registrations_count'] }}</div>
@@ -338,9 +330,9 @@
                         </div>
                     </div>
 
-                    <!-- Représentation Graphique des Candidatures par Séminaire (6 Cols) -->
+                    <!-- Représentation Graphique des Candidatures par Séminaire avec Repères et Graduations Automatisées (6 Cols) -->
                     <div class="lg:col-span-6 bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between mb-2">
                             <div>
                                 <h3 class="text-xs font-extrabold text-slate-900">Répartition par Séminaire</h3>
                                 <p class="text-[10px] text-slate-400 font-medium">Nombre de candidatures enregistrées</p>
@@ -355,33 +347,81 @@
                             </div>
                         </div>
 
-                        <!-- Stacked Bar Visuals -->
-                        <div class="relative pt-3">
-                            <div class="flex items-end justify-between gap-2 h-32 px-1">
-                                @php
-                                    $topSeminars = $allSeminars->take(6);
-                                @endphp
-                                @forelse($topSeminars as $index => $s)
-                                    @php
-                                        $sTotal = $s->registrations()->count();
-                                        $sApproved = $s->registrations()->where('status', 'approved')->count();
-                                        $barHeightTotal = min(90, max(18, $sTotal * 10));
-                                        $barHeightApproved = min(90, max(8, $sApproved * 10));
-                                    @endphp
-                                    <div class="flex flex-col items-center gap-1 flex-1">
-                                        <div class="w-full max-w-[20px] flex flex-col gap-1 items-center">
-                                            <div class="w-full rounded-t-sm striped-brand-bar" style="height: {{ $barHeightTotal }}px;" title="{{ $sTotal }} inscrits"></div>
-                                            <div class="w-full rounded-b-sm bg-[#8ebdf9]" style="height: {{ $barHeightApproved }}px;" title="{{ $sApproved }} approuvés"></div>
+                        @php
+                            $topSeminars = $allSeminars->take(6);
+                            $maxVal = 0;
+                            foreach ($topSeminars as $semItem) {
+                                $count = $semItem->registrations()->count();
+                                if ($count > $maxVal) {
+                                    $maxVal = $count;
+                                }
+                            }
+                            // Graduation automatique de l'axe Y
+                            $yMax = max(10, (int)(ceil(max(1, $maxVal) / 5) * 5));
+                            $yStep = (int)($yMax / 4);
+                            $yTicks = [$yMax, $yStep * 3, $yStep * 2, $yStep, 0];
+                        @endphp
+
+                        <!-- Zone du Graphique avec Axes X & Y Gradués -->
+                        <div class="relative flex items-stretch gap-2 h-36 pt-2">
+                            <!-- Axe Y (Graduations numériques) -->
+                            <div class="flex flex-col justify-between text-[9px] font-bold text-slate-400 pr-1 select-none border-r border-slate-200">
+                                @foreach($yTicks as $tick)
+                                    <span class="text-right w-5 leading-none">{{ $tick }}</span>
+                                @endforeach
+                            </div>
+
+                            <!-- Conteneur des Barres avec lignes de repère horizontales -->
+                            <div class="flex-1 relative flex flex-col justify-between">
+                                <!-- Lignes de repère horizontales en arrière-plan -->
+                                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                                    <div class="border-b border-slate-100 border-dashed w-full"></div>
+                                    <div class="border-b border-slate-100 border-dashed w-full"></div>
+                                    <div class="border-b border-slate-100 border-dashed w-full"></div>
+                                    <div class="border-b border-slate-100 border-dashed w-full"></div>
+                                    <div class="border-b border-slate-300 w-full"></div>
+                                </div>
+
+                                <!-- Colonnes de barres par Séminaire -->
+                                <div class="relative z-10 h-full flex items-end justify-around gap-2 px-2">
+                                    @forelse($topSeminars as $index => $s)
+                                        @php
+                                            $sTotal = $s->registrations()->count();
+                                            $sApproved = $s->registrations()->where('status', 'approved')->count();
+                                            
+                                            $totalPct = min(100, max(6, ($sTotal / $yMax) * 100));
+                                            $approvedPct = min(100, max(4, ($sApproved / $yMax) * 100));
+                                        @endphp
+                                        <div class="flex flex-col items-center gap-1.5 flex-1 group">
+                                            <!-- Colonnes groupées : Inscrits & Retenus -->
+                                            <div class="w-full flex items-end justify-center gap-1 h-24 relative" title="{{ $s->title }} : {{ $sTotal }} inscrits ({{ $sApproved }} retenus)">
+                                                <!-- Barre Inscrits -->
+                                                <div class="w-3.5 bg-[#4B6A95] rounded-t-sm transition-all duration-300 group-hover:bg-[#354e70] relative flex items-start justify-center" 
+                                                     style="height: {{ $totalPct }}%;">
+                                                    @if($sTotal > 0)
+                                                        <span class="absolute -top-3.5 text-[8px] font-bold text-[#4B6A95] opacity-0 group-hover:opacity-100 transition">{{ $sTotal }}</span>
+                                                    @endif
+                                                </div>
+                                                <!-- Barre Retenus -->
+                                                <div class="w-3.5 bg-[#8ebdf9] rounded-t-sm transition-all duration-300 group-hover:bg-[#6baaf5] relative flex items-start justify-center" 
+                                                     style="height: {{ $approvedPct }}%;">
+                                                    @if($sApproved > 0)
+                                                        <span class="absolute -top-3.5 text-[8px] font-bold text-sky-600 opacity-0 group-hover:opacity-100 transition">{{ $sApproved }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- Label Axe X (S1, S2, S3...) -->
+                                            <span class="text-[10px] font-extrabold text-slate-600 truncate max-w-[50px] group-hover:text-[#4B6A95] transition" title="{{ $s->title }}">
+                                                S{{ $index + 1 }}
+                                            </span>
                                         </div>
-                                        <span class="text-[9px] font-bold text-slate-500 mt-1 truncate max-w-[45px]" title="{{ $s->title }}">
-                                            S{{ $index + 1 }}
-                                        </span>
-                                    </div>
-                                @empty
-                                    <div class="w-full text-center text-xs text-slate-400 py-8">
-                                        Aucune donnée de séminaire disponible.
-                                    </div>
-                                @endforelse
+                                    @empty
+                                        <div class="w-full text-center text-xs text-slate-400 py-6">
+                                            Aucune donnée disponible pour cette édition.
+                                        </div>
+                                    @endforelse
+                                </div>
                             </div>
                         </div>
                     </div>
