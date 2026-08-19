@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            $table->dropUnique(['registration_id', 'session_date']);
+            if (DB::getDriverName() === 'mysql') {
+                $table->dropForeign(['registration_id']);
+                $table->dropUnique('attendances_registration_id_session_date_unique');
+                $table->foreign('registration_id')->references('id')->on('registrations')->onDelete('cascade');
+            } else {
+                $table->dropUnique(['registration_id', 'session_date']);
+            }
             $table->unique(['registration_id', 'session_date', 'topic_id']);
         });
     }
