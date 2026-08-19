@@ -120,11 +120,10 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-
         $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
-            'role_id' => 'sometimes|exists:roles,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
+            'role_id' => 'required|exists:roles,id',
             'seminars' => 'nullable|array',
             'password' => 'nullable|string|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -133,11 +132,19 @@ class UserController extends Controller
             'supervisor' => 'nullable|string|max:255',
         ]);
 
-        $dataToUpdate = $request->only('name', 'email', 'role_id');
-        if ($request->has('role_id')) $user->role_id = $request->role_id;
-        if ($request->has('specialty')) $user->specialty = $request->specialty;
-        if ($request->has('position')) $user->position = $request->position;
-        if ($request->has('supervisor')) $user->supervisor = $request->supervisor;
+        $dataToUpdate = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role_id' => $request->role_id,
+            'specialty' => $request->specialty,
+            'position' => $request->position,
+            'supervisor' => $request->supervisor,
+        ];
+
+        if ($request->filled('password')) {
+            $dataToUpdate['password'] = Hash::make($request->password);
+            $dataToUpdate['must_change_password'] = $request->boolean('must_change_password', false);
+        }
 
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
@@ -148,7 +155,7 @@ class UserController extends Controller
 
         $user->update($dataToUpdate);
 
-        $role = Role::find($request->role_id ?? $user->role_id);
+        $role = Role::find($request->role_id);
         if ($role && $role->name === 'Formateur') {
             $trainer = \App\Models\Trainer::firstOrCreate(
                 ['email' => $user->email],
@@ -156,16 +163,6 @@ class UserController extends Controller
             );
             
             if ($request->has('seminars')) {
-                // Ensure default remuneration and payment_status for new assignments
-                $syncData = [];
-                foreach($request->seminars as $semId) {
-                    $syncData[$semId] = ['remuneration' => 0, 'payment_status' => 'unpaid'];
-                }
-                // Only sync the ones from request, but keep existing pivot data if already assigned?
-                // Actually, syncWithoutDetaching is better, but what if they unassign? 
-                // Let's use sync, but we need to preserve existing pivot data.
-                // It's easier to just sync with empty array for new ones, but `sync` wipes out existing pivot data.
-                // Let's get existing pivot data:
                 $existing = $trainer->seminars()->pluck('remuneration', 'seminars.id')->toArray();
                 $existingStatus = $trainer->seminars()->pluck('payment_status', 'seminars.id')->toArray();
                 
@@ -182,7 +179,7 @@ class UserController extends Controller
             }
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'Utilisateur modifié avec succès.');
+        return redirect()->route('admin.users.index')->with('success', "Le compte de {$user->name} a été mis à jour avec succès.");
     }
 
     public function destroy(User $user)
@@ -198,9 +195,9 @@ class UserController extends Controller
         ]);
 
         $user->password = Hash::make($request->password);
-        $user->must_change_password = true;
+        $user->must_change_password = $request->boolean('must_change_password', true);
         $user->save();
 
-        return redirect()->route('admin.users.index')->with('success', 'Mot de passe réinitialisé. Le nouveau mot de passe par défaut est : ' . $request->password);
+        return redirect()->route('admin.users.index')->with('success', "Mot de passe réinitialisé pour {$user->name}. Nouveau mot de passe : " . $request->password);
     }
 }
