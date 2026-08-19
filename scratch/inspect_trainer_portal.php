@@ -4,22 +4,31 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-$trainers = App\Models\Trainer::with('seminars')->get();
-echo "=== TRAINERS (" . $trainers->count() . ") ===\n";
-foreach ($trainers as $t) {
-    echo "Trainer #{$t->id}: {$t->name} ({$t->email}) | Seminars: " . $t->seminars->pluck('id')->join(', ') . "\n";
+$sessions = App\Models\TrainerSession::with(['trainer', 'seminar', 'topic'])->get();
+echo "=== SESSIONS COUNT: " . $sessions->count() . " ===\n";
+foreach ($sessions as $s) {
+    echo "Session #{$s->id}: Trainer #{$s->trainer_id} ({$s->trainer?->name}), Seminar: {$s->seminar?->title}, Date: {$s->session_date}, Hours: {$s->hours_taught}h\n";
 }
 
-$seminars = App\Models\Seminar::withCount('registrations')->get();
-echo "\n=== SEMINARS ===\n";
-foreach ($seminars as $s) {
-    $approvedCount = $s->registrations()->where('status', 'approved')->count();
-    $totalCount = $s->registrations()->count();
-    echo "Seminar #{$s->id}: {$s->title} | Total Regs: {$totalCount} | Approved: {$approvedCount}\n";
-}
-
-$attendances = App\Models\Attendance::all();
-echo "\n=== ATTENDANCES COUNT: " . $attendances->count() . " ===\n";
-foreach ($attendances->take(10) as $a) {
-    echo "Attendance #{$a->id}: Reg #{$a->registration_id}, Date: {$a->session_date}, Status: {$a->status}\n";
+if ($sessions->count() === 0) {
+    echo "Creating realistic sessions from attendances dates...\n";
+    $trainer = App\Models\Trainer::first();
+    if ($trainer) {
+        $dates = App\Models\Attendance::distinct()->pluck('session_date');
+        foreach ($dates as $d) {
+            $formattedDate = \Carbon\Carbon::parse($d)->format('Y-m-d');
+            App\Models\TrainerSession::firstOrCreate(
+                [
+                    'trainer_id' => $trainer->id,
+                    'seminar_id' => $trainer->seminars->first()?->id ?? 1,
+                    'session_date' => $formattedDate,
+                ],
+                [
+                    'hours_taught' => 4,
+                    'topic_id' => null,
+                ]
+            );
+        }
+        echo "Created " . App\Models\TrainerSession::count() . " sessions for Trainer #{$trainer->id}\n";
+    }
 }

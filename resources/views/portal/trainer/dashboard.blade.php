@@ -272,19 +272,17 @@
         </svg>
     </div>
 
-    {{-- KPI 3 : Messages envoyés --}}
+    {{-- KPI 3 : Heures de cours dispensées --}}
     <div class="kpi-card">
         <div class="kpi-bw-icon">
-            <span class="material-symbols-outlined text-[20px]">campaign</span>
+            <span class="material-symbols-outlined text-[20px]">schedule</span>
         </div>
         <div class="kpi-body">
-            <div class="kpi-lbl">Messages</div>
-            <div class="kpi-val">{{ $messages->count() }}</div>
-            @if($messages->count() > 0)
-                <span class="kpi-badge"><span class="material-symbols-outlined text-[11px]">mark_email_read</span> Envoyés</span>
-            @else
-                <span class="kpi-badge"><span class="material-symbols-outlined text-[11px]">inbox</span> Aucun</span>
-            @endif
+            <div class="kpi-lbl">Volume Horaire</div>
+            <div class="kpi-val">{{ $totalHoursTaught ?? 0 }} <span class="text-xs font-bold text-slate-400">heures</span></div>
+            <span class="kpi-badge">
+                <span class="material-symbols-outlined text-[11px]">history_edu</span> Effectué
+            </span>
         </div>
         <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
             <polyline points="0,20 12,20 20,12 28,16 36,8 44,10 52,4" stroke="#1e2d3d" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
@@ -292,23 +290,23 @@
         </svg>
     </div>
 
-    {{-- KPI 4 : Ressources --}}
+    {{-- KPI 4 : Séances Effectuées --}}
     <div class="kpi-card">
         <div class="kpi-bw-icon">
-            <span class="material-symbols-outlined text-[20px]">folder_open</span>
+            <span class="material-symbols-outlined text-[20px]">event_available</span>
         </div>
         <div class="kpi-body">
-            <div class="kpi-lbl">Ressources</div>
-            <div class="kpi-val">{{ $resources->count() }}</div>
+            <div class="kpi-lbl">Séances Saisies</div>
+            <div class="kpi-val">{{ $trainerSessions->count() }}</div>
             <span class="kpi-badge">
-                <span class="material-symbols-outlined text-[11px]">attach_file</span> Disponibles
+                <span class="material-symbols-outlined text-[11px]">fact_check</span> Émargées
             </span>
         </div>
         <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
             <polyline points="0,26 10,22 20,24 30,14 40,18 52,8" stroke="#1e2d3d" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="52" cy="8" r="3" fill="#1e2d3d"/>
         </svg>
-        </div>
+    </div>
 
     </div>{{-- end kpi-grid --}}
     </div>{{-- end inner content --}}
@@ -339,6 +337,9 @@
             <button type="button" id="tab-btn-candidates" onclick="switchTrainerTab('candidates')" class="tab-btn active text-xs font-bold">
                 Liste & Statut Aujourd'hui ({{ $recentCandidates->count() }})
             </button>
+            <button type="button" id="tab-btn-sessions" onclick="switchTrainerTab('sessions')" class="tab-btn text-xs font-bold">
+                Relevé des Heures ({{ $trainerSessions->count() }})
+            </button>
             <button type="button" id="tab-btn-topics" onclick="switchTrainerTab('topics')" class="tab-btn text-xs font-bold">
                 Par Thématique ({{ $topicsWithCounts->count() }})
             </button>
@@ -349,19 +350,20 @@
             @if($recentCandidates->count() > 0)
                 <div class="flex items-center justify-between gap-2 p-2.5 mb-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
                     <span class="text-slate-500 font-bold">Séance du {{ \Carbon\Carbon::parse($todayDate)->locale('fr')->isoFormat('D MMMM YYYY') }} :</span>
-                    <div class="flex items-center gap-2 font-bold">
-                        <span class="text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">{{ $todayPresentCount }} Présent(s)</span>
-                        <span class="text-rose-700 bg-rose-100/70 px-2 py-0.5 rounded-md">{{ $todayAbsentCount }} Absent(s)</span>
+                    <div class="flex items-center gap-3 font-bold">
+                        <span class="text-emerald-600">{{ $todayPresentCount }} Présent(s)</span>
+                        <span class="text-slate-300">•</span>
+                        <span class="text-rose-600">{{ $todayAbsentCount }} Absent(s)</span>
                     </div>
                 </div>
 
                 <div class="overflow-x-auto max-h-[320px] overflow-y-auto">
-                    <table class="dash-table">
+                    <table class="dash-table w-full">
                         <thead>
                             <tr>
-                                <th>Candidat</th>
-                                <th>Thème</th>
-                                <th class="text-right">Statut Séance</th>
+                                <th style="width: 42%;">Candidat</th>
+                                <th style="width: 38%;">Thème</th>
+                                <th style="width: 20%; text-align: right;">Statut Séance</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -380,22 +382,24 @@
                                                     {{ strtoupper(substr($candidate->user->name, 0, 1)) }}
                                                 </div>
                                             @endif
-                                            <div>
-                                                <div class="font-bold text-slate-900 text-xs leading-tight">{{ $candidate->user->name }}</div>
-                                                <div class="text-[10px] text-slate-400 font-medium">{{ $candidate->user->email }}</div>
+                                            <div class="min-w-0">
+                                                <div class="font-bold text-slate-900 text-xs leading-tight truncate">{{ $candidate->user->name }}</div>
+                                                <div class="text-[10px] text-slate-400 font-medium truncate">{{ $candidate->user->email }}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="text-xs text-slate-600 font-medium">{{ $candidate->topic?->name ?? 'Général' }}</span>
+                                        <span class="text-xs text-slate-600 font-medium line-clamp-1" title="{{ $candidate->topic?->name ?? 'Général' }}">
+                                            {{ $candidate->topic?->name ?? 'Général' }}
+                                        </span>
                                     </td>
-                                    <td class="text-right">
+                                    <td class="text-right whitespace-nowrap">
                                         @if($attStatus === 'present')
-                                            <span class="pill pill-green">Présent</span>
+                                            <span class="text-xs font-bold text-emerald-600">Présent</span>
                                         @elseif($attStatus === 'absent')
-                                            <span class="pill pill-red">Absent</span>
+                                            <span class="text-xs font-bold text-rose-600">Absent</span>
                                         @else
-                                            <span class="pill pill-amber">Non émargé</span>
+                                            <span class="text-xs font-bold text-amber-500">Non émargé</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -411,7 +415,46 @@
             @endif
         </div>
 
-        {{-- Contenu Onglet 2 : Par Thème --}}
+        {{-- Contenu Onglet 2 : Relevé des Séances & Heures dispensées --}}
+        <div id="tab-content-sessions" class="hidden">
+            @if($trainerSessions->count() > 0)
+                <div class="overflow-x-auto max-h-[320px] overflow-y-auto">
+                    <table class="dash-table w-full">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">Date Séance</th>
+                                <th style="width: 45%;">Séminaire / Thème</th>
+                                <th style="width: 30%; text-align: right;">Heures Dispensées</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($trainerSessions as $session)
+                                <tr>
+                                    <td>
+                                        <div class="font-bold text-slate-800 text-xs">{{ \Carbon\Carbon::parse($session->session_date)->format('d/m/Y') }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-xs font-bold text-slate-800 line-clamp-1">{{ $session->seminar->title ?? 'Séminaire' }}</div>
+                                        <div class="text-[10px] text-slate-400 font-medium">{{ $session->topic->name ?? 'Général / Atelier' }}</div>
+                                    </td>
+                                    <td class="text-right whitespace-nowrap">
+                                        <span class="font-black text-slate-900 text-xs">{{ $session->hours_taught }} h</span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-[40px] mb-2">history_edu</span>
+                    <p class="text-sm font-bold text-gray-600">Aucune séance enregistrée pour le moment.</p>
+                    <p class="text-xs text-gray-400 mt-1">Enregistrez un émargement pour comptabiliser vos heures.</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- Contenu Onglet 3 : Par Thème --}}
         <div id="tab-content-topics" class="hidden">
             @if($topicsWithCounts->count() > 0)
                 <div class="overflow-x-auto max-h-[320px] overflow-y-auto">
@@ -623,20 +666,26 @@
 <script>
     function switchTrainerTab(tab) {
         const btnCandidates = document.getElementById('tab-btn-candidates');
+        const btnSessions = document.getElementById('tab-btn-sessions');
         const btnTopics = document.getElementById('tab-btn-topics');
+        
         const contentCandidates = document.getElementById('tab-content-candidates');
+        const contentSessions = document.getElementById('tab-content-sessions');
         const contentTopics = document.getElementById('tab-content-topics');
 
+        // Reset all tabs
+        [btnCandidates, btnSessions, btnTopics].forEach(btn => btn && btn.classList.remove('active'));
+        [contentCandidates, contentSessions, contentTopics].forEach(c => c && c.classList.add('hidden'));
+
         if (tab === 'candidates') {
-            btnCandidates.classList.add('active');
-            btnTopics.classList.remove('active');
-            contentCandidates.classList.remove('hidden');
-            contentTopics.classList.add('hidden');
-        } else {
-            btnTopics.classList.add('active');
-            btnCandidates.classList.remove('active');
-            contentTopics.classList.remove('hidden');
-            contentCandidates.classList.add('hidden');
+            if (btnCandidates) btnCandidates.classList.add('active');
+            if (contentCandidates) contentCandidates.classList.remove('hidden');
+        } else if (tab === 'sessions') {
+            if (btnSessions) btnSessions.classList.add('active');
+            if (contentSessions) contentSessions.classList.remove('hidden');
+        } else if (tab === 'topics') {
+            if (btnTopics) btnTopics.classList.add('active');
+            if (contentTopics) contentTopics.classList.remove('hidden');
         }
     }
 

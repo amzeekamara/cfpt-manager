@@ -278,6 +278,51 @@
                         </button>
                     </form>
                 </div>
+
+                @if($trainer)
+                <!-- Trainer Statistics Card (Volume Horaire & Séances) -->
+                <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[#4B6A95]">history_edu</span>
+                            <h3 class="font-bold text-slate-900 text-sm">Volume Horaire & Séances</h3>
+                        </div>
+                        <span class="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-xs font-black">
+                            {{ $trainer->total_hours_taught }} h
+                        </span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-slate-400 block text-[10px] uppercase font-bold">Séances</span>
+                                <span class="font-bold text-slate-800 text-sm">{{ $trainer->sessions->count() }} séance(s)</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-slate-400 block text-[10px] uppercase font-bold">Rémunération</span>
+                                <span class="font-bold text-slate-800 text-sm">{{ number_format($trainer->seminars->sum('pivot.remuneration'), 0, ',', ' ') }} CFA</span>
+                            </div>
+                        </div>
+
+                        @if($trainer->sessions->count() > 0)
+                            <div class="mt-3">
+                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Historique des cours</span>
+                                <div class="overflow-y-auto max-h-48 space-y-2">
+                                    @foreach($trainer->sessions as $sess)
+                                        <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-100 text-xs flex justify-between items-center">
+                                            <div>
+                                                <div class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($sess->session_date)->format('d/m/Y') }}</div>
+                                                <div class="text-[10px] text-slate-500 line-clamp-1">{{ $sess->seminar->title ?? 'Séminaire' }}</div>
+                                            </div>
+                                            <span class="font-black text-slate-900 bg-white px-2 py-1 rounded-md border border-slate-200">{{ $sess->hours_taught }} h</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
             </div>
 
         </div>

@@ -441,68 +441,160 @@
             </table>
         </div>
 
-        <!-- Tab Content: Formateurs -->
-        <div id="tab-trainers" class="tab-content">
+         <!-- Tab Content: Formateurs -->
+        <div id="tab-trainers" class="tab-content" x-data="{ 
+            selectedTrainerModal: false, 
+            trainerName: '', 
+            trainerEmail: '', 
+            trainerSpecialty: '',
+            trainerHours: 0,
+            trainerSessionsCount: 0,
+            trainerRemuneration: 0,
+            trainerPaymentStatus: '',
+            trainerSessions: [],
+            trainerSeminars: []
+        }">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Nom complet</th>
+                        <th>Formateur</th>
                         <th>Email</th>
-                        <th>Matière / Spécialité</th>
+                        <th>Séminaire(s) & Spécialité</th>
+                        <th>Volume Horaire Dispensé</th>
+                        <th>Rémunération</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($trainers as $user)
+                    @php
+                        $trainerModel = $user->trainer;
+                        $totalHours = $trainerModel ? $trainerModel->total_hours_taught : 0;
+                        $sessionsCount = $trainerModel ? $trainerModel->sessions->count() : 0;
+                        $remuneration = $trainerModel ? $trainerModel->seminars->sum('pivot.remuneration') : 0;
+                        $paymentStatus = $trainerModel && $trainerModel->seminars->count() > 0 ? $trainerModel->seminars->first()->pivot->payment_status : 'unpaid';
+                        
+                        $sessionsJson = $trainerModel ? $trainerModel->sessions->map(function($s) {
+                            return [
+                                'id' => $s->id,
+                                'date' => \Carbon\Carbon::parse($s->session_date)->format('d/m/Y'),
+                                'seminar' => $s->seminar->title ?? 'Séminaire',
+                                'topic' => $s->topic->name ?? 'Général / Atelier',
+                                'hours' => $s->hours_taught
+                            ];
+                        })->values() : collect();
+
+                        $seminarsJson = $trainerModel ? $trainerModel->seminars->map(function($sem) {
+                            return [
+                                'title' => $sem->title,
+                                'remuneration' => $sem->pivot->remuneration ?? 0,
+                                'payment_status' => $sem->pivot->payment_status ?? 'unpaid'
+                            ];
+                        })->values() : collect();
+                    @endphp
                     <tr>
                         <td>
                             <div class="flex items-center gap-3">
                                 @if($user->avatar)
-                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm">
                                 @else
-                                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shadow-sm">
+                                    <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shadow-sm">
                                         {{ substr($user->name, 0, 2) }}
                                     </div>
                                 @endif
-                                <span>{{ $user->name }}</span>
+                                <div>
+                                    <div class="font-bold text-slate-900 text-sm leading-tight">{{ $user->name }}</div>
+                                    @if($user->specialty)
+                                        <div class="text-[11px] text-slate-400 font-medium">{{ $user->specialty }}</div>
+                                    @endif
+                                </div>
                             </div>
                         </td>
-                        <td>{{ $user->email }}</td>
                         <td>
-                            @if($user->specialty)
-                                <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-medium">{{ $user->specialty }}</span>
+                            <span class="text-xs text-slate-600 font-medium">{{ $user->email }}</span>
+                        </td>
+                        <td>
+                            @if($trainerModel && $trainerModel->seminars->count() > 0)
+                                <div class="space-y-1">
+                                    @foreach($trainerModel->seminars as $sem)
+                                        <div class="text-xs font-semibold text-[#4B6A95] bg-blue-50/80 px-2 py-0.5 rounded-md inline-block max-w-[220px] truncate" title="{{ $sem->title }}">
+                                            {{ $sem->title }}
+                                        </div>
+                                    @endforeach
+                                </div>
                             @else
-                                <span class="text-slate-400 italic text-xs">Non spécifié</span>
+                                <span class="text-slate-400 italic text-xs">Aucun séminaire assigné</span>
                             @endif
                         </td>
                         <td>
-                            <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
-                                <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
-                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-xs font-black">
+                                    {{ $totalHours }} h
+                                </span>
+                                <span class="text-xs text-slate-500 font-medium">({{ $sessionsCount }} séance{{ $sessionsCount > 1 ? 's' : '' }})</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <span class="font-black text-slate-900 text-xs">{{ number_format($remuneration, 0, ',', ' ') }} CFA</span>
+                                <div>
+                                    @if($paymentStatus === 'paid')
+                                        <span class="text-[10px] font-bold text-emerald-600">Payé</span>
+                                    @else
+                                        <span class="text-[10px] font-bold text-amber-600">En attente</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                    @click="
+                                        trainerName = '{{ addslashes($user->name) }}';
+                                        trainerEmail = '{{ addslashes($user->email) }}';
+                                        trainerSpecialty = '{{ addslashes($user->specialty ?? '') }}';
+                                        trainerHours = {{ $totalHours }};
+                                        trainerSessionsCount = {{ $sessionsCount }};
+                                        trainerRemuneration = {{ $remuneration }};
+                                        trainerPaymentStatus = '{{ $paymentStatus }}';
+                                        trainerSessions = {{ json_encode($sessionsJson) }};
+                                        trainerSeminars = {{ json_encode($seminarsJson) }};
+                                        selectedTrainerModal = true;
+                                    "
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-[#4B6A95] text-slate-700 hover:text-white rounded-lg text-xs font-bold transition shadow-2xs"
+                                    title="Voir le relevé d'heures et les séances">
+                                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    <span>Séances ({{ $totalHours }}h)</span>
                                 </button>
-                                
-                                <div x-show="open" 
-                                     x-transition:enter="transition ease-out duration-100" 
-                                     x-transition:enter-start="transform opacity-0 scale-95" 
-                                     x-transition:enter-end="transform opacity-100 scale-100" 
-                                     x-transition:leave="transition ease-in duration-75" 
-                                     x-transition:leave-start="transform opacity-100 scale-100" 
-                                     x-transition:leave-end="transform opacity-0 scale-95"
-                                     class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
-                                     style="display: none;">
-                                    <div class="py-1">
-                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-slate-50 hover:text-primary">
-                                            <span class="material-symbols-outlined mr-3 text-[18px] text-gray-400 group-hover:text-primary">edit</span>
-                                            Éditer
-                                        </a>
-                                        <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce formateur ?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                                                <span class="material-symbols-outlined mr-3 text-[18px] text-red-500">delete</span>
-                                                Supprimer
-                                            </button>
-                                        </form>
+
+                                <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
+                                    <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
+                                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                    </button>
+                                    
+                                    <div x-show="open" 
+                                         x-transition:enter="transition ease-out duration-100" 
+                                         x-transition:enter-start="transform opacity-0 scale-95" 
+                                         x-transition:enter-end="transform opacity-100 scale-100" 
+                                         x-transition:leave="transition ease-in duration-75" 
+                                         x-transition:leave-start="transform opacity-100 scale-100" 
+                                         x-transition:leave-end="transform opacity-0 scale-95"
+                                         class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                                         style="display: none;">
+                                        <div class="py-1">
+                                            <a href="{{ route('admin.users.edit', $user->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-slate-50 hover:text-primary">
+                                                <span class="material-symbols-outlined mr-3 text-[18px] text-gray-400 group-hover:text-primary">edit</span>
+                                                Éditer
+                                            </a>
+                                            <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce formateur ?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                                    <span class="material-symbols-outlined mr-3 text-[18px] text-red-500">delete</span>
+                                                    Supprimer
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -510,11 +602,100 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="text-center py-8 text-slate-500 italic">Aucun formateur trouvé.</td>
+                        <td colspan="6" class="text-center py-8 text-slate-500 italic">Aucun formateur trouvé.</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+
+            <!-- Modal: Statistiques & Séances d'Enseignement du Formateur -->
+            <div x-show="selectedTrainerModal" class="fixed inset-0 z-[9999] overflow-y-auto" style="display: none;" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="selectedTrainerModal = false"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                    
+                    <div class="inline-block align-bottom bg-white rounded-[24px] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-slate-200">
+                        <div class="p-6 sm:p-8">
+                            <!-- Modal Header -->
+                            <div class="flex justify-between items-start pb-4 border-b border-slate-100 mb-6">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-[#4B6A95] block mb-1">Relevé d'Enseignement & Justification</span>
+                                    <h3 class="text-xl font-bold text-slate-900" x-text="trainerName"></h3>
+                                    <p class="text-xs text-slate-500 mt-0.5" x-text="trainerEmail"></p>
+                                </div>
+                                <button type="button" @click="selectedTrainerModal = false" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                                    <span class="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                            </div>
+
+                            <!-- KPIs Summary Row -->
+                            <div class="grid grid-cols-3 gap-3 mb-6">
+                                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1">Volume Total</span>
+                                    <span class="text-2xl font-black text-slate-900" x-text="trainerHours + ' h'"></span>
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1">Séances Effectuées</span>
+                                    <span class="text-2xl font-black text-slate-900" x-text="trainerSessionsCount"></span>
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider block mb-1">Rémunération</span>
+                                    <span class="text-base font-black text-slate-900" x-text="new Intl.NumberFormat('fr-FR').format(trainerRemuneration) + ' CFA'"></span>
+                                    <div class="text-[10px] font-bold" :class="trainerPaymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'" x-text="trainerPaymentStatus === 'paid' ? 'Payé' : 'En attente'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Séances Table -->
+                            <div>
+                                <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider mb-3 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[18px] text-[#4B6A95]">history_edu</span>
+                                    Détail des séances d'émargement & heures dispensées
+                                </h4>
+
+                                <template x-if="trainerSessions.length > 0">
+                                    <div class="overflow-x-auto max-h-[260px] overflow-y-auto rounded-xl border border-slate-100">
+                                        <table class="w-full text-left text-xs">
+                                            <thead class="bg-slate-50 border-b border-slate-100 sticky top-0">
+                                                <tr>
+                                                    <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px]">Date</th>
+                                                    <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px]">Séminaire & Thème</th>
+                                                    <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px] text-right">Heures</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100">
+                                                <template x-for="session in trainerSessions" :key="session.id">
+                                                    <tr class="hover:bg-slate-50/60 transition">
+                                                        <td class="px-4 py-3 font-bold text-slate-800" x-text="session.date"></td>
+                                                        <td class="px-4 py-3">
+                                                            <div class="font-bold text-slate-900" x-text="session.seminar"></div>
+                                                            <div class="text-[11px] text-slate-500" x-text="session.topic"></div>
+                                                        </td>
+                                                        <td class="px-4 py-3 text-right font-black text-slate-900" x-text="session.hours + ' h'"></td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </template>
+
+                                <template x-if="trainerSessions.length === 0">
+                                    <div class="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                        <span class="material-symbols-outlined text-3xl mb-1 opacity-50">event_busy</span>
+                                        <p class="text-xs font-bold text-slate-600">Aucune séance d'émargement enregistrée.</p>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Footer close button -->
+                            <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+                                <button type="button" @click="selectedTrainerModal = false" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-xs font-bold transition shadow-xs">
+                                    Fermer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Tab Content: Agents JICA -->

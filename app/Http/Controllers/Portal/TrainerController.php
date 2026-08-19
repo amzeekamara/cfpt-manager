@@ -53,6 +53,9 @@ class TrainerController extends Controller
         $todayPresentCount = $recentCandidates->filter(fn($r) => $r->attendances->first()?->status === 'present')->count();
         $todayAbsentCount = $recentCandidates->filter(fn($r) => $r->attendances->first()?->status === 'absent')->count();
 
+        $trainerSessions = $trainer->sessions()->with(['seminar', 'topic'])->get();
+        $totalHoursTaught = $trainerSessions->sum('hours_taught');
+
         return view('portal.trainer.dashboard', compact(
             'trainer', 
             'messages', 
@@ -65,7 +68,9 @@ class TrainerController extends Controller
             'recentCandidates',
             'todayDate',
             'todayPresentCount',
-            'todayAbsentCount'
+            'todayAbsentCount',
+            'trainerSessions',
+            'totalHoursTaught'
         ));
     }
 
@@ -180,6 +185,13 @@ class TrainerController extends Controller
             } else {
                 $registrations = $allRegistrations;
             }
+            $existingSession = \App\Models\TrainerSession::where('trainer_id', $trainerId)
+                ->where('seminar_id', $seminarId)
+                ->whereDate('session_date', $date)
+                ->first();
+            $hoursTaught = $existingSession ? $existingSession->hours_taught : 4;
+        } else {
+            $hoursTaught = 4;
         }
 
         return view('portal.trainer.attendances', compact(
@@ -194,7 +206,8 @@ class TrainerController extends Controller
             'presentCount', 
             'absentCount', 
             'unmarkedCount', 
-            'totalCandidatesCount'
+            'totalCandidatesCount',
+            'hoursTaught'
         ));
     }
 

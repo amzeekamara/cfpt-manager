@@ -13,6 +13,8 @@ class Trainer extends Model
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'avatar',
         'seminar_id',
         'remuneration',
         'payment_status',
@@ -21,5 +23,25 @@ class Trainer extends Model
     public function seminars()
     {
         return $this->belongsToMany(Seminar::class)->withPivot('remuneration', 'payment_status')->withTimestamps();
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany(TrainerSession::class)->orderByDesc('session_date');
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'email', 'email');
+    }
+
+    public function getTotalHoursTaughtAttribute()
+    {
+        return $this->sessions()->sum('hours_taught');
     }
 }

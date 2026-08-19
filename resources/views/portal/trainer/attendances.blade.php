@@ -13,13 +13,6 @@
     </div>
 </div>
 
-@if(session('success'))
-    <div class="mb-6 flex items-center gap-3 p-4 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200 text-xs font-bold shadow-2xs">
-        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600 shrink-0"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
-
 <!-- Barre de Filtres Complète (Date, Séminaire, Thème, Recherche) -->
 <div class="bg-white rounded-[24px] p-6 border border-slate-200/90 shadow-sm mb-6">
     <form action="{{ route('portal.trainer.attendances') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end" id="attendanceFilterForm">
@@ -248,7 +241,7 @@
             <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6">
                 <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
                     <label class="text-xs font-black text-slate-700">Volume d'heures dispensées :</label>
-                    <input type="number" name="hours_taught" min="1" max="24" class="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-xl focus:border-[#4B6A95] text-xs font-black text-center outline-none" placeholder="Ex: 4" value="4" required>
+                    <input type="number" name="hours_taught" min="1" max="24" class="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-xl focus:border-[#4B6A95] text-xs font-black text-center outline-none" placeholder="Ex: 4" value="{{ $hoursTaught ?? 4 }}" required>
                 </div>
                 <button type="submit" class="px-8 py-3 bg-[#4B6A95] text-white rounded-full text-xs font-bold shadow-xs hover:bg-[#354e70] transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <i data-lucide="save" class="w-4 h-4"></i>

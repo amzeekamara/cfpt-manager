@@ -97,4 +97,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ProfileUpdateRequest::class);
     }
+
+    public function trainer()
+    {
+        return $this->hasOne(Trainer::class, 'email', 'email');
+    }
 }

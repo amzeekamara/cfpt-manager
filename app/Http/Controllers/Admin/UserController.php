@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $allUsers = User::with('role')->get();
+        $allUsers = User::with(['role', 'trainer.sessions.seminar', 'trainer.sessions.topic', 'trainer.seminars'])->get();
 
         $staffUsers = $allUsers->filter(fn($u) => !$u->role || !in_array($u->role->name, ['Candidat', 'Formateur', 'Agent JICA']));
         $candidates = $allUsers->filter(fn($u) => $u->role?->name === 'Candidat');
@@ -112,7 +112,7 @@ class UserController extends Controller
         $roles = Role::all();
         $seminars = \App\Models\Seminar::where('status', 'active')->get();
         
-        $trainer = \App\Models\Trainer::with('seminars')->where('email', $user->email)->first();
+        $trainer = \App\Models\Trainer::with(['seminars', 'sessions.seminar', 'sessions.topic'])->where('email', $user->email)->first();
         $assignedSeminars = $trainer ? $trainer->seminars->pluck('id')->toArray() : [];
 
         return view('admin.users.edit', compact('user', 'roles', 'seminars', 'assignedSeminars', 'trainer'));
