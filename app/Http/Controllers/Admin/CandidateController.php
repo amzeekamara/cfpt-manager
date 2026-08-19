@@ -256,12 +256,13 @@ class CandidateController extends Controller
         }
 
         if ($request->hasFile('other_documents')) {
-            foreach ($request->file('other_documents') as $otherFile) {
+            foreach ($request->file('other_documents') as $index => $otherFile) {
                 if ($otherFile) {
+                    $label = !empty($request->other_doc_titles[$index]) ? trim($request->other_doc_titles[$index]) : 'Autre Justificatif';
                     $path = $otherFile->store('candidates/documents', 'public');
                     ApplicationDocument::create([
                         'user_id' => $user->id,
-                        'resource_type' => 'Autre Justificatif',
+                        'resource_type' => $label,
                         'file_path' => $path,
                         'original_filename' => $otherFile->getClientOriginalName(),
                     ]);

@@ -78,6 +78,8 @@ class CandidateRequest extends FormRequest
             'document_passport' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:10240',
             'other_documents' => 'nullable|array',
             'other_documents.*' => 'nullable|file|mimes:pdf,jpeg,png,jpg,doc,docx,xls,xlsx|max:10240',
+            'other_doc_titles' => 'nullable|array',
+            'other_doc_titles.*' => 'nullable|string|max:255',
 
             // Academic History (Arrays)
             'acad_establishment.*' => 'nullable|string',

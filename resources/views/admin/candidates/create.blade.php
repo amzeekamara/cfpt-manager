@@ -271,51 +271,44 @@
                     5. Sélection & Affectation
                 </h2>
                 
-                <!-- Sélection Séminaire, Thème et Statut -->
-                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Sélection Séminaire, Thème et Statut (Cadre Bleu) -->
+                <div class="bg-[#00355f] p-6 sm:p-8 rounded-2xl space-y-6 text-white shadow-md relative">
+                    <div class="space-y-6">
                         <!-- Séminaire -->
-                        <div class="space-y-1.5 md:col-span-2">
-                            <label class="text-[11px] font-bold uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">school</span>
-                                Séminaire de Formation *
-                            </label>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Séminaire de Formation *</label>
                             <select id="seminar_select" name="seminar_id" required 
-                                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-800 text-sm focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none">
-                                <option value="">-- Sélectionner un séminaire --</option>
+                                    class="w-full bg-white/10 hover:bg-white/15 border border-white/25 focus:border-white focus:bg-white/20 text-white rounded-xl px-4 py-3 font-semibold text-sm transition outline-none">
+                                <option value="" class="text-slate-900">-- Sélectionner un séminaire --</option>
                                 @foreach($seminars as $seminar)
-                                    <option value="{{ $seminar->id }}" {{ old('seminar_id') == $seminar->id ? 'selected' : '' }}>
+                                    <option value="{{ $seminar->id }}" class="text-slate-900" {{ old('seminar_id') == $seminar->id ? 'selected' : '' }}>
                                         {{ $seminar->title }} (Édition: {{ $seminar->cohort?->title }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <!-- Thème affecté -->
-                        <div class="space-y-1.5">
-                            <label class="text-[11px] font-bold uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">bookmark</span>
-                                Thème d'Atelier / Spécialité
-                            </label>
-                            <select id="topic_select" name="topic_id" 
-                                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-800 text-sm focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none">
-                                <option value="">-- Choisir d'abord un séminaire --</option>
-                            </select>
-                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Thème affecté -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Thème d'Atelier / Spécialité</label>
+                                <select id="topic_select" name="topic_id" 
+                                        class="w-full bg-white/10 hover:bg-white/15 border border-white/25 focus:border-white focus:bg-white/20 text-white rounded-xl px-4 py-3 font-semibold text-sm transition outline-none">
+                                    <option value="" class="text-slate-900">-- Choisir d'abord un séminaire --</option>
+                                </select>
+                            </div>
 
-                        <!-- Statut du dossier -->
-                        <div class="space-y-1.5">
-                            <label class="text-[11px] font-bold uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">gavel</span>
-                                Statut du Dossier *
-                            </label>
-                            <select name="status" required 
-                                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-800 text-sm focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none">
-                                <option value="pending" {{ old('status', 'pending') == 'pending' ? 'selected' : '' }}>En attente / À examiner</option>
-                                <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Sélectionné / Admis</option>
-                                <option value="waiting_list" {{ old('status') == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
-                                <option value="rejected" {{ old('status') == 'rejected' ? 'selected' : '' }}>Refusé</option>
-                            </select>
+                            <!-- Statut du dossier -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Statut du Dossier *</label>
+                                <select name="status" required 
+                                        class="w-full bg-white/10 hover:bg-white/15 border border-white/25 focus:border-white focus:bg-white/20 text-white rounded-xl px-4 py-3 font-semibold text-sm transition outline-none">
+                                    <option value="pending" class="text-slate-900" {{ old('status', 'pending') == 'pending' ? 'selected' : '' }}>En attente / À examiner</option>
+                                    <option value="approved" class="text-slate-900" {{ old('status') == 'approved' ? 'selected' : '' }}>Sélectionné / Admis</option>
+                                    <option value="waiting_list" class="text-slate-900" {{ old('status') == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
+                                    <option value="rejected" class="text-slate-900" {{ old('status') == 'rejected' ? 'selected' : '' }}>Refusé</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,9 +320,10 @@
                             <span class="material-symbols-outlined text-[#4B6A95] text-[20px]">folder_open</span>
                             Pièces Justificatives & Documents du Candidat
                         </h3>
-                        <p class="text-xs text-slate-500">Sélectionnez les pièces jointes à joindre au dossier (PDF, Images, Word jusqu'à 10 Mo par fichier).</p>
+                        <p class="text-xs text-slate-500">Ajoutez les documents justificatifs au dossier (PDF, Images, Word jusqu'à 10 Mo par fichier).</p>
                     </div>
 
+                    <!-- 4 Documents Principaux -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Diplôme -->
                         <div class="space-y-1.5">
@@ -358,14 +352,20 @@
                             <input type="file" name="document_passport" accept=".pdf,.png,.jpg,.jpeg"
                                    class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-[#4B6A95] hover:file:bg-blue-50 transition cursor-pointer">
                         </div>
+                    </div>
 
-                        <!-- Autres pièces -->
-                        <div class="md:col-span-2 space-y-1.5 pt-2">
-                            <label class="text-xs font-bold text-slate-700 block">Autres Documents & Justificatifs Complémentaires (Optionnel)</label>
-                            <input type="file" name="other_documents[]" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
-                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-slate-700 hover:file:bg-slate-50 transition cursor-pointer">
-                            <p class="text-[10px] text-slate-400">Vous pouvez sélectionner plusieurs fichiers simultanément (Ctrl + Clic).</p>
+                    <!-- Documents complémentaires dynamiques -->
+                    <div class="pt-4 border-t border-slate-100 space-y-3">
+                        <label class="text-xs font-bold text-slate-700 block">Autres Documents & Justificatifs Complémentaires</label>
+                        
+                        <div id="other-docs-container" class="space-y-3">
+                            <!-- Lignes ajoutées dynamiquement via le bouton ci-dessous -->
                         </div>
+
+                        <button type="button" onclick="addOtherDocRow()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer shadow-2xs">
+                            <span class="material-symbols-outlined text-[18px] text-[#4B6A95]">add_circle</span>
+                            <span>Ajouter un fichier</span>
+                        </button>
                     </div>
                 </div>
 
@@ -402,6 +402,16 @@
         <div class="md:col-span-5">
             <input type="text" name="acad_distinction[]" placeholder="Distinction / Mention" class="w-full bg-white border rounded-xl px-3 py-2 text-sm">
         </div>
+    </div>
+</template>
+
+<template id="other-doc-template">
+    <div class="other-doc-row flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+        <input type="text" name="other_doc_titles[]" placeholder="Intitulé du document (ex: Attestation de travail, Certificat...)" class="flex-1 bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-xs font-medium focus:border-[#4B6A95] outline-none">
+        <input type="file" name="other_documents[]" class="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-[#4B6A95] cursor-pointer">
+        <button type="button" onclick="this.closest('.other-doc-row').remove()" class="text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition self-end sm:self-center" title="Supprimer ce fichier">
+            <span class="material-symbols-outlined text-[18px]">delete</span>
+        </button>
     </div>
 </template>
 
@@ -479,6 +489,13 @@
     function addAcademicRow() {
         const container = document.getElementById('academic-container');
         const template = document.getElementById('academic-template');
+        const clone = template.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    function addOtherDocRow() {
+        const container = document.getElementById('other-docs-container');
+        const template = document.getElementById('other-doc-template');
         const clone = template.content.cloneNode(true);
         container.appendChild(clone);
     }
