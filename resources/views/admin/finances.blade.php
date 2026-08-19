@@ -319,7 +319,7 @@
                                         @endif
                                     </td>
                                     <td class="py-4 px-6">
-                                        <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wider border border-gray-200 shadow-sm">{{ $expense->category->name ?? 'Général' }}</span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ $expense->category->name ?? 'Général' }}</span>
                                     </td>
                                     <td class="py-4 px-6 text-xs text-gray-500">{{ $expense->expense_date->format('d/m/Y') }}</td>
                                     <td class="py-4 px-6">
