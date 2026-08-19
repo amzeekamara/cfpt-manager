@@ -85,6 +85,14 @@ $startDate = $request->get('start_date');
         
         $recentExpenses = $recentExpensesQuery->take(50)->get();
 
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest' || $request->has('ajax_filter')) {
+            return response()->json([
+                'table_html' => view('admin.finances.partials.expenses_rows', compact('recentExpenses'))->render(),
+                'count' => $recentExpenses->count(),
+                'total_filtered' => number_format($recentExpenses->sum('amount'), 0, ',', ' ') . ' CFA',
+            ]);
+        }
+
         $recentTrainerPaymentsQuery = \DB::table('seminar_trainer')
             ->join('trainers', 'seminar_trainer.trainer_id', '=', 'trainers.id')
             ->join('seminars', 'seminar_trainer.seminar_id', '=', 'seminars.id')

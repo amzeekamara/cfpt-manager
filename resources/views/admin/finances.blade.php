@@ -236,8 +236,7 @@
                 </div>
 
                 <!-- Recent Expenses Table -->
-                <div class="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex flex-col gap-4">
+                <div class="bg-white rounded-lg border border-gra                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex flex-col gap-4">
                         <div class="flex justify-between items-center">
                             <h2 class="font-headline font-bold text-lg text-gray-900 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-brand-primary">history</span> Journal des Dépenses
@@ -249,8 +248,8 @@
                             @endif
                         </div>
                         
-                        <!-- Local Filters for Journal -->
-                        <form action="{{ route('admin.finances') }}" method="GET" class="flex flex-wrap gap-3 items-center">
+                        <!-- Local Filters for Journal (Dynamique AJAX) -->
+                        <form id="expenses-filter-form" action="{{ route('admin.finances') }}" method="GET" class="flex flex-wrap gap-3 items-center">
                             <input type="hidden" name="cohort_id" value="{{ request('cohort_id', $selectedCohort->id ?? '') }}">
                             <!-- Keep global filters if any, so they don't reset -->
                             @if(request('seminar_id')) <input type="hidden" name="seminar_id" value="{{ request('seminar_id') }}"> @endif
@@ -261,7 +260,7 @@
                                 <span class="material-symbols-outlined text-[16px]">filter_list</span> Filtrer :
                             </div>
 
-                            <select name="expense_category_id" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-brand-primary cursor-pointer">
+                            <select name="expense_category_id" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-brand-primary cursor-pointer">
                                 <option value="">Toutes les catégories</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}" {{ request('expense_category_id') == $category->id ? 'selected' : '' }}>
@@ -270,7 +269,7 @@
                                 @endforeach
                             </select>
 
-                            <select name="expense_seminar_id" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-brand-primary cursor-pointer">
+                            <select name="expense_seminar_id" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-brand-primary cursor-pointer">
                                 <option value="">Tous les séminaires</option>
                                 @foreach($seminars as $seminar)
                                     <option value="{{ $seminar->id }}" {{ request('expense_seminar_id') == $seminar->id ? 'selected' : '' }}>
@@ -279,67 +278,42 @@
                                 @endforeach
                             </select>
 
-                            <select name="expense_sort" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-brand-primary cursor-pointer">
+                            <select name="expense_sort" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-brand-primary cursor-pointer">
                                 <option value="">Trier par Date (Récent)</option>
                                 <option value="highest" {{ request('expense_sort') === 'highest' ? 'selected' : '' }}>Prix : Plus élevés</option>
                                 <option value="lowest" {{ request('expense_sort') === 'lowest' ? 'selected' : '' }}>Prix : Moins élevés</option>
                             </select>
 
                             <div class="flex items-center gap-2 border border-gray-200 rounded-md bg-white px-2 overflow-hidden focus-within:border-brand-primary">
-                                <input type="date" name="expense_start_date" value="{{ request('expense_start_date') }}" onchange="this.form.submit()" class="text-xs py-1.5 outline-none text-gray-600 cursor-pointer" title="Date de début">
+                                <input type="date" name="expense_start_date" value="{{ request('expense_start_date') }}" class="text-xs py-1.5 outline-none text-gray-600 cursor-pointer" title="Date de début">
                                 <span class="text-gray-300">-</span>
-                                <input type="date" name="expense_end_date" value="{{ request('expense_end_date') }}" onchange="this.form.submit()" class="text-xs py-1.5 outline-none text-gray-600 cursor-pointer" title="Date de fin">
+                                <input type="date" name="expense_end_date" value="{{ request('expense_end_date') }}" class="text-xs py-1.5 outline-none text-gray-600 cursor-pointer" title="Date de fin">
                             </div>
                             
-                            @if(request()->hasAny(['expense_category_id', 'expense_seminar_id', 'expense_sort', 'expense_start_date', 'expense_end_date']))
-                                <a href="{{ route('admin.finances', ['cohort_id' => request('cohort_id', $selectedCohort->id ?? ''), 'seminar_id' => request('seminar_id'), 'start_date' => request('start_date'), 'end_date' => request('end_date')]) }}" class="text-xs font-bold text-red-500 hover:text-red-600 flex items-center transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">close</span> Effacer
-                                </a>
-                            @endif
+                            <button type="button" id="clear-expenses-filter" class="text-xs font-bold text-red-500 hover:text-red-600 flex items-center transition-colors cursor-pointer {{ request()->hasAny(['expense_category_id', 'expense_seminar_id', 'expense_sort', 'expense_start_date', 'expense_end_date']) ? '' : 'hidden' }}">
+                                <span class="material-symbols-outlined text-[16px]">close</span> Effacer
+                            </button>
                         </form>
                     </div>
-                    <div class="overflow-x-auto">
+
+                    <!-- Scrollable Expenses Table Container -->
+                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative border-t border-gray-100">
                         <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50/30">
-                                    <th class="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Description</th>
-                                    <th class="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Catégorie</th>
-                                    <th class="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Date</th>
-                                    <th class="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Justificatif</th>
-                                    <th class="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Montant</th>
+                            <thead class="sticky top-0 bg-gray-50/95 backdrop-blur z-10 border-b border-gray-200 shadow-2xs">
+                                <tr>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Description</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Catégorie</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Date</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Justificatif</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Montant</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                @forelse($recentExpenses as $expense)
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="py-4 px-6">
-                                        <div class="text-sm font-bold text-gray-800">{{ $expense->description }}</div>
-                                        @if($expense->seminar)
-                                            <div class="text-[11px] text-brand-primary font-medium mt-0.5">Séminaire : {{ $expense->seminar->title }}</div>
-                                        @endif
-                                    </td>
-                                    <td class="py-4 px-6">
-                                        <span class="text-xs font-semibold text-slate-700">{{ $expense->category->name ?? 'Général' }}</span>
-                                    </td>
-                                    <td class="py-4 px-6 text-xs text-gray-500">{{ $expense->expense_date->format('d/m/Y') }}</td>
-                                    <td class="py-4 px-6">
-                                        @if($expense->receipt_path)
-                                            <a href="{{ Storage::url($expense->receipt_path) }}" target="_blank" class="inline-flex items-center justify-center p-2 bg-blue-50 text-primary hover:bg-blue-100 rounded-md transition-colors shadow-sm" title="Voir le justificatif">
-                                                <span class="material-symbols-outlined text-[18px]">attachment</span>
-                                            </a>
-                                        @else
-                                            <span class="text-gray-300 text-[10px] italic">Aucun</span>
-                                        @endif
-                                    </td>
-                                    <td class="py-4 px-6 text-right font-black text-gray-900 text-sm">{{ number_format($expense->amount, 0, ',', ' ') }} <span class="text-[10px] text-gray-500">CFA</span></td>
-                                </tr>
-                                @empty
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td colspan="5" class="py-12 text-center text-gray-400 italic text-sm">Aucune dépense enregistrée sur cette édition.</td>
-                                </tr>
-                                @endforelse
+                            <tbody id="expenses-table-body" class="divide-y divide-gray-50 transition-opacity duration-200">
+                                @include('admin.finances.partials.expenses_rows')
                             </tbody>
                         </table>
+                    </div>
+                </div>
                     </div>
                 </div>
 
@@ -698,6 +672,65 @@
                     }
                 }
             });
+        }
+
+        // 4. AJAX Filtering for Journal des Dépenses
+        const filterForm = document.getElementById('expenses-filter-form');
+        const tableBody = document.getElementById('expenses-table-body');
+        const clearBtn = document.getElementById('clear-expenses-filter');
+
+        if (filterForm && tableBody) {
+            function updateClearBtnVisibility() {
+                if (!clearBtn) return;
+                const hasValue = Array.from(filterForm.elements).some(el => {
+                    return (el.tagName === 'SELECT' || el.type === 'date') && el.value !== '';
+                });
+                clearBtn.classList.toggle('hidden', !hasValue);
+            }
+
+            function fetchExpenses() {
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams();
+                for (let [k, v] of formData.entries()) {
+                    if (v !== '') params.append(k, v);
+                }
+                params.append('ajax_filter', '1');
+
+                const url = filterForm.getAttribute('action') + '?' + params.toString();
+                tableBody.style.opacity = '0.4';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    tableBody.innerHTML = data.table_html;
+                    tableBody.style.opacity = '1';
+                    updateClearBtnVisibility();
+                })
+                .catch(err => {
+                    console.error('Erreur de filtrage:', err);
+                    tableBody.style.opacity = '1';
+                });
+            }
+
+            filterForm.querySelectorAll('select, input[type="date"]').forEach(input => {
+                input.addEventListener('change', function(e) {
+                    e.preventDefault();
+                    fetchExpenses();
+                });
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    filterForm.querySelectorAll('select').forEach(s => s.value = '');
+                    filterForm.querySelectorAll('input[type="date"]').forEach(i => i.value = '');
+                    fetchExpenses();
+                });
+            }
         }
     });
 </script>
