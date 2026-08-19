@@ -243,88 +243,9 @@
                                 <span class="material-symbols-outlined text-brand-primary">history</span> Journal des Dépenses
                             </h2>
                             @if($selectedCohort)
-                                <div x-data="{ 
-                                    exportModalOpen: false, 
-                                    reportTitle: '{{ (auth()->check() && auth()->user()->role?->name === 'Agent JICA') ? 'RAPPORT JICA' : 'RAPPORT D\'EXÉCUTION FINANCIÈRE & LOGISTIQUE' }}' 
-                                }">
-                                    <button type="button" @click="exportModalOpen = true" class="text-xs font-bold text-brand-primary hover:bg-brand-light px-4 py-2 rounded-full border border-brand-primary/20 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
-                                        <span class="material-symbols-outlined text-sm">download</span> Exporter le Rapport
-                                    </button>
-
-                                    <!-- Modal Choix du Titre & Paramètres d'Export -->
-                                    <div x-show="exportModalOpen" class="fixed inset-0 z-[9999] overflow-y-auto" style="display: none;">
-                                        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                                            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="exportModalOpen = false"></div>
-                                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                                            
-                                            <div class="inline-block align-bottom bg-white rounded-[24px] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200 p-6 sm:p-7">
-                                                <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-5">
-                                                    <div class="flex items-center gap-2.5">
-                                                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-[#4B6A95] flex items-center justify-center font-bold">
-                                                            <span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
-                                                        </div>
-                                                        <div>
-                                                            <h3 class="text-base font-bold text-slate-900 leading-tight">Exporter le Rapport d'Édition</h3>
-                                                            <p class="text-xs text-slate-500">{{ $selectedCohort->title }}</p>
-                                                        </div>
-                                                    </div>
-                                                    <button type="button" @click="exportModalOpen = false" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-400">
-                                                        <span class="material-symbols-outlined text-[20px]">close</span>
-                                                    </button>
-                                                </div>
-
-                                                <form action="{{ route('admin.finances.export') }}" method="GET" target="_blank" @submit="exportModalOpen = false">
-                                                    <input type="hidden" name="cohort_id" value="{{ $selectedCohort->id }}">
-
-                                                    <div class="space-y-4 mb-6">
-                                                        <div>
-                                                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                                                Titre du Rapport sur le document <span class="text-red-500">*</span>
-                                                            </label>
-                                                            <input type="text" name="title" x-model="reportTitle" required
-                                                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-[#4B6A95] focus:bg-white transition"
-                                                                placeholder="Ex: RAPPORT D'EXÉCUTION FINANCIÈRE...">
-                                                        </div>
-
-                                                        <div>
-                                                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                                                                Suggestions rapides de titres :
-                                                            </label>
-                                                            <div class="flex flex-wrap gap-2">
-                                                                <button type="button" @click="reportTitle = 'RAPPORT D\'EXÉCUTION FINANCIÈRE & LOGISTIQUE'"
-                                                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
-                                                                    Financier & Logistique
-                                                                </button>
-                                                                <button type="button" @click="reportTitle = 'RAPPORT JICA (DÉPENSES & PARTICIPANTS)'"
-                                                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
-                                                                    Rapport JICA
-                                                                </button>
-                                                                <button type="button" @click="reportTitle = 'RAPPORT GÉNÉRAL DU PROGRAMME PFPT'"
-                                                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
-                                                                    Rapport Général PFPT
-                                                                </button>
-                                                                <button type="button" @click="reportTitle = 'SYNTHÈSE BUDGÉTAIRE ET FORMATIONS'"
-                                                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
-                                                                    Synthèse Budgétaire
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                                                        <button type="button" @click="exportModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
-                                                            Annuler
-                                                        </button>
-                                                        <button type="submit" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#385172] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
-                                                            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-                                                            Générer le Rapport
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <button type="button" onclick="openModal('exportReportModal')" class="text-xs font-bold text-brand-primary hover:bg-brand-light px-4 py-2 rounded-full border border-brand-primary/20 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm">download</span> Exporter le Rapport
+                                </button>
                             @endif
                         </div>
                         
@@ -493,6 +414,84 @@
         </div>
     </div>
 </div>
+
+@if($selectedCohort)
+<!-- Modal: Exporter le Rapport d'Édition -->
+<div id="exportReportModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeModal('exportReportModal')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-[2rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
+            <div class="p-8">
+                <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#4B6A95] flex items-center justify-center font-bold">
+                            <span class="material-symbols-outlined text-[22px]">picture_as_pdf</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 leading-tight">Exporter le Rapport d'Édition</h3>
+                            <p class="text-xs text-slate-500">{{ $selectedCohort->title }}</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeModal('exportReportModal')" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-400">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+
+                <form action="{{ route('admin.finances.export') }}" method="GET" target="_blank" onsubmit="closeModal('exportReportModal')">
+                    <input type="hidden" name="cohort_id" value="{{ $selectedCohort->id }}">
+
+                    <div class="space-y-4 mb-6">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                Titre du document <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="title" id="custom_export_title_input" required
+                                value="RAPPORT D'EXÉCUTION FINANCIÈRE & LOGISTIQUE"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 outline-none focus:border-brand-primary focus:bg-white transition"
+                                placeholder="Ex: RAPPORT D'EXÉCUTION FINANCIÈRE...">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                Suggestions rapides :
+                            </label>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="document.getElementById('custom_export_title_input').value = 'RAPPORT D\'EXÉCUTION FINANCIÈRE & LOGISTIQUE'"
+                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
+                                    Financier & Logistique
+                                </button>
+                                <button type="button" onclick="document.getElementById('custom_export_title_input').value = 'RAPPORT JICA (DÉPENSES & PARTICIPANTS)'"
+                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
+                                    Rapport JICA
+                                </button>
+                                <button type="button" onclick="document.getElementById('custom_export_title_input').value = 'RAPPORT GÉNÉRAL DU PROGRAMME PFPT'"
+                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
+                                    Rapport Général PFPT
+                                </button>
+                                <button type="button" onclick="document.getElementById('custom_export_title_input').value = 'SYNTHÈSE BUDGÉTAIRE ET FORMATIONS'"
+                                    class="text-[11px] px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
+                                    Synthèse Budgétaire
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeModal('exportReportModal')" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                            Annuler
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-2.5 bg-[#4B6A95] hover:bg-[#385172] text-white rounded-xl font-bold text-xs shadow-lg hover:opacity-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                            Générer le Rapport
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Modal: Ajouter une Dépense -->
 <div id="expenseModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
