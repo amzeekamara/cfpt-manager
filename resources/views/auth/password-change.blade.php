@@ -412,14 +412,14 @@
     }
 
     .security-notice {
-      margin-top: 20px;
-      padding: 12px;
-      background: #f8fafc;
-      border-radius: 8px;
-      border-left: 3px solid var(--primary-blue);
+      margin-top: 18px;
+      padding: 0;
+      background: transparent;
+      border: none;
       font-size: 11.5px;
       color: var(--text-muted);
-      line-height: 1.45;
+      line-height: 1.5;
+      text-align: center;
     }
 
     /* ==========================================================================
