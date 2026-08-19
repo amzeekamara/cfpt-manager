@@ -35,12 +35,12 @@
         <!-- LEFT 2 COLS: Profile Summary & Personal Details Grid -->
         <div class="lg:col-span-2 bg-white rounded-[28px] border border-slate-200/90 shadow-sm overflow-hidden flex flex-col md:flex-row">
             
-            <!-- Left Sub-Box: Avatar, Name, Email, Stats & Status with Hero Gradient -->
-            <div class="md:w-1/3 relative flex flex-col items-center text-center p-6 justify-between overflow-hidden text-white"
-                 style="background: linear-gradient(145deg, #4B6A95 0%, #1e293b 100%);">
+            <!-- Left Sub-Box: Avatar, Name, Email, Stats & Status with Centre Image Background -->
+            <div class="md:w-1/3 relative flex flex-col items-center text-center p-6 justify-between overflow-hidden text-white shrink-0"
+                 style="background: linear-gradient(180deg, rgba(75, 106, 149, 0.88) 0%, rgba(26, 38, 57, 0.96) 100%), url('{{ asset('images/centre.png') }}') center/cover no-repeat;">
                 
                 <div class="flex flex-col items-center w-full">
-                    <div class="w-24 h-24 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center text-white text-3xl font-bold mb-3 shrink-0">
+                    <div class="w-24 h-24 rounded-full border-4 border-white/30 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center text-white text-3xl font-bold mb-3 shrink-0 backdrop-blur-xs">
                         @if(auth()->user() && auth()->user()->avatar)
                             <img src="{{ asset('storage/' . auth()->user()->avatar) }}" class="w-full h-full object-cover">
                         @elseif(isset($profile) && $profile->photo_path)
@@ -53,41 +53,41 @@
                     <h2 class="text-base font-black text-white leading-tight mb-1">
                         {{ $profile->first_names }} {{ $profile->last_name }}
                     </h2>
-                    <p class="text-[11px] text-white/70 font-medium break-all mb-4">{{ $profile->user->email }}</p>
+                    <p class="text-[11px] text-white/80 font-medium break-all mb-4">{{ $profile->user->email }}</p>
 
                     <!-- Stats Counters -->
-                    <div class="flex items-center justify-center gap-4 py-2 px-4 bg-white/10 backdrop-blur-xs rounded-2xl border border-white/15 text-xs w-full mb-4">
+                    <div class="flex items-center justify-center gap-4 py-2 px-4 bg-white/15 backdrop-blur-md rounded-2xl border border-white/20 text-xs w-full mb-4">
                         <div class="text-center">
                             <span class="text-base font-black text-white block leading-tight">{{ $messages->count() }}</span>
-                            <span class="text-[9px] font-bold text-white/70 uppercase tracking-wider">Messages</span>
+                            <span class="text-[9px] font-bold text-white/80 uppercase tracking-wider">Messages</span>
                         </div>
-                        <div class="w-px h-6 bg-white/20"></div>
+                        <div class="w-px h-6 bg-white/30"></div>
                         <div class="text-center">
                             <span class="text-base font-black text-emerald-300 block leading-tight">{{ $resources->count() }}</span>
-                            <span class="text-[9px] font-bold text-white/70 uppercase tracking-wider">Supports</span>
+                            <span class="text-[9px] font-bold text-white/80 uppercase tracking-wider">Supports</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Status Badge -->
-                <div class="w-full pt-2">
+                <!-- Status Badge (Clean text & icon without heavy background) -->
+                <div class="w-full pt-1">
                     @if($registration && $registration->status === 'approved')
-                        <div class="w-full py-2 bg-emerald-500/20 text-emerald-300 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border border-emerald-400/30">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>
-                            <span>Inscription Validée</span>
+                        <div class="w-full py-1 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 drop-shadow-xs">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="tracking-wide">Inscription Validée</span>
                         </div>
                     @elseif($registration && $registration->status === 'pending')
-                        <div class="w-full py-2 bg-amber-500/20 text-amber-300 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border border-amber-400/30">
-                            <i data-lucide="clock" class="w-4 h-4 text-amber-300"></i>
-                            <span>En cours de validation</span>
+                        <div class="w-full py-1 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 drop-shadow-xs">
+                            <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+                            <span class="tracking-wide">En cours de validation</span>
                         </div>
                     @elseif($registration && $registration->status === 'rejected')
-                        <div class="w-full py-2 bg-rose-500/20 text-rose-300 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border border-rose-400/30">
-                            <i data-lucide="x-circle" class="w-4 h-4 text-rose-300"></i>
-                            <span>Non Retenu</span>
+                        <div class="w-full py-1 text-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 drop-shadow-xs">
+                            <i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i>
+                            <span class="tracking-wide">Non Retenu</span>
                         </div>
                     @else
-                        <div class="w-full py-2 bg-white/10 text-white/70 rounded-xl font-bold text-xs flex items-center justify-center">
+                        <div class="w-full py-1 text-white/80 font-bold text-xs flex items-center justify-center drop-shadow-xs">
                             Aucune inscription
                         </div>
                     @endif
@@ -99,7 +99,6 @@
                 <div>
                     <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
                         <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Fiche Candidat & Coordonnées</span>
-                        <span class="text-[10px] font-bold text-slate-400">Dossier #{{ $profile->id }}</span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-4 text-xs">
@@ -133,25 +132,13 @@
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Édition</span>
-                            <strong class="text-[#4B6A95] font-bold text-sm">{{ $registration->seminar->cohort->title ?? '2026 - 2027' }}</strong>
+                            <strong class="text-[#4B6A95] font-bold text-sm">{{ $registration->seminar->cohort->title ?? 'Édition 2026 – 2027' }}</strong>
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Date Dépôt</span>
                             <strong class="text-slate-800 font-bold text-sm">{{ $registration ? $registration->created_at->format('d M Y') : 'N/A' }}</strong>
                         </div>
                     </div>
-                </div>
-
-                <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <span class="flex items-center gap-1.5 text-slate-600 font-medium">
-                        <i data-lucide="book-open" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Séminaire : <strong class="text-slate-900 font-bold">{{ $registration->seminar->title ?? 'Aucun assigné' }}</strong></span>
-                    </span>
-                    @if($registration && $registration->topic)
-                        <span class="bg-blue-50 text-[#4B6A95] font-bold px-3 py-1 rounded-full border border-blue-100 text-[11px]">
-                            Thème : {{ $registration->topic->name }}
-                        </span>
-                    @endif
                 </div>
             </div>
 
@@ -168,12 +155,13 @@
                     <span class="text-xs text-[#4B6A95] font-bold cursor-pointer hover:underline" @click="activeTab = 'messages'">Boîte de réception</span>
                 </div>
 
-                <div class="bg-blue-50/70 rounded-2xl p-4 border border-blue-100 text-xs text-slate-700 leading-relaxed mb-4 space-y-1.5">
-                    <div class="flex items-center gap-2 font-bold text-[#4B6A95]">
-                        <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                <!-- Clean Information text without background box -->
+                <div class="text-xs leading-relaxed mb-4 space-y-1 py-1">
+                    <div class="flex items-center gap-1.5 font-bold text-[#4B6A95] text-xs">
+                        <i data-lucide="info" class="w-3.5 h-3.5 text-[#4B6A95]"></i>
                         <span>Information de formation</span>
                     </div>
-                    <p>Consultez régulièrement les ressources et supports partagés par vos formateurs avant chaque séance de travaux dirigés.</p>
+                    <p class="text-slate-600 text-[11.5px]">Consultez régulièrement les ressources et supports partagés par vos formateurs avant chaque séance de travaux dirigés.</p>
                 </div>
 
                 @if($messages->count() > 0)
@@ -228,24 +216,28 @@
                 <!-- TAB 1: FORMATION & TIMELINE -->
                 <div x-show="activeTab === 'formation'" class="space-y-4">
                     @if($registration && $registration->seminar)
-                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="p-5 bg-white rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
                             <div>
                                 <div class="flex items-center gap-2 mb-1.5">
-                                    <span class="text-xs font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full">Séminaire Actif</span>
+                                    <!-- Clean green text without background -->
+                                    <span class="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                                        Séminaire Actif
+                                    </span>
                                     <span class="text-xs font-semibold text-slate-400">
                                         {{ $registration->seminar->start_date ? $registration->seminar->start_date->format('d M Y à H:i') : 'Date à venir' }}
                                     </span>
                                 </div>
                                 <h4 class="text-base font-black text-slate-900">{{ $registration->seminar->title }}</h4>
                                 <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                                    <span>Thème : <strong class="text-slate-800">{{ $registration->topic->name ?? 'Général' }}</strong></span>
+                                    <span>Thème : <strong class="text-[#4B6A95] font-bold">{{ $registration->topic->name ?? 'Général' }}</strong></span>
                                     <span>-</span>
                                     <span>Cohorte : <strong class="text-slate-800">{{ $registration->seminar->cohort->title ?? 'N/A' }}</strong></span>
                                 </p>
                             </div>
                             <div class="shrink-0">
-                                <span class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-2xs">
-                                    Statut : {{ ucfirst($registration->status) }}
+                                <span class="px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold shadow-2xs">
+                                    Statut : <span class="text-emerald-600">{{ ucfirst($registration->status) }}</span>
                                 </span>
                             </div>
                         </div>
