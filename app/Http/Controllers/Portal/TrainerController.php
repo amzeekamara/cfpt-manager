@@ -92,10 +92,7 @@ class TrainerController extends Controller
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('messages/attachments', 'public');
-        }
-
-        Message::create([
+        $message = Message::create([
             'trainer_id' => $trainerId,
             'cohort_id' => $request->cohort_id,
             'department_id' => $request->department_id,
@@ -105,6 +102,39 @@ class TrainerController extends Controller
             'attachment_path' => $attachmentPath,
             'target_topics' => $request->topic_ids,
         ]);
+
+        // 1. Notifier les candidats ciblés
+        $candidateQuery = User::whereHas('role', fn($q) => $q->where('name', 'Candidat'))
+            ->whereHas('registrations', function($q) use ($request, $trainer) {
+                $q->where('status', 'approved');
+                if ($request->seminar_id) {
+                    $q->where('seminar_id', $request->seminar_id);
+                } else {
+                    $q->whereIn('seminar_id', $trainer->seminars->pluck('id'));
+                }
+                if (!empty($request->topic_ids)) {
+                    $q->whereIn('topic_id', $request->topic_ids);
+                }
+            });
+        $candidates = $candidateQuery->get();
+
+        if ($candidates->isNotEmpty()) {
+            \Illuminate\Support\Facades\Notification::send($candidates, new \App\Notifications\AlertMessageNotification($message));
+        }
+
+        // 2. Notifier les Administrateurs
+        $admins = User::whereHas('role', fn($q) => $q->whereIn('name', ['Administrateur', 'Coordinateur', 'Admin']))->get();
+        if ($admins->isNotEmpty()) {
+            $trainerUser = $trainer->user ?? User::where('email', $trainer->email)->first();
+            \Illuminate\Support\Facades\Notification::send(
+                $admins,
+                new \App\Notifications\StaffActionNotification(
+                    $trainerUser ?: (object)['name' => $trainer->name],
+                    'Message Formateur aux Candidats',
+                    "Le formateur {$trainer->name} a envoyé un message : « {$message->subject} » à {$candidates->count()} candidat(s)."
+                )
+            );
+        }
 
         return back()->with('success', 'Message envoyé avec succès aux candidats.');
     }
@@ -266,6 +296,23 @@ class TrainerController extends Controller
             );
         }
 
+        // Notification aux administrateurs
+        $admins = User::whereHas('role', fn($q) => $q->whereIn('name', ['Administrateur', 'Coordinateur', 'Admin']))->get();
+        if ($admins->isNotEmpty()) {
+            $seminar = Seminar::find($request->seminar_id);
+            $seminarTitle = $seminar ? $seminar->title : 'Séminaire';
+            $hoursTaught = $request->input('hours_taught', 4);
+            $trainerUser = $trainer->user ?? User::where('email', $trainer->email)->first();
+            \Illuminate\Support\Facades\Notification::send(
+                $admins,
+                new \App\Notifications\StaffActionNotification(
+                    $trainerUser ?: (object)['name' => $trainer->name],
+                    'Émargement & Heures de Cours',
+                    "Le formateur {$trainer->name} a enregistré la feuille de présence et {$hoursTaught}h de cours pour le {$date} ({$seminarTitle})."
+                )
+            );
+        }
+
         return back()->with('success', 'Les présences ont été enregistrées avec succès.');
     }
 
@@ -287,12 +334,26 @@ class TrainerController extends Controller
 
         $path = $request->file('file')->store('resources', 'public');
 
-        Resource::create([
+        $resource = Resource::create([
             'title' => $request->title,
             'file_path' => $path,
             'seminar_id' => $request->seminar_id,
             'role_visibility' => $request->role_visibility,
         ]);
+
+        // Notifier les administrateurs
+        $admins = User::whereHas('role', fn($q) => $q->whereIn('name', ['Administrateur', 'Coordinateur', 'Admin']))->get();
+        if ($admins->isNotEmpty()) {
+            $trainerUser = $trainer->user ?? User::where('email', $trainer->email)->first();
+            \Illuminate\Support\Facades\Notification::send(
+                $admins,
+                new \App\Notifications\StaffActionNotification(
+                    $trainerUser ?: (object)['name' => $trainer->name],
+                    'Nouveau Document / Support Pédagogique',
+                    "Le formateur {$trainer->name} a mis à disposition le document « {$request->title} »."
+                )
+            );
+        }
 
         return back()->with('success', 'Ressource ajoutée avec succès.');
     }

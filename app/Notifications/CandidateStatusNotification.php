@@ -31,7 +31,7 @@ class CandidateStatusNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -75,9 +75,21 @@ class CandidateStatusNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $statusLabels = [
+            'pending' => 'Dossier en cours d\'examen',
+            'approved' => 'Candidature Sélectionnée & Validée !',
+            'rejected' => 'Candidature non retenue',
+            'waiting_list' => 'Candidature sur liste d\'attente',
+        ];
+
         return [
             'registration_id' => $this->registration->id,
+            'seminar_title' => $this->registration->seminar->title ?? 'Séminaire',
             'status' => $this->registration->status,
+            'title' => 'Statut de candidature mis à jour',
+            'action' => $statusLabels[$this->registration->status] ?? 'Mise à jour du statut',
+            'description' => "Votre candidature pour « " . ($this->registration->seminar->title ?? 'Séminaire') . " » a été mise à jour : " . ($statusLabels[$this->registration->status] ?? $this->registration->status),
+            'icon' => $this->registration->status === 'approved' ? 'check_circle' : ($this->registration->status === 'rejected' ? 'cancel' : 'info'),
         ];
     }
 }

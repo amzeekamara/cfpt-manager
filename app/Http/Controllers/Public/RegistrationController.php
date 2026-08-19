@@ -160,8 +160,26 @@ class RegistrationController extends Controller
 
             $setupUrl = route('password.setup', ['token' => $token, 'email' => $user->email]);
 
-            // Notification asynchrone avec lien d'activation sécurisé
+            // Notification asynchrone au candidat avec lien d'activation
             $user->notify(new CandidateStatusNotification($registration, $setupUrl));
+
+            // Notification instantanée aux Administrateurs et Coordinateurs
+            $admins = User::whereHas('role', fn($q) => $q->whereIn('name', ['Administrateur', 'Coordinateur', 'Admin']))->get();
+            if ($admins->isNotEmpty()) {
+                \Illuminate\Support\Facades\Notification::send(
+                    $admins,
+                    new \App\Notifications\StaffActionNotification(
+                        $user,
+                        'Nouvelle Candidature Externe',
+                        "Le candidat {$user->name} ({$user->email}) a postulé au séminaire « {$seminar->title} ». Dossier complet à examiner."
+                    )
+                );
+            }
+
+            \App\Helpers\ActivityLogger::log(
+                'Nouvelle Candidature',
+                "Candidature reçue pour {$user->name} ({$user->email}) sur le séminaire '{$seminar->title}'."
+            );
 
             \Log::info("New Candidate Registered: {$user->email}");
 

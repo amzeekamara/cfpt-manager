@@ -254,6 +254,12 @@ $startDate = $request->get('start_date');
         $cohortId = $request->get('cohort_id');
         $cohort = Cohort::findOrFail($cohortId);
         
+        $reportTitle = $request->get('title');
+        if (!$reportTitle || trim($reportTitle) === '') {
+            $userRole = auth()->user()?->role?->name;
+            $reportTitle = ($userRole === 'Agent JICA') ? 'RAPPORT JICA' : "RAPPORT D'EXÉCUTION FINANCIÈRE & LOGISTIQUE";
+        }
+        
         $expenses = Expense::where('cohort_id', $cohortId)->get();
         $trainers = Trainer::whereHas('seminars', function($q) use ($cohortId) {
             $q->where('cohort_id', $cohortId);
@@ -265,6 +271,6 @@ $startDate = $request->get('start_date');
             $q->where('cohort_id', $cohortId);
         })->with(['user', 'seminar'])->get();
 
-        return view('admin.finances.export', compact('cohort', 'expenses', 'trainers', 'participants'));
+        return view('admin.finances.export', compact('cohort', 'expenses', 'trainers', 'participants', 'reportTitle'));
     }
 }
