@@ -158,19 +158,14 @@
                                 placeholder="Ex: Représentant Résident, Chargé de Programme...">
                         </div>
 
-                        <!-- Candidate Info Badge -->
-                        <div x-show="role == candidateRoleId" x-transition class="p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80 flex items-start gap-3">
-                            <span class="material-symbols-outlined text-orange-500 text-[22px] mt-0.5">school</span>
-                            <div class="text-xs text-orange-900 space-y-1">
-                                <p class="font-bold">Espace Candidat / Stagiaire</p>
-                                <p class="text-slate-600">En tant qu'administrateur, vous pouvez modifier son nom, son email, son mot de passe ci-dessous, ou changer son rôle si ce candidat devient un formateur ou membre du personnel.</p>
-                            </div>
+                        <!-- Candidate Info Clean Text -->
+                        <div x-show="role == candidateRoleId" x-transition class="pt-2 text-xs text-slate-500">
+                            <p><span class="font-bold text-slate-700">Note sur le compte Candidat :</span> Vous pouvez modifier son nom, son email, son mot de passe ci-dessous, ou lui attribuer un autre rôle.</p>
                         </div>
 
                         <!-- Direct Password Update (Optional) -->
                         <div class="pt-4 border-t border-slate-200 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-amber-500 text-[20px]">lock_reset</span>
+                            <h3 class="text-sm font-bold text-slate-800">
                                 Définir un nouveau mot de passe (Optionnel)
                             </h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,7 +218,7 @@
                 <!-- User Summary Card -->
                 <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 text-center">
                     <div class="relative inline-block mb-3">
-                        @if($user->avatar)
+                        @if($user->avatar && Storage::disk('public')->exists($user->avatar))
                             <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-20 h-20 rounded-full object-cover border-2 border-[#4B6A95]/20 mx-auto shadow-sm">
                         @else
                             <div class="w-20 h-20 rounded-full bg-blue-50 border-2 border-blue-100 flex items-center justify-center text-[#4B6A95] font-extrabold text-2xl mx-auto shadow-sm">
