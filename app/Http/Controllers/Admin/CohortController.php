@@ -81,14 +81,18 @@ class CohortController extends Controller
 
     public function toggleStatus(Cohort $cohort)
     {
+        $wasCompleted = ($cohort->status === 'completed');
+
         // Si on active cette édition, on désactive les autres
         if ($cohort->status !== 'active') {
             Cohort::where('status', 'active')->update(['status' => 'completed']);
             $cohort->update(['status' => 'active']);
             $action = "activée";
+            $message = "L'édition '{$cohort->title}' a été réactivée avec succès et est désormais active dans vos cycles en cours.";
         } else {
             $cohort->update(['status' => 'completed']);
             $action = "archivée";
+            $message = "L'édition '{$cohort->title}' a été archivée et déplacée dans l'historique.";
         }
 
         ActivityLogger::log(
@@ -97,6 +101,10 @@ class CohortController extends Controller
             $cohort
         );
 
-        return back()->with('success', "L'édition a été {$action}.");
+        if ($wasCompleted) {
+            return redirect()->route('admin.cohorts.index')->with('success', $message);
+        }
+
+        return back()->with('success', $message);
     }
 }

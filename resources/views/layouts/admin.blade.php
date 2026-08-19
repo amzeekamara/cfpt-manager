@@ -546,6 +546,80 @@
 <!-- 3. MAIN CONTENT AREA -->
 <!-- ============================================================== -->
 <main class="pt-20 min-h-screen bg-[#e9ebf0] transition-all duration-300 ease-in-out lg:ml-20">
+    <!-- Global Notifications & Flash Banners -->
+    <div class="max-w-[1600px] mx-auto px-4 lg:px-7 pt-4 empty:hidden">
+        @if(session('success'))
+            <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-5 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-lg">check</span>
+                    </span>
+                    <div>
+                        <p class="text-xs sm:text-sm font-bold text-emerald-900 leading-snug">{{ session('success') }}</p>
+                    </div>
+                </div>
+                <button type="button" @click="show = false" class="text-emerald-700 hover:text-emerald-950 p-1.5 rounded-lg hover:bg-emerald-500/10 transition">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-5 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-800 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                    </span>
+                    <div>
+                        <p class="text-xs sm:text-sm font-bold text-rose-900 leading-snug">{{ session('error') }}</p>
+                    </div>
+                </div>
+                <button type="button" @click="show = false" class="text-rose-700 hover:text-rose-950 p-1.5 rounded-lg hover:bg-rose-500/10 transition">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+        @endif
+
+        @if(session('warning'))
+            <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-5 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-lg">warning</span>
+                    </span>
+                    <div>
+                        <p class="text-xs sm:text-sm font-bold text-amber-900 leading-snug">{{ session('warning') }}</p>
+                    </div>
+                </div>
+                <button type="button" @click="show = false" class="text-amber-700 hover:text-amber-950 p-1.5 rounded-lg hover:bg-amber-500/10 transition">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-5 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-900 shadow-xs">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold shrink-0 mt-0.5">
+                            <span class="material-symbols-outlined text-lg">priority_high</span>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm font-bold text-rose-950 mb-1">Veuillez corriger les erreurs suivantes :</p>
+                            <ul class="list-disc list-inside text-xs text-rose-800 space-y-0.5">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="button" @click="show = false" class="text-rose-700 hover:text-rose-950 p-1.5 rounded-lg hover:bg-rose-500/10 transition">
+                        <span class="material-symbols-outlined text-base">close</span>
+                    </button>
+                </div>
+            </div>
+        @endif
+    </div>
+
     @yield('content')
 </main>
 
