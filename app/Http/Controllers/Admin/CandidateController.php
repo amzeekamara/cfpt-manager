@@ -103,7 +103,7 @@ class CandidateController extends Controller
 
     public function show(Registration $registration)
     {
-        $registration->load(['user.candidateProfile.academicHistories', 'user.candidateResources', 'seminar.cohort']);
+        $registration->load(['user.candidateProfile.academicHistories', 'user.candidateResources', 'seminar.cohort', 'topic']);
         return view('admin.candidates.show', compact('registration'));
     }
 
