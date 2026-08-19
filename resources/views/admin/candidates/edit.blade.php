@@ -74,12 +74,31 @@
                     1. Identité & Coordonnées
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Photo d'Identité / Avatar -->
+                    <div class="md:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
+                        <div class="w-16 h-16 rounded-full bg-blue-50 border-2 border-blue-200 flex items-center justify-center text-[#4B6A95] font-bold text-xl overflow-hidden shrink-0">
+                            @if(optional($registration->user->candidateProfile)->photo_path)
+                                <img src="{{ Storage::url(optional($registration->user->candidateProfile)->photo_path) }}" alt="Photo Candidat" class="w-full h-full object-cover">
+                            @elseif($registration->user->avatar)
+                                <img src="{{ Storage::url($registration->user->avatar) }}" alt="Photo Candidat" class="w-full h-full object-cover">
+                            @else
+                                <span class="material-symbols-outlined text-3xl">account_circle</span>
+                            @endif
+                        </div>
+                        <div class="flex-1 w-full space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Photo d'Identité / Avatar du Candidat</label>
+                            <input type="file" name="photo" id="photo-input" accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                   class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#4B6A95] file:text-white hover:file:bg-[#354e70] transition cursor-pointer">
+                            <p class="text-[10px] text-slate-400">Formats acceptés : JPG, PNG, WEBP. Taille max : 5 Mo.</p>
+                        </div>
+                    </div>
+
                     <div class="space-y-1">
                         <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Matricule</label>
                         <input type="text" name="matricule" value="{{ old('matricule', optional($registration->user->candidateProfile)->matricule) }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-blue-500 font-medium">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Nom complet</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Nom complet *</label>
                         <input type="text" name="name" value="{{ old('name', $registration->user->name) }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-blue-500 font-medium">
                     </div>
                     <div class="space-y-1">
@@ -309,6 +328,72 @@
                                 <option value="rejected" class="text-slate-900" {{ $registration->status == 'rejected' ? 'selected' : '' }}>Refusé</option>
                                 <option value="waiting_list" class="text-slate-900" {{ $registration->status == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION PIÈCES JUSTIFICATIVES & DOCUMENTS -->
+                <div class="mt-8 pt-6 border-t border-slate-200 space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#4B6A95]">folder_open</span>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+                            Pièces Justificatives & Documents du Candidat
+                        </h3>
+                    </div>
+                    <p class="text-xs text-slate-500">Ajoutez de nouvelles pièces jointes (PDF, Images, Word, jusqu'à 10 Mo par fichier).</p>
+
+                    @if($registration->user->candidateResources && $registration->user->candidateResources->count() > 0)
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <span class="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">Documents déjà enregistrés :</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                @foreach($registration->user->candidateResources as $doc)
+                                    <div class="flex items-center justify-between p-2.5 bg-white rounded-lg border border-slate-200 text-xs">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">description</span>
+                                            <span class="font-medium text-slate-800 truncate">{{ $doc->resource_type }} ({{ $doc->original_filename }})</span>
+                                        </div>
+                                        <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="text-[#4B6A95] hover:underline font-bold shrink-0 ml-2">Voir</a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Diplôme -->
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                            <label class="text-[11px] font-bold text-slate-700 block">Nouveau Diplôme / Attestation</label>
+                            <input type="file" name="document_diploma" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                        </div>
+
+                        <!-- Lettre de motivation -->
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                            <label class="text-[11px] font-bold text-slate-700 block">Nouvelle Lettre de Motivation</label>
+                            <input type="file" name="document_motivation" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                        </div>
+
+                        <!-- CV -->
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                            <label class="text-[11px] font-bold text-slate-700 block">Nouveau Curriculum Vitae (CV)</label>
+                            <input type="file" name="document_cv" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                        </div>
+
+                        <!-- Passeport / CNI -->
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                            <label class="text-[11px] font-bold text-slate-700 block">Pièce d'Identité / Passeport</label>
+                            <input type="file" name="document_passport" accept=".pdf,.png,.jpg,.jpeg"
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                        </div>
+
+                        <!-- Autres pièces -->
+                        <div class="md:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                            <label class="text-[11px] font-bold text-slate-700 block">Autres Documents & Justificatifs Complémentaires (Optionnel)</label>
+                            <input type="file" name="other_documents[]" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 transition cursor-pointer">
+                            <p class="text-[10px] text-slate-400">Vous pouvez sélectionner plusieurs fichiers simultanément.</p>
                         </div>
                     </div>
                 </div>

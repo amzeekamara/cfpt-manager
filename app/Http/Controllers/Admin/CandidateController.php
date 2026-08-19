@@ -10,6 +10,7 @@ use App\Models\Seminar;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\CandidateProfile;
+use App\Models\ApplicationDocument;
 use Illuminate\Http\Request;
 use App\Notifications\CandidateStatusNotification;
 use App\Http\Requests\Admin\CandidateRequest;
@@ -158,10 +159,7 @@ class CandidateController extends Controller
             'status' => $validated['status'],
         ]);
 
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('candidates/photos', 'public');
-            $profile->update(['photo_path' => $path]);
-        }
+        $this->saveCandidateFiles($registration->user, $profile, $request);
 
         ActivityLogger::log(
             'Mise à jour Dossier Candidat',
@@ -199,6 +197,7 @@ class CandidateController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($request->password ?? Str::random(12)),
             'role_id' => $candidateRole?->id,
+            'must_change_password' => true,
         ]);
 
         $profileData = $this->extractProfileData($request);
@@ -206,6 +205,8 @@ class CandidateController extends Controller
         $profile = CandidateProfile::create($profileData);
 
         $this->syncAcademicHistories($profile, $request);
+
+        $this->saveCandidateFiles($user, $profile, $request);
 
         $registration = Registration::create([
             'user_id' => $user->id,
@@ -219,6 +220,54 @@ class CandidateController extends Controller
         $user->notify(new CandidateStatusNotification($registration));
 
         return redirect()->route('admin.candidates')->with('success', 'Candidat inscrit avec succès !');
+    }
+
+    private function saveCandidateFiles(User $user, CandidateProfile $profile, Request $request): void
+    {
+        // 1. Photo de profil / Avatar
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('candidates/photos', 'public');
+            $profile->update(['photo_path' => $path]);
+            $user->update(['avatar' => $path]);
+        } elseif ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('candidates/photos', 'public');
+            $profile->update(['photo_path' => $path]);
+            $user->update(['avatar' => $path]);
+        }
+
+        // 2. Documents & Pièces justificatives
+        $docTypes = [
+            'document_diploma' => 'Diplôme / Attestation',
+            'document_motivation' => 'Lettre de Motivation',
+            'document_cv' => 'Curriculum Vitae (CV)',
+            'document_passport' => "Pièce d'identité / Passeport",
+        ];
+
+        foreach ($docTypes as $field => $label) {
+            if ($request->hasFile($field)) {
+                $path = $request->file($field)->store('candidates/documents', 'public');
+                ApplicationDocument::create([
+                    'user_id' => $user->id,
+                    'resource_type' => $label,
+                    'file_path' => $path,
+                    'original_filename' => $request->file($field)->getClientOriginalName(),
+                ]);
+            }
+        }
+
+        if ($request->hasFile('other_documents')) {
+            foreach ($request->file('other_documents') as $otherFile) {
+                if ($otherFile) {
+                    $path = $otherFile->store('candidates/documents', 'public');
+                    ApplicationDocument::create([
+                        'user_id' => $user->id,
+                        'resource_type' => 'Autre Justificatif',
+                        'file_path' => $path,
+                        'original_filename' => $otherFile->getClientOriginalName(),
+                    ]);
+                }
+            }
+        }
     }
 
     private function extractProfileData(Request $request): array

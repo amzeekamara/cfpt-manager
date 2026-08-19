@@ -69,6 +69,16 @@ class CandidateRequest extends FormRequest
             'topic_id' => 'nullable|exists:topics,id',
             'status' => 'required|in:pending,approved,rejected,waiting_list',
 
+            // Photo & Documents
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'document_diploma' => 'nullable|file|mimes:pdf,jpeg,png,jpg,doc,docx|max:10240',
+            'document_motivation' => 'nullable|file|mimes:pdf,jpeg,png,jpg,doc,docx|max:10240',
+            'document_cv' => 'nullable|file|mimes:pdf,jpeg,png,jpg,doc,docx|max:10240',
+            'document_passport' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:10240',
+            'other_documents' => 'nullable|array',
+            'other_documents.*' => 'nullable|file|mimes:pdf,jpeg,png,jpg,doc,docx,xls,xlsx|max:10240',
+
             // Academic History (Arrays)
             'acad_establishment.*' => 'nullable|string',
             'acad_field.*' => 'nullable|string',
