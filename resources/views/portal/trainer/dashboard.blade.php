@@ -319,72 +319,152 @@
      ========================================= --}}
 <div class="main-grid">
 
-    {{-- COLONNE GAUCHE : Tableau candidats par thème --}}
+    {{-- COLONNE GAUCHE : Tableau candidats & Suivi des Présences --}}
     <div class="dash-card">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-                <p class="section-label">Suivi</p>
-                <h2 class="section-title">Candidats par Thème</h2>
+                <p class="section-label">Suivi Pédagogique</p>
+                <h2 class="section-title">Liste des Candidats & Présences</h2>
             </div>
-            <div class="flex gap-2">
+            <div class="flex items-center gap-2">
                 <a href="{{ route('portal.trainer.attendances') }}"
-                   class="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                    <span class="material-symbols-outlined text-[15px]">checklist</span> Présences
+                   class="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-[#4B6A95] text-white hover:bg-[#354e70] transition-colors shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px]">checklist</span> Émargement & Filtres
                 </a>
             </div>
         </div>
 
-        @if($topicsWithCounts->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Thème / Séminaire</th>
-                            <th>Candidats</th>
-                            <th>Statut</th>
-                            <th>Export</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($topicsWithCounts as $topic)
-                        <tr>
-                            <td>
-                                <div style="font-size:13px; font-weight:700; color:var(--text-main);">{{ $topic->name }}</div>
-                                <div style="font-size:11px; color:var(--text-muted); margin-top:1px;">{{ $topic->seminar->title ?? 'N/A' }}</div>
-                            </td>
-                            <td>
-                                <span style="font-size:18px; font-weight:800; color:var(--text-main);">{{ $topic->registrations_count }}</span>
-                            </td>
-                            <td>
-                                @if($topic->registrations_count > 0)
-                                    <span class="pill pill-green">Actif</span>
-                                @else
-                                    <span class="pill pill-amber">Vide</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($topic->registrations_count > 0)
-                                    <a href="{{ route('portal.trainer.topics.export', $topic->id) }}"
-                                       class="flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-brand-primary transition-colors"
-                                       title="Télécharger CSV">
-                                        <span class="material-symbols-outlined text-[18px]">file_download</span>
-                                        CSV
-                                    </a>
-                                @else
-                                    <span class="material-symbols-outlined text-gray-300 text-[18px]">block</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @else
-            <div class="flex flex-col items-center justify-center py-10 text-gray-400">
-                <span class="material-symbols-outlined text-[40px] mb-2">topic</span>
-                <p class="text-sm">Aucun thème disponible dans vos séminaires.</p>
-            </div>
-        @endif
+        {{-- Onglets de bascule --}}
+        <div class="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
+            <button type="button" id="tab-btn-candidates" onclick="switchTrainerTab('candidates')" class="tab-btn active text-xs font-bold">
+                Liste & Statut Aujourd'hui ({{ $recentCandidates->count() }})
+            </button>
+            <button type="button" id="tab-btn-topics" onclick="switchTrainerTab('topics')" class="tab-btn text-xs font-bold">
+                Par Thématique ({{ $topicsWithCounts->count() }})
+            </button>
+        </div>
+
+        {{-- Contenu Onglet 1 : Liste directe des candidats et statuts --}}
+        <div id="tab-content-candidates">
+            @if($recentCandidates->count() > 0)
+                <div class="flex items-center justify-between gap-2 p-2.5 mb-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                    <span class="text-slate-500 font-bold">Séance du {{ \Carbon\Carbon::parse($todayDate)->locale('fr')->isoFormat('D MMMM YYYY') }} :</span>
+                    <div class="flex items-center gap-2 font-bold">
+                        <span class="text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">{{ $todayPresentCount }} Présent(s)</span>
+                        <span class="text-rose-700 bg-rose-100/70 px-2 py-0.5 rounded-md">{{ $todayAbsentCount }} Absent(s)</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto max-h-[320px] overflow-y-auto">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Candidat</th>
+                                <th>Thème</th>
+                                <th class="text-right">Statut Séance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentCandidates as $candidate)
+                                @php
+                                    $att = $candidate->attendances->first();
+                                    $attStatus = $att ? $att->status : null;
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-2.5">
+                                            @if($candidate->user->avatar && Storage::disk('public')->exists($candidate->user->avatar))
+                                                <img src="{{ Storage::url($candidate->user->avatar) }}" alt="Avatar" class="w-7 h-7 rounded-full object-cover shrink-0">
+                                            @else
+                                                <div class="w-7 h-7 rounded-full bg-[#4B6A95]/15 text-[#4B6A95] font-black text-[11px] flex items-center justify-center shrink-0">
+                                                    {{ strtoupper(substr($candidate->user->name, 0, 1)) }}
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <div class="font-bold text-slate-900 text-xs leading-tight">{{ $candidate->user->name }}</div>
+                                                <div class="text-[10px] text-slate-400 font-medium">{{ $candidate->user->email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-xs text-slate-600 font-medium">{{ $candidate->topic?->name ?? 'Général' }}</span>
+                                    </td>
+                                    <td class="text-right">
+                                        @if($attStatus === 'present')
+                                            <span class="pill pill-green">Présent</span>
+                                        @elseif($attStatus === 'absent')
+                                            <span class="pill pill-red">Absent</span>
+                                        @else
+                                            <span class="pill pill-amber">Non émargé</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-[40px] mb-2">person_off</span>
+                    <p class="text-sm font-bold text-gray-600">Aucun candidat approuvé.</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- Contenu Onglet 2 : Par Thème --}}
+        <div id="tab-content-topics" class="hidden">
+            @if($topicsWithCounts->count() > 0)
+                <div class="overflow-x-auto max-h-[320px] overflow-y-auto">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Thème / Séminaire</th>
+                                <th>Candidats</th>
+                                <th>Statut</th>
+                                <th>Export</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($topicsWithCounts as $topic)
+                            <tr>
+                                <td>
+                                    <div style="font-size:13px; font-weight:700; color:var(--text-main);">{{ $topic->name }}</div>
+                                    <div style="font-size:11px; color:var(--text-muted); margin-top:1px;">{{ $topic->seminar->title ?? 'N/A' }}</div>
+                                </td>
+                                <td>
+                                    <span style="font-size:18px; font-weight:800; color:var(--text-main);">{{ $topic->registrations_count }}</span>
+                                </td>
+                                <td>
+                                    @if($topic->registrations_count > 0)
+                                        <span class="pill pill-green">Actif</span>
+                                    @else
+                                        <span class="pill pill-amber">Vide</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($topic->registrations_count > 0)
+                                        <a href="{{ route('portal.trainer.topics.export', $topic->id) }}"
+                                           class="flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-brand-primary transition-colors"
+                                           title="Télécharger CSV">
+                                            <span class="material-symbols-outlined text-[18px]">file_download</span>
+                                            CSV
+                                        </a>
+                                    @else
+                                        <span class="material-symbols-outlined text-gray-300 text-[18px]">block</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-[40px] mb-2">topic</span>
+                    <p class="text-sm">Aucun thème disponible dans vos séminaires.</p>
+                </div>
+            @endif
+        </div>
     </div>
 
     {{-- COLONNE DROITE : Nouveau Message --}}
@@ -541,31 +621,52 @@
 
 @push('scripts')
 <script>
+    function switchTrainerTab(tab) {
+        const btnCandidates = document.getElementById('tab-btn-candidates');
+        const btnTopics = document.getElementById('tab-btn-topics');
+        const contentCandidates = document.getElementById('tab-content-candidates');
+        const contentTopics = document.getElementById('tab-content-topics');
+
+        if (tab === 'candidates') {
+            btnCandidates.classList.add('active');
+            btnTopics.classList.remove('active');
+            contentCandidates.classList.remove('hidden');
+            contentTopics.classList.add('hidden');
+        } else {
+            btnTopics.classList.add('active');
+            btnCandidates.classList.remove('active');
+            contentTopics.classList.remove('hidden');
+            contentCandidates.classList.add('hidden');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const topicsBySeminar = @json($topicsBySeminar);
         const seminarSelect = document.getElementById('seminar_select');
         const topicsContainer = document.getElementById('topics_container');
         const topicsList = document.getElementById('topics_list');
 
-        seminarSelect.addEventListener('change', function() {
-            const seminarId = this.value;
-            topicsList.innerHTML = '';
-            if (seminarId && topicsBySeminar[seminarId] && topicsBySeminar[seminarId].length > 0) {
-                topicsContainer.classList.remove('hidden');
-                topicsBySeminar[seminarId].forEach(topic => {
-                    const label = document.createElement('label');
-                    label.className = 'flex items-center gap-2 cursor-pointer';
-                    label.innerHTML = `
-                        <input type="checkbox" name="topic_ids[]" value="${topic.id}"
-                               class="text-brand-primary rounded border-gray-300 focus:ring-brand-primary">
-                        <span class="text-sm text-gray-700">${topic.name}</span>
-                    `;
-                    topicsList.appendChild(label);
-                });
-            } else {
-                topicsContainer.classList.add('hidden');
-            }
-        });
+        if (seminarSelect) {
+            seminarSelect.addEventListener('change', function() {
+                const seminarId = this.value;
+                topicsList.innerHTML = '';
+                if (seminarId && topicsBySeminar[seminarId] && topicsBySeminar[seminarId].length > 0) {
+                    topicsContainer.classList.remove('hidden');
+                    topicsBySeminar[seminarId].forEach(topic => {
+                        const label = document.createElement('label');
+                        label.className = 'flex items-center gap-2 cursor-pointer';
+                        label.innerHTML = `
+                            <input type="checkbox" name="topic_ids[]" value="${topic.id}"
+                                   class="text-brand-primary rounded border-gray-300 focus:ring-brand-primary">
+                            <span class="text-sm text-gray-700">${topic.name}</span>
+                        `;
+                        topicsList.appendChild(label);
+                    });
+                } else {
+                    topicsContainer.classList.add('hidden');
+                }
+            });
+        }
     });
 </script>
 @endpush

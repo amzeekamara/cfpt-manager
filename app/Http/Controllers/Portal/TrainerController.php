@@ -38,7 +38,35 @@ class TrainerController extends Controller
             $totalCandidates += $seminar->registrations()->where('status', 'approved')->count();
         }
 
-        return view('portal.trainer.dashboard', compact('trainer', 'messages', 'cohorts', 'departments', 'resources', 'topicsBySeminar', 'topicsWithCounts', 'totalCandidates'));
+        $todayDate = date('Y-m-d');
+        $recentCandidates = \App\Models\Registration::with([
+            'user.candidateProfile',
+            'topic',
+            'attendances' => function($q) use ($todayDate) {
+                $q->whereDate('session_date', $todayDate);
+            }
+        ])
+        ->whereIn('seminar_id', $seminarIds)
+        ->where('status', 'approved')
+        ->get();
+
+        $todayPresentCount = $recentCandidates->filter(fn($r) => $r->attendances->first()?->status === 'present')->count();
+        $todayAbsentCount = $recentCandidates->filter(fn($r) => $r->attendances->first()?->status === 'absent')->count();
+
+        return view('portal.trainer.dashboard', compact(
+            'trainer', 
+            'messages', 
+            'cohorts', 
+            'departments', 
+            'resources', 
+            'topicsBySeminar', 
+            'topicsWithCounts', 
+            'totalCandidates',
+            'recentCandidates',
+            'todayDate',
+            'todayPresentCount',
+            'todayAbsentCount'
+        ));
     }
 
     public function sendMessage(Request $request)
@@ -79,30 +107,95 @@ class TrainerController extends Controller
     public function attendances(Request $request)
     {
         $trainerId = $request->session()->get('portal_trainer_id');
-        $trainer = Trainer::with('seminars')->findOrFail($trainerId);
+        $trainer = Trainer::with('seminars.topics')->findOrFail($trainerId);
+
+        // Auto-sélectionner le premier séminaire si aucun n'est spécifié
+        $seminarId = $request->input('seminar_id');
+        if (!$seminarId && $trainer->seminars->count() > 0) {
+            $seminarId = $trainer->seminars->first()->id;
+        }
 
         $date = $request->input('date', date('Y-m-d'));
-        $seminarId = $request->input('seminar_id');
+        $statusFilter = $request->input('status', 'all'); // 'all', 'present', 'absent', 'unmarked'
+        $topicId = $request->input('topic_id');
+        $search = $request->input('search');
         
         $registrations = collect();
+        $allRegistrations = collect();
         $topics = collect();
+        $presentCount = 0;
+        $absentCount = 0;
+        $unmarkedCount = 0;
+        $totalCandidatesCount = 0;
 
         if ($seminarId && $trainer->seminars->contains('id', $seminarId)) {
             $topics = \App\Models\Topic::where('seminar_id', $seminarId)->where('is_active', true)->get();
-            $topicId = $request->input('topic_id'); // Optional filter by topic if needed for display, but usually attendances are per registration.
 
-            $registrations = \App\Models\Registration::with(['user.candidateProfile', 'attendances' => function($q) use ($date, $topicId) {
-                $q->where('session_date', $date);
-                if ($topicId) {
-                    $q->where('topic_id', $topicId);
+            $baseQuery = \App\Models\Registration::with([
+                'user.candidateProfile', 
+                'topic',
+                'attendances' => function($q) use ($date) {
+                    $q->whereDate('session_date', $date);
                 }
-            }])
+            ])
             ->where('seminar_id', $seminarId)
-            ->where('status', 'approved')
-            ->get();
+            ->where('status', 'approved');
+
+            if ($topicId) {
+                $baseQuery->where('topic_id', $topicId);
+            }
+
+            if ($search) {
+                $baseQuery->whereHas('user', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhereHas('candidateProfile', function($pq) use ($search) {
+                          $pq->where('matricule', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            $allRegistrations = $baseQuery->get();
+            $totalCandidatesCount = $allRegistrations->count();
+
+            // Calcul des compteurs sur la date sélectionnée
+            foreach ($allRegistrations as $reg) {
+                $att = $reg->attendances->first();
+                if ($att && $att->status === 'present') {
+                    $presentCount++;
+                } elseif ($att && $att->status === 'absent') {
+                    $absentCount++;
+                } else {
+                    $unmarkedCount++;
+                }
+            }
+
+            // Filtrage par statut de présence (présents, absents, non émargés)
+            if ($statusFilter === 'present') {
+                $registrations = $allRegistrations->filter(fn($r) => $r->attendances->first()?->status === 'present');
+            } elseif ($statusFilter === 'absent') {
+                $registrations = $allRegistrations->filter(fn($r) => $r->attendances->first()?->status === 'absent');
+            } elseif ($statusFilter === 'unmarked') {
+                $registrations = $allRegistrations->filter(fn($r) => !$r->attendances->first());
+            } else {
+                $registrations = $allRegistrations;
+            }
         }
 
-        return view('portal.trainer.attendances', compact('trainer', 'registrations', 'date', 'seminarId', 'topics'));
+        return view('portal.trainer.attendances', compact(
+            'trainer', 
+            'registrations', 
+            'date', 
+            'seminarId', 
+            'topics', 
+            'statusFilter', 
+            'topicId', 
+            'search',
+            'presentCount', 
+            'absentCount', 
+            'unmarkedCount', 
+            'totalCandidatesCount'
+        ));
     }
 
     public function storeAttendances(Request $request)
