@@ -31,9 +31,6 @@
         text-transform: uppercase;
         letter-spacing: 0.8px;
         color: #4B6A95;
-        display: flex;
-        align-items: center;
-        gap: 8px;
         padding-bottom: 10px;
         margin-bottom: 14px;
         border-bottom: 1px solid #f1f5f9;
@@ -143,49 +140,36 @@
                     </span>
                 @endif
 
-                <!-- Status Badge and Decision Action -->
-                <div class="w-full pt-4 border-t border-slate-100 mt-2">
-                    <div class="mb-3">
+                <!-- Status Text & Status Select Dropdown -->
+                <div class="w-full pt-4 border-t border-slate-100 mt-2 space-y-4">
+                    <div>
                         <span class="info-label text-center">Statut Actuel du Dossier</span>
-                        @if($registration->status === 'approved')
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-extrabold">
-                                <span class="material-symbols-outlined text-[16px]">verified</span> Dossier Admis / Sélectionné
-                            </span>
-                        @elseif($registration->status === 'rejected')
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-extrabold">
-                                <span class="material-symbols-outlined text-[16px]">cancel</span> Candidature Refusée
-                            </span>
-                        @elseif($registration->status === 'waiting_list')
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-extrabold">
-                                <span class="material-symbols-outlined text-[16px]">hourglass_empty</span> Liste d'Attente
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#4B6A95] border border-blue-200 rounded-xl text-xs font-extrabold">
-                                <span class="material-symbols-outlined text-[16px]">pending</span> En Attente d'Examen
-                            </span>
-                        @endif
+                        <div class="mt-1">
+                            @if($registration->status === 'approved')
+                                <span class="font-extrabold text-sm text-emerald-600">Dossier Admis / Sélectionné</span>
+                            @elseif($registration->status === 'rejected')
+                                <span class="font-extrabold text-sm text-rose-600">Candidature Refusée</span>
+                            @elseif($registration->status === 'waiting_list')
+                                <span class="font-extrabold text-sm text-amber-500">Liste d'Attente</span>
+                            @else
+                                <span class="font-extrabold text-sm text-amber-500">En Attente d'Examen</span>
+                            @endif
+                        </div>
                     </div>
 
-                    <!-- Quick Action buttons (if pending or change required) -->
-                    <form action="{{ route('admin.candidates.update-status', $registration->id) }}" method="POST" class="flex flex-col gap-2 no-print">
+                    <!-- Liste Déroulante pour changer le Statut -->
+                    <form action="{{ route('admin.candidates.update-status', $registration->id) }}" method="POST" class="no-print pt-2 border-t border-slate-100">
                         @csrf
                         @method('PATCH')
-                        @if($registration->status !== 'approved')
-                            <button name="status" value="approved" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition flex items-center justify-center gap-1.5">
-                                <span class="material-symbols-outlined text-[16px]">check_circle</span> Approuver la Candidature
-                            </button>
-                        @endif
-                        <div class="grid grid-cols-2 gap-2">
-                            @if($registration->status !== 'waiting_list')
-                                <button name="status" value="waiting_list" class="py-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 font-bold text-xs hover:bg-amber-100 transition">
-                                    Mettre en Attente
-                                </button>
-                            @endif
-                            @if($registration->status !== 'rejected')
-                                <button name="status" value="rejected" class="py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs hover:bg-rose-100 transition">
-                                    Refuser
-                                </button>
-                            @endif
+                        <div class="space-y-1.5 text-left">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Changer le Statut :</label>
+                            <select name="status" onchange="this.form.submit()" 
+                                    class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 text-xs focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none cursor-pointer">
+                                <option value="pending" {{ $registration->status == 'pending' ? 'selected' : '' }}>En Attente d'Examen</option>
+                                <option value="approved" {{ $registration->status == 'approved' ? 'selected' : '' }}>Dossier Admis / Sélectionné</option>
+                                <option value="waiting_list" {{ $registration->status == 'waiting_list' ? 'selected' : '' }}>Liste d'Attente</option>
+                                <option value="rejected" {{ $registration->status == 'rejected' ? 'selected' : '' }}>Candidature Refusée</option>
+                            </select>
                         </div>
                     </form>
                 </div>
@@ -194,23 +178,21 @@
             <!-- Seminar & Training Details Card -->
             <div class="info-card p-5 space-y-4">
                 <div class="info-section-title">
-                    <span class="material-symbols-outlined text-[18px]">school</span>
                     Séminaire & Formation
                 </div>
 
                 <div class="space-y-3 text-xs">
                     <div>
                         <span class="info-label">Séminaire Cible</span>
-                        <div class="font-bold text-slate-800 text-sm flex items-start gap-1.5">
-                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 mt-0.5">apartment</span>
-                            <span>{{ $registration->seminar->title }}</span>
+                        <div class="font-bold text-slate-800 text-sm">
+                            {{ $registration->seminar->title }}
                         </div>
                     </div>
 
                     @if($registration->topic)
                         <div class="pt-2 border-t border-slate-100">
                             <span class="info-label">Thème d'Atelier / Projet Pratique</span>
-                            <div class="font-bold text-[#4B6A95] bg-blue-50/70 border border-blue-100 rounded-lg p-2.5">
+                            <div class="font-bold text-slate-800 text-xs">
                                 {{ $registration->topic->name }}
                             </div>
                         </div>
@@ -233,7 +215,6 @@
             <div class="info-card p-5 flex flex-col justify-between" x-data="{ note: '' }">
                 <div>
                     <div class="info-section-title">
-                        <span class="material-symbols-outlined text-[18px]">sticky_note_2</span>
                         Notes Administratives
                     </div>
 
@@ -268,7 +249,6 @@
             <!-- 1. IDENTITÉ & ÉTAT CIVIL COMPLET -->
             <div class="info-card p-6">
                 <div class="info-section-title">
-                    <span class="material-symbols-outlined text-[20px]">badge</span>
                     1. Identité & État Civil
                 </div>
 
@@ -326,7 +306,6 @@
             <!-- 2. COORDONNÉES & CONTACTS D'URGENCE -->
             <div class="info-card p-6">
                 <div class="info-section-title">
-                    <span class="material-symbols-outlined text-[20px]">contact_phone</span>
                     2. Coordonnées & Contacts
                 </div>
 
@@ -347,8 +326,7 @@
 
                 <!-- Contact d'urgence -->
                 <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl">
-                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-rose-500 text-[16px]">emergency</span>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block mb-2">
                         Personne à contacter en cas d'urgence
                     </span>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -375,7 +353,6 @@
             <!-- 3. PROFIL PROFESSIONNEL & EMPLOI -->
             <div class="info-card p-6">
                 <div class="info-section-title">
-                    <span class="material-symbols-outlined text-[20px]">work</span>
                     3. Profil Professionnel & Emploi
                 </div>
 
@@ -417,7 +394,7 @@
                         @if($profile->training_utility)
                             <div>
                                 <span class="info-label">Utilité / Impact attendu de la formation au CFPT</span>
-                                <p class="text-slate-700 bg-blue-50/50 p-3 rounded-lg border border-blue-100 leading-relaxed">{{ $profile->training_utility }}</p>
+                                <p class="text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed">{{ $profile->training_utility }}</p>
                             </div>
                         @endif
                     </div>
@@ -427,7 +404,6 @@
             <!-- 4. PARCOURS ACADÉMIQUE & DIPLÔMES -->
             <div class="info-card p-6">
                 <div class="info-section-title">
-                    <span class="material-symbols-outlined text-[20px]">school</span>
                     4. Parcours Académique & Formations
                 </div>
 
@@ -464,7 +440,6 @@
             <!-- 5. SANTÉ, ASSURANCE & LOGISTIQUE -->
             <div class="info-card p-6">
                 <div class="info-section-title">
-                    <span class="material-symbols-outlined text-[20px]">health_and_safety</span>
                     5. Santé, Assurance & Logistique
                 </div>
 
@@ -517,7 +492,6 @@
             <div class="info-card p-6">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                     <div class="info-section-title !p-0 !m-0 !border-0">
-                        <span class="material-symbols-outlined text-[20px]">folder_open</span>
                         6. Pièces Justificatives & Documents GED
                     </div>
                     <a href="{{ route('admin.candidates.edit', $registration->id) }}" class="text-xs text-[#4B6A95] font-bold hover:underline flex items-center gap-1 no-print">
