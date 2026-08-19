@@ -359,25 +359,23 @@
     .partners-three-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      gap: 32px;
     }
 
     .partner-card-box {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 22px 24px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
-      gap: 18px;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      gap: 16px;
+      box-shadow: none;
     }
 
     .partner-card-box:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--primary-dark);
+      transform: none;
+      box-shadow: none;
     }
 
     .partner-card-img {
@@ -1520,11 +1518,6 @@
   </style>
 </head>
 <body x-data="{ mobileMenu: false }">
-
-  <!-- BANNIÈRE D'ANNONCE -->
-  <div class="top-banner">
-    Programme de Formation en Pays Tiers (PFPT) — Inscriptions ouvertes pour les sessions certifiées JICA & CFPT-SJ — <a href="{{ route('public.postuler') }}">Postuler en ligne &rarr;</a>
-  </div>
 
   <!-- NAVIGATION HEADER ÉPURÉE -->
   <header class="site-header">
