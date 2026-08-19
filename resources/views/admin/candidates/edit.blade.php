@@ -299,55 +299,70 @@
                     5. Sélection & Affectation
                 </h2>
                 
-                <div class="bg-primary p-8 rounded-xl space-y-6 text-white shadow-md relative overflow-hidden">
-                    <div class="absolute right-0 top-0 p-8 opacity-5 pointer-events-none">
-                        <span class="material-symbols-outlined text-[150px]">gavel</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                        <div class="space-y-2">
-                            <select id="seminar_select" name="seminar_id" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 focus:ring-4 focus:ring-white/20 transition-all font-bold text-blue-100 appearance-none outline-none">
+                <!-- Sélection Séminaire, Thème et Statut -->
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Séminaire -->
+                        <div class="space-y-1.5 md:col-span-2">
+                            <label class="text-[11px] font-bold uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">school</span>
+                                Séminaire de Formation *
+                            </label>
+                            <select id="seminar_select" name="seminar_id" required 
+                                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-800 text-sm focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none">
                                 @foreach($seminars as $seminar)
-                                    <option value="{{ $seminar->id }}" class="text-slate-900" {{ $registration->seminar_id == $seminar->id ? 'selected' : '' }}>
+                                    <option value="{{ $seminar->id }}" {{ $registration->seminar_id == $seminar->id ? 'selected' : '' }}>
                                         {{ $seminar->title }} (Édition: {{ $seminar->cohort?->title }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black opacity-60 uppercase tracking-widest">Thème Affecté</label>
-                            <select id="topic_select" name="topic_id" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 focus:ring-4 focus:ring-white/20 transition-all font-bold text-blue-100 appearance-none outline-none">
-                                <option value="" class="text-slate-900">-- Choisir d'abord un séminaire --</option>
+
+                        <!-- Thème affecté -->
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">bookmark</span>
+                                Thème d'Atelier / Spécialité
+                            </label>
+                            <select id="topic_select" name="topic_id" 
+                                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-800 text-sm focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none">
+                                <option value="">-- Choisir d'abord un séminaire --</option>
                             </select>
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black opacity-60 uppercase tracking-widest">Statut du Dossier</label>
-                            <select name="status" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 focus:ring-4 focus:ring-white/20 transition-all font-bold text-blue-100 appearance-none outline-none">
-                                <option value="pending" class="text-slate-900" {{ $registration->status == 'pending' ? 'selected' : '' }}>En attente / À examiner</option>
-                                <option value="approved" class="text-slate-900" {{ $registration->status == 'approved' ? 'selected' : '' }}>Sélectionné / Admis</option>
-                                <option value="rejected" class="text-slate-900" {{ $registration->status == 'rejected' ? 'selected' : '' }}>Refusé</option>
-                                <option value="waiting_list" class="text-slate-900" {{ $registration->status == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
+
+                        <!-- Statut du dossier -->
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">gavel</span>
+                                Statut du Dossier *
+                            </label>
+                            <select name="status" required 
+                                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-800 text-sm focus:border-[#4B6A95] focus:ring-2 focus:ring-blue-100 transition shadow-2xs outline-none">
+                                <option value="pending" {{ $registration->status == 'pending' ? 'selected' : '' }}>En attente / À examiner</option>
+                                <option value="approved" {{ $registration->status == 'approved' ? 'selected' : '' }}>Sélectionné / Admis</option>
+                                <option value="waiting_list" {{ $registration->status == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
+                                <option value="rejected" {{ $registration->status == 'rejected' ? 'selected' : '' }}>Refusé</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <!-- SECTION PIÈCES JUSTIFICATIVES & DOCUMENTS -->
-                <div class="mt-8 pt-6 border-t border-slate-200 space-y-4">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[#4B6A95]">folder_open</span>
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+                <div class="mt-8 pt-6 border-t border-slate-200 space-y-6">
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-[#4B6A95] text-[20px]">folder_open</span>
                             Pièces Justificatives & Documents du Candidat
                         </h3>
+                        <p class="text-xs text-slate-500">Ajoutez de nouvelles pièces jointes (PDF, Images, Word, jusqu'à 10 Mo par fichier).</p>
                     </div>
-                    <p class="text-xs text-slate-500">Ajoutez de nouvelles pièces jointes (PDF, Images, Word, jusqu'à 10 Mo par fichier).</p>
 
                     @if($registration->user->candidateResources && $registration->user->candidateResources->count() > 0)
-                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                            <span class="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">Documents déjà enregistrés :</span>
+                        <div class="space-y-2 pb-2">
+                            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">Documents déjà enregistrés :</span>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 @foreach($registration->user->candidateResources as $doc)
-                                    <div class="flex items-center justify-between p-2.5 bg-white rounded-lg border border-slate-200 text-xs">
+                                    <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs">
                                         <div class="flex items-center gap-2 truncate">
                                             <span class="material-symbols-outlined text-[#4B6A95] text-[18px]">description</span>
                                             <span class="font-medium text-slate-800 truncate">{{ $doc->resource_type }} ({{ $doc->original_filename }})</span>
@@ -359,41 +374,41 @@
                         </div>
                     @endif
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Diplôme -->
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                            <label class="text-[11px] font-bold text-slate-700 block">Nouveau Diplôme / Attestation</label>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-700 block">Nouveau Diplôme / Attestation</label>
                             <input type="file" name="document_diploma" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-[#4B6A95] hover:file:bg-blue-50 transition cursor-pointer">
                         </div>
 
                         <!-- Lettre de motivation -->
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                            <label class="text-[11px] font-bold text-slate-700 block">Nouvelle Lettre de Motivation</label>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-700 block">Nouvelle Lettre de Motivation</label>
                             <input type="file" name="document_motivation" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-[#4B6A95] hover:file:bg-blue-50 transition cursor-pointer">
                         </div>
 
                         <!-- CV -->
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                            <label class="text-[11px] font-bold text-slate-700 block">Nouveau Curriculum Vitae (CV)</label>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-700 block">Nouveau Curriculum Vitae (CV)</label>
                             <input type="file" name="document_cv" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-[#4B6A95] hover:file:bg-blue-50 transition cursor-pointer">
                         </div>
 
                         <!-- Passeport / CNI -->
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                            <label class="text-[11px] font-bold text-slate-700 block">Pièce d'Identité / Passeport</label>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-700 block">Pièce d'Identité / Passeport</label>
                             <input type="file" name="document_passport" accept=".pdf,.png,.jpg,.jpeg"
-                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#4B6A95] hover:file:bg-blue-100 transition cursor-pointer">
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-[#4B6A95] hover:file:bg-blue-50 transition cursor-pointer">
                         </div>
 
                         <!-- Autres pièces -->
-                        <div class="md:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                            <label class="text-[11px] font-bold text-slate-700 block">Autres Documents & Justificatifs Complémentaires (Optionnel)</label>
+                        <div class="md:col-span-2 space-y-1.5 pt-2">
+                            <label class="text-xs font-bold text-slate-700 block">Autres Documents & Justificatifs Complémentaires (Optionnel)</label>
                             <input type="file" name="other_documents[]" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
-                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 transition cursor-pointer">
-                            <p class="text-[10px] text-slate-400">Vous pouvez sélectionner plusieurs fichiers simultanément.</p>
+                                   class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border file:border-slate-200 file:text-xs file:font-bold file:bg-white file:text-slate-700 hover:file:bg-slate-50 transition cursor-pointer">
+                            <p class="text-[10px] text-slate-400">Vous pouvez sélectionner plusieurs fichiers simultanément (Ctrl + Clic).</p>
                         </div>
                     </div>
                 </div>
