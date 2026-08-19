@@ -18,7 +18,7 @@ class ForcePasswordChange
     {
         if (Auth::check() && Auth::user()->must_change_password) {
             // Allow access to the password change route itself and logout to prevent infinite loops
-            if (!$request->routeIs('password.change') && !$request->routeIs('password.update') && !$request->routeIs('logout')) {
+            if (!$request->routeIs('password.change') && !$request->routeIs('password.change.update') && !$request->routeIs('password.update') && !$request->routeIs('logout')) {
                 return redirect()->route('password.change')->with('warning', 'Vous devez changer votre mot de passe par défaut avant de continuer.');
             }
         }
