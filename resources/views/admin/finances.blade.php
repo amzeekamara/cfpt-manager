@@ -235,8 +235,9 @@
                     </div>
                 </div>
 
-                <!-- Recent Expenses Table -->
-                <div class="bg-white rounded-lg border border-gra                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex flex-col gap-4">
+                <!-- Recent Expenses Table (Journal des Dépenses) -->
+                <div class="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="px-6 py-5 border-b border-gray-100 bg-white flex flex-col gap-4">
                         <div class="flex justify-between items-center">
                             <h2 class="font-headline font-bold text-lg text-gray-900 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-brand-primary">history</span> Journal des Dépenses
@@ -296,30 +297,28 @@
                         </form>
                     </div>
 
-                    <!-- Scrollable Expenses Table Container -->
-                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative border-t border-gray-100">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-0 bg-gray-50/95 backdrop-blur z-10 border-b border-gray-200 shadow-2xs">
+                    <!-- Scrollable Expenses Table Container (Fond Blanc Pur) -->
+                    <div class="overflow-x-auto max-h-[480px] overflow-y-auto relative border-t border-gray-100 bg-white">
+                        <table class="w-full text-left border-collapse bg-white">
+                            <thead class="sticky top-0 bg-white border-b border-gray-100 z-10 shadow-2xs">
                                 <tr>
-                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Description</th>
-                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Catégorie</th>
-                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Date</th>
-                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Justificatif</th>
-                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Montant</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white">Description</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white">Catégorie</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white">Date</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white">Justificatif</th>
+                                    <th class="py-3.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right bg-white">Montant</th>
                                 </tr>
                             </thead>
-                            <tbody id="expenses-table-body" class="divide-y divide-gray-50 transition-opacity duration-200">
+                            <tbody id="expenses-table-body" class="divide-y divide-gray-50 bg-white transition-opacity duration-200">
                                 @include('admin.finances.partials.expenses_rows')
                             </tbody>
                         </table>
                     </div>
                 </div>
-                    </div>
-                </div>
 
                 <!-- Journal des Paiements Formateurs -->
-                <div class="bg-white rounded-lg border border-gray-100 shadow-sm mt-8">
-                    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div class="bg-white rounded-lg border border-gray-100 shadow-sm mt-8 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-white">
                         <div>
                             <h2 class="text-lg font-headline font-bold text-gray-900 tracking-tight">Journal des Paiements (Formateurs)</h2>
                             <p class="text-[11px] text-gray-500 font-medium uppercase tracking-wider mt-1">Historique des rémunérations</p>
