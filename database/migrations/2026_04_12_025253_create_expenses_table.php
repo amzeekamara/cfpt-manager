@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('description');
             $table->decimal('amount', 15, 2);
-            $table->foreignId('edition_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('cohort_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('seminar_id')->nullable()->constrained()->onDelete('cascade');
             $table->dateTime('expense_date');
             $table->timestamps();

@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Enrollment;
+use App\Models\Registration;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -12,14 +12,16 @@ class CandidateStatusNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public $enrollment;
+    public $registration;
+    public $setupUrl;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Enrollment $enrollment)
+    public function __construct(Registration $registration, ?string $setupUrl = null)
     {
-        $this->enrollment = $enrollment;
+        $this->registration = $registration;
+        $this->setupUrl = $setupUrl;
     }
 
     /**
@@ -37,8 +39,8 @@ class CandidateStatusNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $status = $this->enrollment->status;
-        $seminarTitle = $this->enrollment->seminar->title;
+        $status = $this->registration->status;
+        $seminarTitle = $this->registration->seminar->title;
         $userName = $notifiable->name;
 
         $message = (new MailMessage)
@@ -55,10 +57,15 @@ class CandidateStatusNotification extends Notification implements ShouldQueue
             $message->line("Votre dossier pour le séminaire **$seminarTitle** a été placé sur liste d'attente. Nous vous contacterons si une place se libère.");
         }
 
-        return $message
-            ->line("Vous pouvez suivre l'évolution de votre dossier en vous connectant à votre espace candidat.")
-            ->action('Accéder à mon espace', route('login'))
-            ->salutation("Cordialement,\nL'équipe du " . config('app.name'));
+        if ($this->setupUrl) {
+            $message->line("Pour activer votre compte et suivre l'évolution de votre dossier en toute sécurité, veuillez définir votre mot de passe d'accès en cliquant sur le bouton ci-dessous :");
+            $message->action('Définir mon mot de passe', $this->setupUrl);
+        } else {
+            $message->line("Vous pouvez suivre l'évolution de votre dossier en vous connectant à votre espace candidat.")
+                ->action('Accéder à mon espace', route('login'));
+        }
+
+        return $message->salutation("Cordialement,\nL'équipe du " . config('app.name'));
     }
 
     /**
@@ -69,8 +76,8 @@ class CandidateStatusNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'enrollment_id' => $this->enrollment->id,
-            'status' => $this->enrollment->status,
+            'registration_id' => $this->registration->id,
+            'status' => $this->registration->status,
         ];
     }
 }

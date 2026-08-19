@@ -23,6 +23,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'must_change_password',
+        'avatar',
     ];
 
     /**
@@ -55,12 +57,20 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return $this->role && in_array($this->role->name, ['Admin', 'Secretary']);
+        return $this->role && in_array($this->role->name, ['Administrateur', 'Coordinateur', 'Admin', 'Agent JICA']);
     }
 
-    public function enrollments()
+    public function hasRole(string $roleName): bool
     {
-        return $this->hasMany(Enrollment::class);
+        if (!$this->role) {
+            return false;
+        }
+        return strtolower($this->role->name) === strtolower($roleName);
+    }
+
+    public function registrations()
+    {
+        return $this->hasMany(Registration::class);
     }
 
     public function candidateProfile()
@@ -68,8 +78,23 @@ class User extends Authenticatable
         return $this->hasOne(CandidateProfile::class);
     }
 
-    public function candidateDocuments()
+    public function candidateResources()
     {
-        return $this->hasMany(CandidateDocument::class);
+        return $this->hasMany(ApplicationDocument::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(ApplicationDocument::class);
+    }
+
+    public function readMessages()
+    {
+        return $this->belongsToMany(Message::class)->withPivot('read_at')->withTimestamps();
+    }
+
+    public function profileUpdateRequests()
+    {
+        return $this->hasMany(ProfileUpdateRequest::class);
     }
 }

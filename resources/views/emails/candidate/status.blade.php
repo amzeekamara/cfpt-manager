@@ -1,21 +1,21 @@
 <x-mail::message>
-# Bonjour {{ $enrollment->user->name }},
+# Bonjour {{ $registration->user->name }},
 
-@if($enrollment->status === 'pending')
+@if($registration->status === 'pending')
 ## Votre candidature est en attente
-Nous avons bien reçu votre inscription pour le séminaire **{{ $enrollment->seminar->title }}**. Votre dossier est actuellement en cours d'examen par nos services.
+Nous avons bien reçu votre inscription pour le séminaire **{{ $registration->seminar->title }}**. Votre dossier est actuellement en cours d'examen par nos services.
 
-@elseif($enrollment->status === 'approved')
+@elseif($registration->status === 'approved')
 ## Félicitations ! Votre candidature a été sélectionnée
-Nous avons le plaisir de vous informer que vous avez été sélectionné pour participer au séminaire **{{ $enrollment->seminar->title }}**.
+Nous avons le plaisir de vous informer que vous avez été sélectionné pour participer au séminaire **{{ $registration->seminar->title }}**.
 
-@elseif($enrollment->status === 'rejected')
+@elseif($registration->status === 'rejected')
 ## Information concernant votre candidature
-Après examen attentif de votre dossier pour le séminaire **{{ $enrollment->seminar->title }}**, nous avons le regret de vous informer que votre candidature n'a pas été retenue pour cette session.
+Après examen attentif de votre dossier pour le séminaire **{{ $registration->seminar->title }}**, nous avons le regret de vous informer que votre candidature n'a pas été retenue pour cette session.
 
-@elseif($enrollment->status === 'waiting_list')
+@elseif($registration->status === 'waiting_list')
 ## Votre candidature est sur liste d'attente
-Votre dossier pour le séminaire **{{ $enrollment->seminar->title }}** a été placé sur liste d'attente. Nous vous contacterons si une place se libère.
+Votre dossier pour le séminaire **{{ $registration->seminar->title }}** a été placé sur liste d'attente. Nous vous contacterons si une place se libère.
 
 @endif
 

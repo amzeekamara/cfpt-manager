@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Enrollment;
+use App\Models\Registration;
 use App\Models\Invoice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,7 +24,7 @@ class InvoiceFactory extends Factory
         $isPaid = $status === 'paid';
 
         return [
-            'enrollment_id' => Enrollment::factory(),
+            'registration_id' => Registration::factory(),
             'amount' => $this->faker->randomElement([150, 350, 450, 1200]),
             'status' => $status,
             'transaction_id' => $isPaid ? 'TX-' . $this->faker->unique()->numerify('##########') : null,

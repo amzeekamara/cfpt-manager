@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('seminar_trainer', function (Blueprint $table) {
+            $table->integer('themes_count')->nullable()->after('remuneration');
+            $table->integer('hours_count')->nullable()->after('themes_count');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('seminar_trainer', function (Blueprint $table) {
+            //
+        });
+    }
+};

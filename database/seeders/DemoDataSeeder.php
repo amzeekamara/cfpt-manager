@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Enrollment;
-use App\Models\Edition;
+use App\Models\Registration;
+use App\Models\Cohort;
 use App\Models\Seminar;
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Intervenant;
+use App\Models\Trainer;
 use App\Models\Expense;
 use Illuminate\Database\Seeder;
 
@@ -18,37 +18,37 @@ class DemoDataSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Create Editions
-        $editions = Edition::factory()->count(3)->create();
+        // 1. Create Cohorts
+        $cohorts = Cohort::factory()->count(3)->create();
 
-        // 2. Create Seminars linked to Editions
-        foreach ($editions as $edition) {
+        // 2. Create Seminars linked to Cohorts
+        foreach ($cohorts as $cohort) {
             $seminars = Seminar::factory()->count(5)->create([
-                'edition_id' => $edition->id,
+                'cohort_id' => $cohort->id,
                 'status' => 'active'
             ]);
 
             foreach ($seminars as $seminar) {
-                // Add 1-2 Intervenants per seminar
-                Intervenant::factory()->count(rand(1, 2))->create([
+                // Add 1-2 Trainers per seminar
+                Trainer::factory()->count(rand(1, 2))->create([
                     'seminar_id' => $seminar->id
                 ]);
 
                 // Add some expenses per seminar
                 Expense::factory()->count(rand(1, 4))->create([
-                    'edition_id' => $edition->id,
+                    'cohort_id' => $cohort->id,
                     'seminar_id' => $seminar->id
                 ]);
             }
 
-            // General edition expenses
+            // General cohort expenses
             Expense::factory()->count(3)->create([
-                'edition_id' => $edition->id
+                'cohort_id' => $cohort->id
             ]);
         }
 
         // 3. Create standalone seminars
-        Seminar::factory()->count(5)->create(['edition_id' => null, 'status' => 'active']);
+        Seminar::factory()->count(5)->create(['cohort_id' => null, 'status' => 'active']);
 
         // 4. Create Users (Candidates)
         $candidateRole = Role::where('name', 'Candidate')->first();
@@ -60,21 +60,21 @@ class DemoDataSeeder extends Seeder
             'role_id' => $candidateRole->id
         ]);
 
-        // 5. Create Enrollments
+        // 5. Create Registrations
         $allSeminars = Seminar::all();
         foreach ($users as $user) {
             $participatingSeminars = $allSeminars->random(rand(0, 3));
             foreach ($participatingSeminars as $seminar) {
-                Enrollment::create([
+                Registration::create([
                     'user_id' => $user->id,
                     'seminar_id' => $seminar->id,
-                    'status' => $this->getRandomEnrollmentStatus($seminar),
+                    'status' => $this->getRandomRegistrationStatus($seminar),
                 ]);
             }
         }
     }
 
-    private function getRandomEnrollmentStatus($seminar)
+    private function getRandomRegistrationStatus($seminar)
     {
         if ($seminar->status === 'completed') return 'approved';
         return fake()->randomElement(['pending', 'approved', 'rejected', 'waiting_list']);

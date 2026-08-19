@@ -18,7 +18,7 @@
         @csrf
         @method('PUT')
         
-        <div class="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant shadow-sm space-y-8">
+        <div class="bg-surface-container-lowest rounded-md p-8 border border-outline-variant shadow-sm space-y-8">
             <!-- Basic Info Section -->
             <div class="space-y-4">
                 <h2 class="text-lg font-bold text-primary flex items-center gap-2">
@@ -28,26 +28,25 @@
                     <div class="lg:col-span-2 space-y-2">
                         <label for="title" class="text-sm font-bold text-on-surface-variant">Titre du séminaire</label>
                         <input type="text" name="title" id="title" value="{{ old('title', $seminar->title) }}" required 
-                            class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
                     <div class="space-y-2">
-                        <label for="department_name" class="text-sm font-bold text-on-surface-variant">Département concerné</label>
-                        <input list="departments-list" name="department_name" id="department_name" required value="{{ old('department_name', $seminar->department_name) }}" placeholder="Ex: Département de Technologie" 
-                            class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                        <datalist id="departments-list">
-                            @foreach($departments as $department)
-                                <option value="{{ $department->name }}">
-                            @endforeach
-                        </datalist>
+                        <x-multi-select-dropdown 
+                            name="departments[]" 
+                            label="Départements concernés" 
+                            :options="$departments" 
+                            :selected="old('departments', $seminar->departments->pluck('id')->toArray())" 
+                            placeholder="Sélectionner les départements..." 
+                            :required="true" />
                     </div>
                     <div class="space-y-2">
-                        <label for="edition_id" class="text-sm font-bold text-on-surface-variant">Édition / Cycle</label>
-                        <select name="edition_id" id="edition_id" 
-                            class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
+                        <label for="cohort_id" class="text-sm font-bold text-on-surface-variant">Édition / Cycle</label>
+                        <select name="cohort_id" id="cohort_id" 
+                            class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
                             <option value="">-- Session Indépendante --</option>
-                            @foreach($editions as $edition)
-                                <option value="{{ $edition->id }}" {{ old('edition_id', $seminar->edition_id) == $edition->id ? 'selected' : '' }}>
-                                    {{ $edition->title }} ({{ $edition->start_date->format('Y') }}) 
+                            @foreach($cohorts as $cohort)
+                                <option value="{{ $cohort->id }}" {{ old('cohort_id', $seminar->cohort_id) == $cohort->id ? 'selected' : '' }}>
+                                    {{ $cohort->title }} ({{ $cohort->start_date->format('Y') }}) 
                                 </option>
                             @endforeach
                         </select>
@@ -60,13 +59,13 @@
                 <div class="space-y-4">
                     <label for="description" class="text-sm font-bold text-on-surface-variant">Description</label>
                     <textarea name="description" id="description" rows="5" 
-                        class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none">{{ old('description', $seminar->description) }}</textarea>
+                        class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none">{{ old('description', $seminar->description) }}</textarea>
                 </div>
                 <div class="space-y-4">
                     <label class="text-sm font-bold text-on-surface-variant">Image de couverture</label>
                     <div class="relative group">
                         <input type="file" name="image" id="image" class="hidden" accept="image/*" onchange="previewImage(this)">
-                        <label for="image" class="w-full aspect-video rounded-2xl border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all overflow-hidden relative">
+                        <label for="image" class="w-full aspect-video rounded-md border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all overflow-hidden relative">
                             <img id="image-preview" src="{{ $seminar->image ? asset('storage/' . $seminar->image) : '' }}" class="absolute inset-0 w-full h-full object-cover {{ $seminar->image ? '' : 'hidden' }}">
                             <div id="upload-placeholder" class="text-center p-4 {{ $seminar->image ? 'hidden' : '' }}">
                                 <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">add_photo_alternate</span>
@@ -74,6 +73,33 @@
                             </div>
                         </label>
                     </div>
+                </div>
+            </div>
+
+            <!-- Topics Section -->
+            <div class="pt-4 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined">category</span> Thèmes (Optionnel)
+                    </h2>
+                    <button type="button" onclick="addTopic()" class="text-sm px-4 py-2 bg-primary/10 text-primary rounded-lg font-bold hover:bg-primary/20 transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">add</span> Ajouter un thème
+                    </button>
+                </div>
+                <div id="topics-container" class="space-y-3">
+                    @php
+                        $romanNumeralsPHP = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV"];
+                    @endphp
+                    @foreach($seminar->topics as $index => $topic)
+                        <div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                            <div class="flex-none font-bold text-on-surface-variant w-24">Thème {{ $romanNumeralsPHP[$index] ?? ($index + 1) }}</div>
+                            <input type="text" name="topics[]" value="{{ $topic->name }}" placeholder="Intitulé du thème" required
+                                class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <button type="button" onclick="this.parentElement.remove(); updateTopicNumbers();" class="w-10 h-10 flex items-center justify-center text-error hover:bg-error/10 rounded-md transition-colors">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -86,23 +112,23 @@
                     <div class="space-y-2">
                         <label for="start_date" class="text-sm font-bold text-on-surface-variant">Date de début</label>
                         <input type="datetime-local" name="start_date" id="start_date" value="{{ old('start_date', $seminar->start_date ? $seminar->start_date->format('Y-m-d\TH:i') : '') }}" required 
-                            class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
                     <div class="space-y-2">
                         <label for="end_date" class="text-sm font-bold text-on-surface-variant">Date de fin</label>
                         <input type="datetime-local" name="end_date" id="end_date" value="{{ old('end_date', $seminar->end_date ? $seminar->end_date->format('Y-m-d\TH:i') : '') }}" required 
-                            class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
                     <div class="space-y-2">
                         <label for="max_participants" class="text-sm font-bold text-on-surface-variant">Capacité max</label>
                         <input type="number" name="max_participants" id="max_participants" required value="{{ old('max_participants', $seminar->max_participants) }}" 
-                            class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
                 </div>
             </div>
 
             <!-- Status -->
-            <div class="pt-4 flex items-center gap-6 bg-surface-container-low/50 p-6 rounded-2xl border border-outline-variant/30">
+            <div class="pt-4 flex items-center gap-6 bg-surface-container-low/50 p-6 rounded-md border border-outline-variant/30">
                 <div class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">État actuel :</div>
                 <div class="flex gap-4">
                     <label class="flex items-center gap-2 cursor-pointer group">
@@ -122,8 +148,8 @@
         </div>
 
         <div class="flex justify-end gap-4 pt-4">
-            <button type="button" onclick="history.back()" class="px-8 py-3 rounded-xl border border-outline-variant font-bold text-on-surface hover:bg-surface-variant transition-all">Annuler</button>
-            <button type="submit" class="px-12 py-3 rounded-xl bg-primary text-on-primary font-bold shadow-lg shadow-primary/30 hover:shadow-xl hover:-translate-y-0.5 transition-all">Mettre à jour</button>
+            <button type="button" onclick="history.back()" class="px-8 py-3 rounded-lg border border-outline-variant font-bold text-on-surface hover:bg-surface-variant transition-all">Annuler</button>
+            <button type="submit" class="px-12 py-3 rounded-lg bg-primary text-on-primary font-bold shadow-lg shadow-primary/10 hover:shadow-xl hover:-translate-y-0.5 transition-all">Mettre à jour</button>
         </div>
     </form>
 </div>
@@ -138,6 +164,36 @@
                 document.getElementById('upload-placeholder').classList.add('hidden');
             }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV"];
+    let topicCount = {{ $seminar->topics->count() }};
+
+    function addTopic(value = '') {
+        topicCount++;
+        const index = document.getElementById('topics-container').children.length;
+        const roman = romanNumerals[index] || (index + 1);
+        
+        const container = document.getElementById('topics-container');
+        const topicDiv = document.createElement('div');
+        topicDiv.className = 'flex items-center gap-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant';
+        topicDiv.innerHTML = `
+            <div class="flex-none font-bold text-on-surface-variant w-24">Thème ${roman}</div>
+            <input type="text" name="topics[]" value="${value}" placeholder="Intitulé du thème" required
+                class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+            <button type="button" onclick="this.parentElement.remove(); updateTopicNumbers();" class="w-10 h-10 flex items-center justify-center text-error hover:bg-error/10 rounded-md transition-colors">
+                <span class="material-symbols-outlined">delete</span>
+            </button>
+        `;
+        container.appendChild(topicDiv);
+    }
+
+    function updateTopicNumbers() {
+        const topics = document.getElementById('topics-container').children;
+        for (let i = 0; i < topics.length; i++) {
+            const roman = romanNumerals[i] || (i + 1);
+            topics[i].querySelector('.w-24').textContent = `Thème ${roman}`;
         }
     }
 </script>

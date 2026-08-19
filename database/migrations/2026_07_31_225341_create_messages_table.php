@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('intervenant_id')->constrained()->onDelete('cascade');
-            $table->foreignId('edition_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('trainer_id')->constrained()->onDelete('cascade');
+            $table->foreignId('cohort_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('department_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('seminar_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('subject');

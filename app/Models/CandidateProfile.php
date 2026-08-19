@@ -11,6 +11,9 @@ class CandidateProfile extends Model
 
     protected $fillable = [
         'user_id',
+        'matricule',
+        'grade',
+        'job_function',
         'first_names',
         'last_name',
         'birth_date',
@@ -53,6 +56,6 @@ class CandidateProfile extends Model
 
     public function academicHistories()
     {
-        return $this->hasMany(AcademicHistory::class);
+        return $this->hasMany(Education::class);
     }
 }

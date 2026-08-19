@@ -12,22 +12,29 @@ class Expense extends Model
     protected $fillable = [
         'description',
         'amount',
-        'edition_id',
+        'cohort_id',
         'seminar_id',
         'expense_date',
+        'expense_category_id',
+        'receipt_path',
     ];
 
     protected $casts = [
         'expense_date' => 'datetime',
     ];
 
-    public function edition()
+    public function cohort()
     {
-        return $this->belongsTo(Edition::class);
+        return $this->belongsTo(Cohort::class);
     }
 
     public function seminar()
     {
         return $this->belongsTo(Seminar::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
     }
 }

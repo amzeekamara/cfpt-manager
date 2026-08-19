@@ -19,7 +19,7 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        $query = CandidateProfile::with(['user.enrollments.seminar.edition']);
+        $query = CandidateProfile::with(['user.registrations.seminar.cohort']);
 
         if (!empty($this->filters['date_from'])) {
             $query->whereDate('created_at', '>=', $this->filters['date_from']);
@@ -29,15 +29,27 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping
             $query->whereDate('created_at', '<=', $this->filters['date_to']);
         }
 
-        if (!empty($this->filters['edition_id'])) {
-            $query->whereHas('user.enrollments.seminar', function($q) {
-                $q->where('edition_id', $this->filters['edition_id']);
+        if (!empty($this->filters['cohort_id'])) {
+            $query->whereHas('user.registrations.seminar', function($q) {
+                $q->where('cohort_id', $this->filters['cohort_id']);
             });
         }
 
         if (!empty($this->filters['seminar_id'])) {
-            $query->whereHas('user.enrollments', function($q) {
+            $query->whereHas('user.registrations', function($q) {
                 $q->where('seminar_id', $this->filters['seminar_id']);
+            });
+        }
+
+        if (!empty($this->filters['topic_id'])) {
+            $query->whereHas('user.registrations.seminar.topics', function($q) {
+                $q->where('id', $this->filters['topic_id']);
+            });
+        }
+
+        if (!empty($this->filters['department_id'])) {
+            $query->whereHas('user.registrations.seminar.departments', function($q) {
+                $q->where('departments.id', $this->filters['department_id']);
             });
         }
 
@@ -63,16 +75,16 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($candidate): array
     {
-        $editions = [];
+        $cohorts = [];
         $seminars = [];
         
-        if ($candidate->user && $candidate->user->enrollments) {
-            foreach ($candidate->user->enrollments as $enrollment) {
-                if ($enrollment->seminar) {
-                    if ($enrollment->seminar->edition) {
-                        $editions[] = $enrollment->seminar->edition->title;
+        if ($candidate->user && $candidate->user->registrations) {
+            foreach ($candidate->user->registrations as $registration) {
+                if ($registration->seminar) {
+                    if ($registration->seminar->cohort) {
+                        $cohorts[] = $registration->seminar->cohort->title;
                     }
-                    $seminars[] = $enrollment->seminar->title;
+                    $seminars[] = $registration->seminar->title;
                 }
             }
         }
@@ -86,7 +98,7 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping
             $candidate->nationality ?? '',
             $candidate->birth_date ? $candidate->birth_date->format('d/m/Y') : '',
             $candidate->phone ?? '',
-            implode(', ', array_unique(array_filter($editions))),
+            implode(', ', array_unique(array_filter($cohorts))),
             implode(', ', array_unique(array_filter($seminars))),
             $candidate->created_at->format('d/m/Y')
         ];

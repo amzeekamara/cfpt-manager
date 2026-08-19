@@ -3,73 +3,372 @@
 @section('header_title', 'Gestion des Profils')
 
 @section('content')
-<div class="p-8 max-w-7xl mx-auto">
+<style>
+    /* --- Variables Custom --- */
+    :root {
+        --primary-blue: #4B6A95;
+        --text-dark: #1f2937;
+        --text-muted: #8b95a5;
+        --text-light: #cbd5e1;
+        --border-color: #e5e7eb;
+        --table-header-bg: #f3f4f8;
+    }
+
+    /* --- Onglets (Tabs) --- */
+    .tabs-container {
+        display: flex;
+        align-items: flex-end;
+        padding-left: 20px;
+        position: relative;
+        z-index: 1;
+        margin-bottom: -1px;
+    }
+
+    .custom-tab {
+        padding: 12px 24px;
+        background-color: #c9d3e5;
+        color: #6a7c92;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 12px 12px 0 0;
+        margin-right: 4px;
+        transition: background-color 0.2s;
+        clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%);
+        min-width: 170px;
+        text-align: center;
+    }
+
+    .custom-tab:hover:not(.active) {
+        background-color: #b8c4d8;
+    }
+
+    .custom-tab.active {
+        background-color: #ffffff;
+        color: var(--text-dark);
+        font-weight: 700;
+        padding: 16px 28px 12px 28px;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 6px -2px rgba(0, 0, 0, 0.05);
+        clip-path: none;
+    }
+
+    /* --- Panneau de Contenu (Blanc) --- */
+    .content-panel {
+        background-color: #ffffff;
+        border-radius: 16px;
+        padding: 24px 32px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 2;
+    }
+
+    /* --- Barre d'outils (Filtres & Actions) --- */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-top: 8px;
+    }
+
+    .filters {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .filter-group label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .filter-input {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--text-dark);
+        outline: none;
+        width: 200px;
+        transition: border-color 0.2s;
+    }
     
-    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="space-y-1">
-            <h1 class="text-4xl font-extrabold tracking-tight text-primary font-headline">Gestion des Comptes Utilisateurs</h1>
-            <p class="text-on-secondary-container font-body body-md">Administrez les accès et rôles de l'institution.</p>
+    .filter-input::placeholder { color: #a1a1aa; }
+    .filter-input:focus { border-color: var(--primary-blue); }
+
+    /* Fake select for styling consistency */
+    .select-wrapper {
+        position: relative;
+    }
+    
+    .select-wrapper select {
+        appearance: none;
+        padding-right: 32px;
+        background-color: white;
+        color: var(--text-dark);
+    }
+
+    .select-wrapper::after {
+        content: "⌄";
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-60%);
+        pointer-events: none;
+        color: #a1a1aa;
+        font-size: 16px;
+    }
+
+    /* --- Boutons --- */
+    .custom-btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid var(--primary-blue);
+        color: var(--primary-blue);
+        padding: 8px 20px;
+    }
+
+    .btn-outline:hover { background-color: #eff6ff; }
+
+    .btn-primary-custom {
+        background-color: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 8px;
+    }
+
+    .btn-primary-custom:hover { background-color: #2563eb; }
+
+    .btn-primary-custom svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* --- Table des données --- */
+    .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 24px;
+    }
+
+    .data-table th {
+        background-color: var(--table-header-bg);
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 13px;
+        text-align: left;
+        padding: 14px 16px;
+    }
+
+    .data-table th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; padding-left: 24px;}
+    .data-table th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+    .data-table td {
+        padding: 16px 16px;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+        color: #4b5563;
+    }
+
+    .data-table td:first-child {
+        padding-left: 24px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* --- Actions dans la table --- */
+    .table-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        background-color: transparent;
+        border: 1px solid var(--primary-blue);
+        color: var(--primary-blue);
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-action:hover {
+        background-color: #eff6ff;
+    }
+    
+    .btn-action-danger {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+    
+    .btn-action-danger:hover {
+        background-color: #fef2f2;
+    }
+
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+</style>
+
+<div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800">
+    <div class="w-full max-w-[1600px] mx-auto">
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.dashboard') }}" class="p-2.5 border border-slate-200 rounded-full hover:bg-slate-50 cursor-pointer transition shadow-2xs bg-white text-slate-700" title="Retour au tableau de bord">
+                    <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
+                </a>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Gestion des Comptes Utilisateurs</h1>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Administrez les accès et rôles de l'institution.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.users.create') }}" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm" style="text-decoration: none;">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span>
+                    Ajouter un Utilisateur
+                </a>
+            </div>
         </div>
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.users.create') }}" class="bg-primary text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-blue-900/10" style="background: linear-gradient(135deg, #0f4c81 0%, #00355f 100%);">
-                <span class="material-symbols-outlined">person_add</span>
-                + Ajouter un Utilisateur
-            </a>
-        </div>
+
+    <!-- Onglets -->
+    <div class="tabs-container">
+        <div class="custom-tab active" onclick="switchTab('staff', this)">Membres du Personnel</div>
+        <div class="custom-tab" onclick="switchTab('trainers', this)">Formateurs</div>
+        <div class="custom-tab" onclick="switchTab('candidates', this)">Candidats</div>
+        <div class="custom-tab" onclick="switchTab('jica', this)">Agents JICA</div>
     </div>
 
-    <div class="bg-surface-container-lowest rounded-xl shadow-[0px_20px_40px_rgba(30,41,59,0.06)] overflow-hidden">
-        <div class="p-6 bg-surface-container-low/30 border-b border-outline-variant/10 flex items-center justify-between">
-            <div class="relative w-full max-w-md">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input class="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all border-b-2 border-transparent focus:border-primary" placeholder="Rechercher par nom ou email..." type="text"/>
+    <!-- Panneau Principal -->
+    <div class="content-panel">
+        
+        <!-- Barre d'outils -->
+        <div class="toolbar">
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Rechercher</label>
+                    <input type="text" class="filter-input" placeholder="Nom ou email...">
+                </div>
+                <div class="filter-group">
+                    <label>Rôle</label>
+                    <div class="select-wrapper">
+                        <select class="filter-input">
+                            <option value="" selected>Tous les rôles</option>
+                            <option value="admin">Administrateur</option>
+                            <option value="trainer">Formateur</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="custom-btn btn-outline">Filtrer</button>
             </div>
-            <div class="flex items-center gap-2 text-slate-400">
-                <span class="text-xs font-semibold uppercase tracking-widest">{{ $users->total() }} Utilisateurs trouvés</span>
-            </div>
+            
+            <button class="custom-btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Exporter
+            </button>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+        <!-- Tab Content: Staff -->
+        <div id="tab-staff" class="tab-content active">
+            <table class="data-table">
                 <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Nom complet</th>
-                        <th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Email</th>
-                        <th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Rôle</th>
-                        <th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container">Date de Création</th>
-                        <th class="px-8 py-4 text-[10px] uppercase tracking-[0.1em] font-bold text-on-secondary-container text-right">Actions</th>
+                    <tr>
+                        <th>Nom complet</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y-0">
-                    @foreach($users as $user)
-                    <tr class="group hover:bg-surface-container-high transition-colors">
-                        <td class="px-8 py-6">
+                <tbody>
+                    @foreach($staffUsers as $user)
+                    <tr>
+                        <td>
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-sm">
-                                    {{ substr($user->name, 0, 2) }}
-                                </div>
-                                <span class="font-semibold text-on-surface">{{ $user->name }}</span>
+                                @if($user->avatar)
+                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-xs shadow-sm">
+                                        {{ substr($user->name, 0, 2) }}
+                                    </div>
+                                @endif
+                                <span>{{ $user->name }}</span>
                             </div>
                         </td>
-                        <td class="px-8 py-6 text-on-secondary-container body-md">{{ $user->email }}</td>
-                        <td class="px-8 py-6">
-                            @if($user->role && $user->role->name == 'Admin')
-                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-blue-200">Admin</span>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            @if($user->role && $user->role->name == 'Administrateur')
+                                <span class="text-primary text-xs font-extrabold uppercase tracking-wider">Admin</span>
                             @elseif($user->role && $user->role->name == 'Formateur')
-                                <span class="px-3 py-1 bg-teal-100 text-teal-800 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-teal-200">Formateur</span>
+                                <span class="text-emerald-600 text-xs font-extrabold uppercase tracking-wider">Formateur</span>
                             @else
-                                <span class="px-3 py-1 bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-slate-300">{{ $user->role ? $user->role->name : 'N/A' }}</span>
+                                <span class="text-slate-500 text-xs font-extrabold uppercase tracking-wider">{{ $user->role ? $user->role->name : 'N/A' }}</span>
                             @endif
                         </td>
-                        <td class="px-8 py-6 text-on-secondary-container body-md">{{ $user->created_at->format('d M Y') }}</td>
-                        <td class="px-8 py-6 text-right">
-                            <div class="flex items-center justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
-                                <button class="p-2 hover:bg-white rounded-lg text-primary transition-all shadow-sm">
-                                    <span class="material-symbols-outlined text-lg">edit</span>
+                        <td>
+                            <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
+                                <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
                                 </button>
-                                <button class="p-2 hover:bg-red-50 rounded-lg text-error transition-all">
-                                    <span class="material-symbols-outlined text-lg">delete</span>
-                                </button>
+                                
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-100" 
+                                     x-transition:enter-start="transform opacity-0 scale-95" 
+                                     x-transition:enter-end="transform opacity-100 scale-100" 
+                                     x-transition:leave="transition ease-in duration-75" 
+                                     x-transition:leave-start="transform opacity-100 scale-100" 
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                                     style="display: none;">
+                                    <div class="py-1">
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                            <span class="material-symbols-outlined text-[18px]">edit</span> Éditer
+                                        </a>
+                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr ?');" class="m-0">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left font-medium">
+                                                <span class="material-symbols-outlined text-[18px]">delete</span> Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -78,10 +377,232 @@
             </table>
         </div>
 
-        <!-- Custom Tailwind Pagination links -->
-        <div class="px-8 py-6 bg-surface-container-low/20 border-t border-outline-variant/10">
-            {{ $users->links('pagination::tailwind') }}
+        <!-- Tab Content: Candidates -->
+        <div id="tab-candidates" class="tab-content">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom complet</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($candidates as $user)
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                @if($user->avatar)
+                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold text-xs shadow-sm">
+                                        {{ substr($user->name, 0, 2) }}
+                                    </div>
+                                @endif
+                                <span>{{ $user->name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ $user->email }}</td>
+                        <td><span class="text-orange-500 text-xs font-extrabold uppercase tracking-wider">Candidat</span></td>
+                        <td>
+                            <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
+                                <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                </button>
+                                
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-100" 
+                                     x-transition:enter-start="transform opacity-0 scale-95" 
+                                     x-transition:enter-end="transform opacity-100 scale-100" 
+                                     x-transition:leave="transition ease-in duration-75" 
+                                     x-transition:leave-start="transform opacity-100 scale-100" 
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                                     style="display: none;">
+                                    <div class="py-1">
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                            <span class="material-symbols-outlined text-[18px]">edit</span> Éditer
+                                        </a>
+                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr ?');" class="m-0">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left font-medium">
+                                                <span class="material-symbols-outlined text-[18px]">delete</span> Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab Content: Formateurs -->
+        <div id="tab-trainers" class="tab-content">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom complet</th>
+                        <th>Email</th>
+                        <th>Matière / Spécialité</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($trainers as $user)
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                @if($user->avatar)
+                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shadow-sm">
+                                        {{ substr($user->name, 0, 2) }}
+                                    </div>
+                                @endif
+                                <span>{{ $user->name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            @if($user->specialty)
+                                <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-medium">{{ $user->specialty }}</span>
+                            @else
+                                <span class="text-slate-400 italic text-xs">Non spécifié</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
+                                <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                </button>
+                                
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-100" 
+                                     x-transition:enter-start="transform opacity-0 scale-95" 
+                                     x-transition:enter-end="transform opacity-100 scale-100" 
+                                     x-transition:leave="transition ease-in duration-75" 
+                                     x-transition:leave-start="transform opacity-100 scale-100" 
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                                     style="display: none;">
+                                    <div class="py-1">
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-slate-50 hover:text-primary">
+                                            <span class="material-symbols-outlined mr-3 text-[18px] text-gray-400 group-hover:text-primary">edit</span>
+                                            Éditer
+                                        </a>
+                                        <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce formateur ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                                <span class="material-symbols-outlined mr-3 text-[18px] text-red-500">delete</span>
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-8 text-slate-500 italic">Aucun formateur trouvé.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab Content: Agents JICA -->
+        <div id="tab-jica" class="tab-content">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom complet</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($jicaAgents as $user)
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                @if($user->avatar)
+                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-bold text-xs shadow-sm">
+                                        {{ substr($user->name, 0, 2) }}
+                                    </div>
+                                @endif
+                                <span>{{ $user->name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
+                                <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                </button>
+                                
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-100" 
+                                     x-transition:enter-start="transform opacity-0 scale-95" 
+                                     x-transition:enter-end="transform opacity-100 scale-100" 
+                                     x-transition:leave="transition ease-in duration-75" 
+                                     x-transition:leave-start="transform opacity-100 scale-100" 
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                                     style="display: none;">
+                                    <div class="py-1">
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-slate-50 hover:text-primary">
+                                            <span class="material-symbols-outlined mr-3 text-[18px] text-gray-400 group-hover:text-primary">edit</span>
+                                            Éditer
+                                        </a>
+                                        <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet agent ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                                <span class="material-symbols-outlined mr-3 text-[18px] text-red-500">delete</span>
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" class="text-center py-8 text-slate-500 italic">Aucun Agent JICA trouvé.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+</div>
+
+<script>
+    function switchTab(tabId, element) {
+        // Update tabs
+        document.querySelectorAll('.custom-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        if(element) {
+            element.classList.add('active');
+        }
+
+        // Update content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+</script>
 @endsection

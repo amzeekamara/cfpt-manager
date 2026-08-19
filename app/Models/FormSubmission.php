@@ -13,7 +13,7 @@ class FormSubmission extends Model
         'form_template_id',
         'answers_json',
         'respondent_ip',
-        'enrollment_id',
+        'registration_id',
         'submitted_at',
     ];
 
@@ -27,8 +27,8 @@ class FormSubmission extends Model
         return $this->belongsTo(FormTemplate::class, 'form_template_id');
     }
 
-    public function enrollment()
+    public function registration()
     {
-        return $this->belongsTo(Enrollment::class);
+        return $this->belongsTo(Registration::class);
     }
 }

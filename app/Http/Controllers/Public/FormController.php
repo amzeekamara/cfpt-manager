@@ -7,11 +7,13 @@ use App\Models\FormTemplate;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Models\CandidateProfile;
-use App\Models\Enrollment;
+use App\Models\Registration;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Notifications\NewFormSubmissionNotification;
+use App\Http\Requests\PublicFormSubmissionRequest;
 
 class FormController extends Controller
 {
@@ -34,28 +36,11 @@ class FormController extends Controller
             if ($ds === 'seminars') {
                 $resolvedOptions[$field['key']] = \App\Models\Seminar::where('status', '!=', 'completed')
                     ->pluck('title')->toArray();
-            } elseif ($ds === 'editions') {
-                $resolvedOptions[$field['key']] = \App\Models\Edition::orderByDesc('start_date')
+            } elseif ($ds === 'cohorts') {
+                $resolvedOptions[$field['key']] = \App\Models\Cohort::orderByDesc('start_date')
                     ->pluck('title')->toArray();
             } elseif ($ds === 'countries') {
-                $resolvedOptions[$field['key']] = [
-                    'Afghanistan','Afrique du Sud','Albanie','Algérie','Allemagne','Angola','Arabie Saoudite','Argentine',
-                    'Australie','Autriche','Azerbaïdjan','Bahreïn','Bangladesh','Belgique','Bénin','Bolivie','Brésil',
-                    'Bulgarie','Burkina Faso','Burundi','Cambodge','Cameroun','Canada','Chili','Chine','Colombie',
-                    'Comores','Congo','Corée du Sud','Côte d\'Ivoire','Croatie','Cuba','Danemark','Djibouti','Égypte',
-                    'Émirats Arabes Unis','Équateur','Espagne','Éthiopie','Finlande','France','Gabon','Gambie','Ghana',
-                    'Grèce','Guatemala','Guinée','Guinée-Bissau','Haïti','Honduras','Hongrie','Inde','Indonésie','Irak',
-                    'Iran','Irlande','Islande','Israël','Italie','Jamaïque','Japon','Jordanie','Kazakhstan','Kenya',
-                    'Koweït','Laos','Liban','Liberia','Libye','Luxembourg','Madagascar','Malaisie','Malawi','Mali',
-                    'Maroc','Mauritanie','Mexique','Moldavie','Mongolie','Mozambique','Myanmar','Namibie','Népal',
-                    'Nicaragua','Niger','Nigeria','Norvège','Nouvelle-Zélande','Oman','Ouganda','Pakistan','Palestine',
-                    'Panama','Paraguay','Pays-Bas','Pérou','Philippines','Pologne','Portugal','Qatar','République Centrafricaine',
-                    'République Démocratique du Congo','République Dominicaine','République Tchèque','Roumanie',
-                    'Royaume-Uni','Russie','Rwanda','Salvador','Sénégal','Serbie','Sierra Leone','Singapour',
-                    'Slovaquie','Slovénie','Somalie','Soudan','Soudan du Sud','Sri Lanka','Suède','Suisse','Syrie',
-                    'Tanzanie','Tchad','Thaïlande','Togo','Tunisie','Turquie','Ukraine','Uruguay','Venezuela',
-                    'Vietnam','Yémen','Zambie','Zimbabwe',
-                ];
+                $resolvedOptions[$field['key']] = \App\Helpers\CountryHelper::all();
             }
         }
 
@@ -63,72 +48,161 @@ class FormController extends Controller
     }
 
     /**
-     * Handle submission of the public form (Option B: creates User + Profile + Enrollment)
+     * Handle submission of the public form (Option B: creates User + Profile + Registration)
      */
-    public function store(Request $request, string $token)
+    public function store(PublicFormSubmissionRequest $request, string $token)
     {
         $form = FormTemplate::where('share_token', $token)
             ->where('is_active', true)
             ->firstOrFail();
 
-        // Build dynamic validation rules from fields_json
-        $rules = [];
-        foreach ($form->fields_json ?? [] as $field) {
-            $key = 'answers.' . $field['key'];
-            $rule = $field['required'] ? 'required' : 'nullable';
-            if ($field['type'] === 'email') {
-                $rule .= '|email';
-            }
-            $rules[$key] = $rule . '|string|max:500';
-        }
-
-        $validated = $request->validate($rules);
+        $validated = $request->validated();
         $answers = $validated['answers'] ?? [];
+
+        // Ne pas stocker les objets de fichiers dans le JSON
+        $answersForJson = $answers;
+        if (isset($answersForJson['photo'])) {
+            unset($answersForJson['photo']);
+        }
+        if (isset($answersForJson['diplomas'])) {
+            foreach ($answersForJson['diplomas'] as $k => $d) {
+                unset($answersForJson['diplomas'][$k]['file']);
+            }
+        }
 
         // Save raw submission
         $submission = FormSubmission::create([
             'form_template_id' => $form->id,
-            'answers_json'     => $answers,
+            'answers_json'     => $answersForJson,
             'respondent_ip'    => $request->ip(),
         ]);
 
-        // === Option B: Auto-create User + Profile + Enrollment ===
+        // === Option B: Traitement sécurisé du profil et de l'inscription ===
         $email     = $answers['email'] ?? null;
         $seminarId = $form->seminar_id;
 
         if ($email && $seminarId) {
-            // Avoid duplicate accounts
             $user = User::where('email', $email)->first();
 
+            // 1. Si l'utilisateur n'existe pas encore : initialisation sécurisée
             if (!$user) {
-                $candidateRole = Role::where('name', 'Candidate')->first();
+                $candidateRole = Role::where('name', 'Candidat')->first();
                 $fullName = trim(($answers['prenom'] ?? '') . ' ' . ($answers['nom'] ?? '')) ?: 'Participant';
 
                 $user = User::create([
                     'name'     => $fullName,
                     'email'    => $email,
-                    'password' => Hash::make(Str::random(12)), // Random password, admin resets if needed
+                    'password' => Hash::make(Str::random(16)),
                     'role_id'  => $candidateRole?->id,
                 ]);
 
-                CandidateProfile::create([
+                $photoPath = null;
+                if ($request->hasFile('answers.photo')) {
+                    $photoPath = $request->file('answers.photo')->store('avatars', 'public');
+                }
+
+                $profile = CandidateProfile::create([
                     'user_id'       => $user->id,
-                    'phone'         => $answers['whatsapp'] ?? null,
+                    'first_names'   => $answers['prenom'] ?? '',
+                    'last_name'     => $answers['nom'] ?? '',
+                    'matricule'     => $answers['matricule'] ?? null,
+                    'photo_path'    => $photoPath,
+                    'gender'        => isset($answers['sexe']) ? ($answers['sexe'] === 'Masculin' ? 'M' : ($answers['sexe'] === 'Féminin' ? 'F' : 'M')) : 'M',
                     'birth_date'    => !empty($answers['date_naissance']) ? $answers['date_naissance'] : null,
                     'birth_place'   => $answers['lieu_naissance'] ?? null,
+                    'nationality'   => $answers['nationalite'] ?? null,
+                    'family_status' => isset($answers['situation_fam']) ? 
+                        (['Célibataire' => 'single', 'Marié(e)' => 'married', 'Divorcé(e)' => 'divorced', 'Veuf/Veuve' => 'widowed'][$answers['situation_fam']] ?? 'single') : 'single',
+                    'religion'      => $answers['religion'] ?? null,
+                    'phone'         => $answers['whatsapp'] ?? null,
                     'residence_country' => $answers['pays'] ?? null,
+                    'address'       => $answers['adresse'] ?? null,
+                    'emergency_contact_name' => $answers['urgence_nom'] ?? null,
                     'emergency_contact_phone' => $answers['urgence'] ?? null,
+                    'current_profession' => $answers['profession'] ?? null,
+                    'current_employer'   => $answers['employeur'] ?? null,
+                    'grade'              => $answers['grade'] ?? null,
+                    'job_function'       => $answers['fonction'] ?? null,
+                    'previous_employer'  => $answers['emp_precedent'] ?? null,
+                    'job_description'    => $answers['desc_travail'] ?? null,
+                    'accommodation_preference' => $answers['hebergement'] ?? null,
+                    'insurance_details'        => $answers['assurance'] ?? null,
+                    'health_questionnaire_json' => [
+                        'chronic'   => isset($answers['sante_chronique']) ? ($answers['sante_chronique'] === 'Oui' ? 'yes' : 'no') : null,
+                        'treatment' => isset($answers['sante_traitement']) ? ($answers['sante_traitement'] === 'Oui' ? 'yes' : 'no') : null,
+                    ],
+                    'health_record_obs' => $answers['sante_obs'] ?? null,
                 ]);
+
+                // Historique académique initial
+                $diplomas = $answers['diplomas'] ?? [];
+                foreach ($diplomas as $index => $diploma) {
+                    if (!empty($diploma['nom']) || !empty($diploma['etab'])) {
+                        $path = null;
+                        if ($request->hasFile("answers.diplomas.{$index}.file")) {
+                            $path = $request->file("answers.diplomas.{$index}.file")->store('diplomas', 'public');
+                        }
+                        $profile->academicHistories()->create([
+                            'degree_obtained'    => $diploma['nom'] ?? 'Non spécifié',
+                            'establishment_name' => $diploma['etab'] ?? 'Non spécifié',
+                            'graduation_year'    => $diploma['annee'] ?? date('Y'),
+                            'resource_path'      => $path,
+                            'field_of_study'     => 'Général',
+                            'level'              => 'secondary',
+                        ]);
+                    }
+                }
+
+                $registration = Registration::firstOrCreate(
+                    ['user_id' => $user->id, 'seminar_id' => $seminarId],
+                    ['status' => 'pending']
+                );
+
+                $submission->update(['registration_id' => $registration->id]);
+
+            } elseif (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::id() === $user->id) {
+                // 2. Si l'utilisateur est dûment authentifié comme propriétaire du compte
+                $profile = CandidateProfile::firstOrCreate(['user_id' => $user->id]);
+
+                $photoPath = $profile->photo_path;
+                if ($request->hasFile('answers.photo')) {
+                    $photoPath = $request->file('answers.photo')->store('avatars', 'public');
+                }
+
+                $profile->update([
+                    'first_names'   => $answers['prenom'] ?? $profile->first_names ?? '',
+                    'last_name'     => $answers['nom'] ?? $profile->last_name ?? '',
+                    'matricule'     => $answers['matricule'] ?? $profile->matricule,
+                    'photo_path'    => $photoPath,
+                    'gender'        => isset($answers['sexe']) ? ($answers['sexe'] === 'Masculin' ? 'M' : ($answers['sexe'] === 'Féminin' ? 'F' : $profile->gender)) : $profile->gender,
+                    'birth_date'    => !empty($answers['date_naissance']) ? $answers['date_naissance'] : $profile->birth_date,
+                    'birth_place'   => $answers['lieu_naissance'] ?? $profile->birth_place,
+                    'nationality'   => $answers['nationalite'] ?? $profile->nationality,
+                    'phone'         => $answers['whatsapp'] ?? $profile->phone,
+                    'address'       => $answers['adresse'] ?? $profile->address,
+                ]);
+
+                $registration = Registration::firstOrCreate(
+                    ['user_id' => $user->id, 'seminar_id' => $seminarId],
+                    ['status' => 'pending']
+                );
+
+                $submission->update(['registration_id' => $registration->id]);
+
+            } else {
+                // 3. Utilisateur existant mais formulaire public non authentifié :
+                // La soumission $submission est enregistrée de manière autonome sans écraser le profil existant.
+                \Log::info("Form submitted for existing email {$email} without authentication. Profile overwrite prevented.");
             }
+        }
 
-            // Create enrollment if not already enrolled
-            $enrollment = Enrollment::firstOrCreate(
-                ['user_id' => $user->id, 'seminar_id' => $seminarId],
-                ['status' => 'pending']
-            );
+        // Notify Admins
+        $admins = User::whereHas('role', function($q) {
+            $q->where('name', 'Administrateur');
+        })->get();
 
-            // Link enrollment to submission
-            $submission->update(['enrollment_id' => $enrollment->id]);
+        foreach ($admins as $admin) {
+            $admin->notify(new NewFormSubmissionNotification($submission));
         }
 
         return view('public.form_success', compact('form'));

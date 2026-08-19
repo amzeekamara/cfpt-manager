@@ -15,7 +15,7 @@ class EnsureStrictAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role->name !== 'Admin') {
+        if (!auth()->check() || !in_array(auth()->user()->role->name ?? '', ['Admin', 'Administrateur'])) {
             abort(403, "Seul l'administrateur principal peut gérer les comptes utilisateurs.");
         }
 

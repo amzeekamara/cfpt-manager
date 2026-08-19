@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\FormTemplate;
 use App\Models\FormSubmission;
 use App\Models\Seminar;
-use App\Models\Edition;
-use App\Models\Enrollment;
+use App\Models\Cohort;
+use App\Models\Registration;
 use App\Helpers\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Notifications\CandidateStatusNotification;
+use App\Http\Requests\Admin\FormTemplateRequest;
 
 class FormController extends Controller
 {
@@ -32,50 +34,26 @@ class FormController extends Controller
      */
     public function create()
     {
-        $seminars = Seminar::where('status', '!=', 'completed')->get();
+        $cohorts = Cohort::orderByDesc('start_date')->with(['seminars' => function($q) {
+            $q->where('status', '!=', 'completed');
+        }])->get();
 
-        // Default PFPT fields pre-loaded
-        $defaultFields = [
-            ['key' => 'civilite',       'type' => 'radio',    'label' => 'Titre de civilité',            'required' => true,  'options' => ['Monsieur', 'Madame'], 'data_source' => ''],
-            ['key' => 'nom',            'type' => 'text',     'label' => 'Nom',                          'required' => true,  'placeholder' => 'Votre nom de famille', 'data_source' => ''],
-            ['key' => 'prenom',         'type' => 'text',     'label' => 'Prénom',                       'required' => true,  'placeholder' => 'Votre prénom', 'data_source' => ''],
-            ['key' => 'date_naissance', 'type' => 'date',     'label' => 'Date de naissance',            'required' => true,  'placeholder' => '', 'data_source' => ''],
-            ['key' => 'lieu_naissance', 'type' => 'text',     'label' => 'Lieu de naissance',            'required' => true,  'placeholder' => 'Ville, Pays', 'data_source' => ''],
-            ['key' => 'email',          'type' => 'email',    'label' => 'Adresse e-mail',               'required' => true,  'placeholder' => 'exemple@email.com', 'data_source' => ''],
-            ['key' => 'whatsapp',       'type' => 'tel',      'label' => 'Numéro de téléphone WhatsApp', 'required' => true,  'placeholder' => '+221 77 000 00 00', 'data_source' => ''],
-            ['key' => 'urgence',        'type' => 'tel',      'label' => "Numéro en cas d'urgence",     'required' => true,  'placeholder' => '+221 77 000 00 00', 'data_source' => ''],
-            ['key' => 'pays',           'type' => 'select',   'label' => 'Pays',                         'required' => true,  'options' => [], 'data_source' => 'countries'],
-            ['key' => 'theme',          'type' => 'select',   'label' => 'Thème',                        'required' => true,  'options' => [], 'data_source' => 'seminars'],
-        ];
-
-        // Data sources available in the builder
-        $dbSources = [
-            'seminars' => Seminar::where('status', '!=', 'completed')->pluck('title', 'id'),
-            'editions' => Edition::orderByDesc('start_date')->pluck('title', 'id'),
-        ];
-
-        return view('admin.forms.builder', compact('seminars', 'defaultFields', 'dbSources'));
+        return view('admin.forms.create', compact('cohorts'));
     }
 
     /**
      * Save new form
      */
-    public function store(Request $request)
+    public function store(FormTemplateRequest $request)
     {
-        $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'seminar_id'  => 'nullable|exists:seminars,id',
-            'is_active'   => 'boolean',
-            'fields_json' => 'required|json',
-        ]);
+        $validated = $request->validated();
 
         $form = FormTemplate::create([
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
             'seminar_id'  => $validated['seminar_id'] ?? null,
             'is_active'   => $request->boolean('is_active', true),
-            'fields_json' => json_decode($validated['fields_json'], true),
+            'fields_json' => [],
             'created_by'  => auth()->id(),
         ]);
 
@@ -94,33 +72,25 @@ class FormController extends Controller
      */
     public function edit(FormTemplate $form)
     {
-        $seminars = Seminar::where('status', '!=', 'completed')->get();
-        $dbSources = [
-            'seminars' => Seminar::where('status', '!=', 'completed')->pluck('title', 'id'),
-            'editions' => Edition::orderByDesc('start_date')->pluck('title', 'id'),
-        ];
-        return view('admin.forms.builder', compact('form', 'seminars', 'dbSources'));
+        $cohorts = Cohort::orderByDesc('start_date')->with(['seminars' => function($q) {
+            $q->where('status', '!=', 'completed');
+        }])->get();
+
+        return view('admin.forms.edit', compact('form', 'cohorts'));
     }
 
     /**
      * Update existing form
      */
-    public function update(Request $request, FormTemplate $form)
+    public function update(FormTemplateRequest $request, FormTemplate $form)
     {
-        $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'seminar_id'  => 'nullable|exists:seminars,id',
-            'is_active'   => 'boolean',
-            'fields_json' => 'required|json',
-        ]);
+        $validated = $request->validated();
 
         $form->update([
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
             'seminar_id'  => $validated['seminar_id'] ?? null,
             'is_active'   => $request->boolean('is_active', true),
-            'fields_json' => json_decode($validated['fields_json'], true),
         ]);
 
         ActivityLogger::log(
@@ -153,7 +123,7 @@ class FormController extends Controller
     public function responses(FormTemplate $form)
     {
         $submissions = FormSubmission::where('form_template_id', $form->id)
-            ->with('enrollment.user', 'enrollment.seminar')
+            ->with('registration.user', 'registration.seminar')
             ->orderByDesc('submitted_at')
             ->paginate(20);
 
@@ -161,7 +131,7 @@ class FormController extends Controller
     }
 
     /**
-     * Accept / Reject / Waitlist a submission (and update linked enrollment)
+     * Accept / Reject / Waitlist a submission (and update linked registration)
      */
     public function updateSubmissionStatus(Request $request, FormSubmission $submission)
     {
@@ -169,36 +139,41 @@ class FormController extends Controller
             'status' => 'required|in:approved,rejected,waiting_list,pending',
         ]);
 
-        $enrollment = $submission->enrollment;
+        $registration = $submission->registration;
 
-        if (!$enrollment) {
+        if (!$registration) {
             return back()->with('error', 'Aucune candidature liée à cette réponse.');
         }
 
-        $oldStatus = $enrollment->status;
-        $enrollment->update(['status' => $validated['status']]);
+        $oldStatus = $registration->status;
+        $registration->update(['status' => $validated['status']]);
 
-        // If approved → link to the active edition's first open seminar (if not already done)
+        // If approved → link to the active cohort's first open seminar (if not already done)
         if ($validated['status'] === 'approved') {
-            $activeEdition = Edition::where('status', 'active')
+            $activeCohort = Cohort::where('status', 'active')
                 ->orWhere('status', 'ongoing')
                 ->latest('start_date')
                 ->first();
 
-            if ($activeEdition && !$enrollment->seminar_id) {
-                $firstSeminar = $activeEdition->seminars()->where('status', '!=', 'completed')->first();
+            if ($activeCohort && !$registration->seminar_id) {
+                $firstSeminar = $activeCohort->seminars()->where('status', '!=', 'completed')->first();
                 if ($firstSeminar) {
-                    $enrollment->update(['seminar_id' => $firstSeminar->id]);
+                    $registration->update(['seminar_id' => $firstSeminar->id]);
                 }
             }
         }
 
-        $name = $enrollment->user->name ?? 'Inconnu';
+        $name = $registration->user->name ?? 'Inconnu';
         ActivityLogger::log(
             'Décision Candidature (Formulaire)',
             "Statut de '{$name}' changé de '{$oldStatus}' en '{$validated['status']}' via formulaire.",
-            $enrollment
+            $registration
         );
+
+        // Notify Candidate
+        if ($registration->user && $oldStatus !== $validated['status']) {
+            $registration->user->notify(new CandidateStatusNotification($registration));
+        }
 
         return back()->with('success', "Statut mis à jour : {$validated['status']}.");
     }

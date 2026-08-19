@@ -14,14 +14,14 @@ class CandidateStatusMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $enrollment;
+    public $registration;
     
     /**
      * Create a new message instance.
      */
-    public function __construct(\App\Models\Enrollment $enrollment)
+    public function __construct(\App\Models\Registration $registration)
     {
-        $this->enrollment = $enrollment;
+        $this->registration = $registration;
     }
 
     /**

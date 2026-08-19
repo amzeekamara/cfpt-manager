@@ -17,7 +17,7 @@ class CleanupUsersCommand extends Command
 
         // On identifie l'admin principal (celui qui a l'ID le plus petit, généralement le premier créé)
         $mainAdmin = User::whereHas('role', function($q) {
-            $q->where('name', 'Admin');
+            $q->where('name', 'Administrateur');
         })->orderBy('id', 'asc')->first();
 
         if (!$mainAdmin) {

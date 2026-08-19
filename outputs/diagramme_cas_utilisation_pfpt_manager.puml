@@ -1,0 +1,34 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing true
+skinparam defaultFontName Arial
+actor "Visiteur / Candidat" as V
+actor "Candidat admis" as C
+actor "Formateur" as F
+actor "Administrateur" as A
+actor "Coordinateur" as CO
+actor "Agent JICA
+(consultatif)" as J
+rectangle "Système PFPT Manager" {
+  package "Authentification & sécurité" { usecase "S'authentifier" as Auth; usecase "Se déconnecter" as Logout }
+  package "Candidatures & admissions" { usecase "Déposer candidature" as Apply; usecase "Téléverser pièces" as Upload; usecase "Instruire et valider" as Validate }
+  package "Administration & structure" { usecase "Gérer utilisateurs et rôles" as Users; usecase "Gérer la structure" as Struct; usecase "Gérer éditions / cohortes" as Cohorts; usecase "Journal d'audit" as Audit }
+  package "Pédagogie & ressources" { usecase "Émarger les présences" as Attend; usecase "Planning / assiduité" as Plan; usecase "Ressources pédagogiques" as Res; usecase "Exporter stagiaires" as ExportT }
+  package "Finances, budget & logistique" { usecase "Gérer événements / ressources" as Events; usecase "Suivre budget" as Budget; usecase "Enregistrer dépenses" as Expenses; usecase "Exporter bilan JICA" as ExportF }
+  package "Formulaires & communication" { usecase "Concevoir formulaires" as Forms; usecase "Répondre aux enquêtes" as Survey; usecase "Diffuser messages" as Msg; usecase "Recevoir notifications" as Notif }
+}
+V --> Apply
+C --> Auth; C --> Plan; C --> Res; C --> Survey; C --> Logout
+F --> Auth; F --> Attend; F --> Res; F --> ExportT
+A --> Auth; A --> Users; A --> Struct; A --> Cohorts; A --> Validate; A --> Audit
+CO --> Auth; CO --> Events; CO --> Budget; CO --> Expenses; CO --> Msg; CO --> Forms
+J --> Auth; J --> Budget; J --> Expenses; J --> ExportF
+Apply ..> Upload : <<include>>
+Validate ..> Auth : <<include>>
+Attend ..> Auth : <<include>>
+Budget ..> Auth : <<include>>
+Expenses ..> Auth : <<include>>
+ExportF ..> Budget : <<extend>>
+Notif ..> Validate : <<extend>>
+@enduml

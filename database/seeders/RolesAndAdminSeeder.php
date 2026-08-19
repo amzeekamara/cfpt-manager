@@ -16,20 +16,24 @@ class RolesAndAdminSeeder extends Seeder
     public function run(): void
     {
         // 1. Roles
-        $adminRole = Role::firstOrCreate(['name' => 'Admin'], [
+        $adminRole = Role::firstOrCreate(['name' => 'Administrateur'], [
             'description' => 'Administrateur système'
         ]);
 
-        $secretaryRole = Role::firstOrCreate(['name' => 'Secretary'], [
-            'description' => 'Secrétaire administratif'
+        $coordinatorRole = Role::firstOrCreate(['name' => 'Coordinateur'], [
+            'description' => 'Coordinateur de programme'
         ]);
 
-        $candidateRole = Role::firstOrCreate(['name' => 'Candidate'], [
+        $candidateRole = Role::firstOrCreate(['name' => 'Candidat'], [
             'description' => 'Candidat aux séminaires'
         ]);
 
-        Role::firstOrCreate(['name' => 'Trainer'], [
+        Role::firstOrCreate(['name' => 'Formateur'], [
             'description' => 'Formateur du programme'
+        ]);
+
+        Role::firstOrCreate(['name' => 'Agent JICA'], [
+            'description' => 'Représentant de la JICA'
         ]);
 
         // 2. Admin account
@@ -39,16 +43,6 @@ class RolesAndAdminSeeder extends Seeder
                 'name' => 'Administrateur PFPT',
                 'password' => Hash::make('password'),
                 'role_id' => $adminRole->id,
-            ]
-        );
-
-        // 3. Secretary account (demo)
-        User::firstOrCreate(
-            ['email' => 'secretary@cfptsj.sn'],
-            [
-                'name' => 'Secrétaire Alpha',
-                'password' => Hash::make('password'),
-                'role_id' => $secretaryRole->id,
             ]
         );
     }

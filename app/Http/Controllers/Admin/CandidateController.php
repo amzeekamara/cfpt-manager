@@ -2,38 +2,42 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\ActivityLogger;
+
 use App\Http\Controllers\Controller;
-use App\Models\Enrollment;
+use App\Models\Registration;
 use App\Models\Seminar;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\CandidateProfile;
 use Illuminate\Http\Request;
 use App\Notifications\CandidateStatusNotification;
+use App\Http\Requests\Admin\CandidateRequest;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class CandidateController extends Controller
 {
     public function index(Request $request)
     {
-        $editionId = $request->get('edition_id');
-        $selectedEdition = null;
-        if ($editionId) {
-            $selectedEdition = \App\Models\Edition::find($editionId);
+        $cohortId = $request->get('cohort_id');
+        $selectedCohort = null;
+        if ($cohortId) {
+            $selectedCohort = \App\Models\Cohort::find($cohortId);
         }
 
-        if (!$selectedEdition && !$request->has('edition_id')) {
-            $selectedEdition = \App\Models\Edition::where('status', 'active')->latest()->first() 
-                ?? \App\Models\Edition::latest()->first();
-            $editionId = $selectedEdition ? $selectedEdition->id : null;
+        if (!$selectedCohort && !$request->has('cohort_id')) {
+            $selectedCohort = \App\Models\Cohort::where('status', 'active')->latest()->first() 
+                ?? \App\Models\Cohort::latest()->first();
+            $cohortId = $selectedCohort ? $selectedCohort->id : null;
         }
 
-        $query = Enrollment::with(['user.candidateProfile', 'seminar.edition']);
+        $query = Registration::with(['user.candidateProfile', 'user.candidateResources', 'seminar.cohort', 'topic']);
 
-        // Edition Filtering
-        if ($editionId) {
-            $query->whereHas('seminar', function($q) use ($editionId) {
-                $q->where('edition_id', $editionId);
+        // Cohort Filtering
+        if ($cohortId) {
+            $query->whereHas('seminar', function($q) use ($cohortId) {
+                $q->where('cohort_id', $cohortId);
             });
         }
 
@@ -46,6 +50,10 @@ class CandidateController extends Controller
             $query->where('seminar_id', $request->seminar_id);
         }
 
+        if ($request->filled('topic_id')) {
+            $query->where('topic_id', $request->topic_id);
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->whereHas('user', function($q) use ($search) {
@@ -56,132 +64,185 @@ class CandidateController extends Controller
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        // Stats filtered by edition if provided
-        $statsQuery = Enrollment::query();
-        if ($editionId) {
-            $statsQuery->whereHas('seminar', function($q) use ($editionId) {
-                $q->where('edition_id', $editionId);
+        // Stats filtered by cohort if provided
+        $statsQuery = Registration::query();
+        if ($cohortId) {
+            $statsQuery->whereHas('seminar', function($q) use ($cohortId) {
+                $q->where('cohort_id', $cohortId);
             });
         }
 
+        // Optimisation: Récupération des comptages groupés par statut pour éviter 4 requêtes distinctes
+        $registrationCounts = (clone $statsQuery)
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+            
+        $total = array_sum($registrationCounts);
+
         $stats = [
-            'total' => (clone $statsQuery)->count(),
-            'pending' => (clone $statsQuery)->where('status', 'pending')->count(),
-            'approved' => (clone $statsQuery)->where('status', 'approved')->count(),
-            'rejected' => (clone $statsQuery)->where('status', 'rejected')->count(),
+            'total' => $total,
+            'pending' => ($registrationCounts['pending'] ?? 0) + ($registrationCounts['waiting_list'] ?? 0),
+            'approved' => $registrationCounts['approved'] ?? 0,
+            'rejected' => $registrationCounts['rejected'] ?? 0,
         ];
 
-        $editions = \App\Models\Edition::orderBy('created_at', 'desc')->get();
-        $seminars = Seminar::when($editionId, function($q) use ($editionId) {
-            return $q->where('edition_id', $editionId);
+        $cohorts = \App\Models\Cohort::orderBy('created_at', 'desc')->get();
+        $seminars = Seminar::when($cohortId, function($q) use ($cohortId) {
+            return $q->where('cohort_id', $cohortId);
         })->where('status', '!=', 'completed')->get();
+        
+        $topics = \App\Models\Topic::when($request->seminar_id, function($q) use ($request) {
+            return $q->where('seminar_id', $request->seminar_id);
+        })->get();
 
-        return view('admin.candidates', compact('candidates', 'stats', 'seminars', 'editions', 'selectedEdition'));
+        return view('admin.candidates', compact('candidates', 'stats', 'seminars', 'cohorts', 'selectedCohort', 'topics'));
     }
 
-    public function show(Enrollment $enrollment)
+    public function show(Registration $registration)
     {
-        $enrollment->load(['user.candidateProfile.academicHistories', 'user.candidateDocuments', 'seminar.edition']);
-        return view('admin.candidates.show', compact('enrollment'));
+        $registration->load(['user.candidateProfile.academicHistories', 'user.candidateResources', 'seminar.cohort']);
+        return view('admin.candidates.show', compact('registration'));
     }
 
-    public function updateStatus(Request $request, Enrollment $enrollment)
+    public function updateStatus(Request $request, Registration $registration)
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,approved,rejected,waiting_list',
         ]);
 
-        $oldStatus = $enrollment->status;
-        $enrollment->update(['status' => $validated['status']]);
+        $registration->update(['status' => $validated['status']]);
 
         // Notification asynchrone (Queue)
-        $enrollment->user->notify(new CandidateStatusNotification($enrollment));
+        $registration->user->notify(new CandidateStatusNotification($registration));
 
         return back()->with('success', 'Statut mis à jour ! Le candidat sera notifié par email.');
     }
 
-    public function edit(Enrollment $enrollment)
+    public function edit(Registration $registration)
     {
-        $enrollment->load(['user.candidateProfile.academicHistories', 'user.candidateDocuments', 'seminar.edition']);
+        $registration->load(['user.candidateProfile.academicHistories', 'user.candidateResources', 'seminar.cohort', 'topic']);
+        
+        if (!$registration->user->candidateProfile) {
+            $profile = new \App\Models\CandidateProfile([
+                'first_names' => $registration->user->name,
+                'last_name' => '',
+            ]);
+            $registration->user->setRelation('candidateProfile', $profile);
+        }
+
         $seminars = Seminar::where('status', '!=', 'completed')->get();
-        return view('admin.candidates.edit', compact('enrollment', 'seminars'));
+        $topicsBySeminar = \App\Models\Topic::whereIn('seminar_id', $seminars->pluck('id'))->get()->groupBy('seminar_id');
+        
+        return view('admin.candidates.edit', compact('registration', 'seminars', 'topicsBySeminar'));
     }
 
-    public function update(Request $request, Enrollment $enrollment)
+    public function update(CandidateRequest $request, Registration $registration)
     {
-        $validated = $request->validate([
-            // Identity
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $enrollment->user_id,
-            'birth_date' => 'nullable|date',
-            'birth_place' => 'nullable|string',
-            'gender' => 'nullable|in:M,F',
-            'family_status' => 'nullable|string',
-            'religion' => 'nullable|string',
-            'nationality' => 'nullable|string',
-            'residence_country' => 'nullable|string',
-            'address' => 'nullable|string',
-            'phone' => 'nullable|string',
-            
-            // Professional
-            'current_profession' => 'nullable|string',
-            'current_employer' => 'nullable|string',
-            'previous_employer' => 'nullable|string',
-            'job_description' => 'nullable|string',
-            'training_utility' => 'nullable|string',
-            
-            // Emergency
-            'emergency_contact_name' => 'nullable|string',
-            'emergency_contact_relation' => 'nullable|string',
-            'emergency_contact_phone' => 'nullable|string',
-            'emergency_contact_email' => 'nullable|email',
+        $validated = $request->validated();
 
-            // Health & Logistics
-            'health_record_obs' => 'nullable|string',
-            'health_chronic' => 'nullable|in:yes,no',
-            'health_treatment' => 'nullable|in:yes,no',
-            'accommodation_preference' => 'nullable|string',
-            'insurance_details' => 'nullable|string',
-            'insurance_premium' => 'nullable|numeric',
-
-            // Seminar & Status
-            'seminar_id' => 'required|exists:seminars,id',
-            'status' => 'required|in:pending,approved,rejected,waiting_list',
-
-            // Academic History (Arrays)
-            'acad_establishment.*' => 'nullable|string',
-            'acad_field.*' => 'nullable|string',
-            'acad_degree.*' => 'nullable|string',
-            'acad_year.*' => 'nullable|string',
-            'acad_distinction.*' => 'nullable|string',
-        ]);
-
-        // 1. Update User
-        $enrollment->user->update([
+        $registration->user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
         ]);
 
-        // 2. Update Profile
-        $profile = $enrollment->user->candidateProfile;
-        $profileData = $request->only([
+        $profileData = $this->extractProfileData($request);
+        $profile = CandidateProfile::updateOrCreate(['user_id' => $registration->user->id], $profileData);
+
+        $this->syncAcademicHistories($profile, $request);
+
+        $registration->update([
+            'seminar_id' => $validated['seminar_id'],
+            'topic_id' => $validated['topic_id'] ?? null,
+            'status' => $validated['status'],
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('candidates/photos', 'public');
+            $profile->update(['photo_path' => $path]);
+        }
+
+        ActivityLogger::log(
+            'Mise à jour Dossier Candidat',
+            "Le dossier de '{$registration->user->name}' a été mis à jour par l'administration.",
+            $registration
+        );
+
+        return redirect()->route('admin.candidates.show', $registration->id)->with('success', 'Dossier mis à jour avec succès.');
+    }
+
+    public function destroy(Registration $registration)
+    {
+        $name = $registration->user->name;
+        $registration->delete();
+
+        ActivityLogger::log('Suppression Candidature', "La candidature de '{$name}' a été supprimée.", null);
+
+        return redirect()->route('admin.candidates')->with('success', 'Candidature supprimée.');
+    }
+
+    public function create()
+    {
+        $seminars = Seminar::where('status', '!=', 'completed')->get();
+        $topicsBySeminar = \App\Models\Topic::whereIn('seminar_id', $seminars->pluck('id'))->get()->groupBy('seminar_id');
+        return view('admin.candidates.create', compact('seminars', 'topicsBySeminar'));
+    }
+
+    public function store(CandidateRequest $request)
+    {
+        $validated = $request->validated();
+        $candidateRole = Role::where('name', 'Candidat')->first();
+        
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($request->password ?? Str::random(12)),
+            'role_id' => $candidateRole?->id,
+        ]);
+
+        $profileData = $this->extractProfileData($request);
+        $profileData['user_id'] = $user->id;
+        $profile = CandidateProfile::create($profileData);
+
+        $this->syncAcademicHistories($profile, $request);
+
+        $registration = Registration::create([
+            'user_id' => $user->id,
+            'seminar_id' => $validated['seminar_id'],
+            'topic_id' => $validated['topic_id'] ?? null,
+            'status' => $validated['status'],
+        ]);
+
+        ActivityLogger::log('Inscription Candidat (Manuelle)', "Le candidat '{$user->name}' a été inscrit manuellement.", $registration);
+
+        $user->notify(new CandidateStatusNotification($registration));
+
+        return redirect()->route('admin.candidates')->with('success', 'Candidat inscrit avec succès !');
+    }
+
+    private function extractProfileData(Request $request): array
+    {
+        $data = $request->only([
             'birth_date', 'birth_place', 'gender', 'family_status', 'religion',
             'nationality', 'residence_country', 'address', 'phone',
             'current_profession', 'current_employer', 'previous_employer', 'job_description',
             'training_utility', 'emergency_contact_name', 'emergency_contact_relation',
             'emergency_contact_phone', 'emergency_contact_email', 'health_record_obs',
-            'accommodation_preference', 'insurance_details', 'insurance_premium'
+            'accommodation_preference', 'insurance_details', 'insurance_premium',
+            'matricule', 'grade', 'job_function'
         ]);
 
-        // Health JSON
-        $profileData['health_questionnaire_json'] = [
+        $data['health_questionnaire_json'] = [
             'chronic' => $request->health_chronic,
             'treatment' => $request->health_treatment,
         ];
 
-        $profile->update($profileData);
+        return $data;
+    }
 
-        // 3. Sync Academic History
+    private function syncAcademicHistories(CandidateProfile $profile, Request $request): void
+    {
         $profile->academicHistories()->delete();
         if ($request->has('acad_establishment')) {
             foreach ($request->acad_establishment as $index => $est) {
@@ -196,106 +257,5 @@ class CandidateController extends Controller
                 }
             }
         }
-
-        // 4. Update Enrollment
-        $enrollment->update([
-            'seminar_id' => $validated['seminar_id'],
-            'status' => $validated['status'],
-        ]);
-
-        // Photo Upload (Optional handle in edit)
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('candidates/photos', 'public');
-            $profile->update(['photo_path' => $path]);
-        }
-
-        ActivityLogger::log(
-            'Mise à jour Dossier Candidat',
-            "Le dossier de '{$enrollment->user->name}' a été mis à jour par l'administration.",
-            $enrollment
-        );
-
-        return redirect()->route('admin.candidates.show', $enrollment->id)->with('success', 'Dossier mis à jour avec succès.');
-    }
-
-    public function destroy(Enrollment $enrollment)
-    {
-        $name = $enrollment->user->name;
-        $user = $enrollment->user;
-        
-        $enrollment->delete();
-        // Optionnel: On peut garder le User ou le supprimer aussi
-        // $user->delete(); 
-
-        ActivityLogger::log(
-            'Suppression Candidature',
-            "La candidature de '{$name}' a été supprimée.",
-            null
-        );
-
-        return redirect()->route('admin.candidates')->with('success', 'Candidature supprimée.');
-    }
-
-    public function create()
-    {
-        $seminars = Seminar::where('status', '!=', 'completed')->get();
-        return view('admin.candidates.create', compact('seminars'));
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            // User Data
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'nullable|string|min:8',
-            
-            // Profile Data
-            'religion' => 'nullable|string',
-            'nationality' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'current_profession' => 'nullable|string',
-            'current_employer' => 'nullable|string',
-            
-            // Enrollment Data
-            'seminar_id' => 'required|exists:seminars,id',
-            'status' => 'required|in:pending,approved,waiting_list',
-        ]);
-
-        $candidateRole = Role::where('name', 'Candidate')->first();
-        
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($request->password ?? Str::random(12)),
-            'role_id' => $candidateRole ? $candidateRole->id : null,
-        ]);
-
-        // Initial Profile
-        $profile = CandidateProfile::create([
-            'user_id' => $user->id,
-            'religion' => $validated['religion'] ?? null,
-            'nationality' => $validated['nationality'] ?? null,
-            'phone' => $validated['phone'] ?? null,
-            'current_profession' => $validated['current_profession'] ?? null,
-            'current_employer' => $validated['current_employer'] ?? null,
-        ]);
-
-        $enrollment = Enrollment::create([
-            'user_id' => $user->id,
-            'seminar_id' => $validated['seminar_id'],
-            'status' => $validated['status'],
-        ]);
-
-        ActivityLogger::log(
-            'Inscription Candidat (Manuelle)',
-            "Le candidat '{$user->name}' a été inscrit manuellement.",
-            $enrollment
-        );
-
-        // Notification asynchrone (Queue)
-        $user->notify(new CandidateStatusNotification($enrollment));
-
-        return redirect()->route('admin.candidates')->with('success', 'Candidat inscrit avec succès !');
     }
 }

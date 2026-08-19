@@ -37,13 +37,6 @@ class SeminarFactory extends Factory
                 'Co-enseignement : Pratiques et défis'
             ]),
             'description' => $this->faker->paragraph(),
-            'department_name' => $this->faker->randomElement([
-                'Département de Mathématiques',
-                'Département de Langues',
-                'Département des Sciences',
-                'Département de Technologie',
-                'Administration Centrale'
-            ]),
             'start_date' => $startDate,
             'end_date' => $endDate,
             'max_participants' => $this->faker->randomElement([15, 20, 30, 50]),

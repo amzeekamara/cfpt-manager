@@ -3,83 +3,68 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\Edition;
+use App\Models\Cohort;
+use App\Models\Seminar;
+use App\Models\Topic;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Registration;
 use App\Models\CandidateProfile;
-use App\Models\AcademicHistory;
-use App\Models\CandidateDocument;
+use App\Models\Education;
+use App\Models\ApplicationDocument;
 use App\Notifications\CandidateStatusNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Http\Requests\PublicRegistrationRequest;
 
 class RegistrationController extends Controller
 {
-    public function show(Edition $edition)
+    /**
+     * Affiche directement le formulaire unique de candidature.
+     */
+    public function create(Request $request, ?Cohort $cohort = null)
     {
-        return view('public.registration.form', compact('edition'));
+        // Récupération de tous les séminaires avec leurs thèmes et départements
+        $seminars = Seminar::with(['topics', 'cohort', 'departments'])
+            ->orderBy('start_date', 'asc')
+            ->get();
+
+        // Sélection par défaut via paramètre URL ?seminar_id=XX ou via cohort
+        $selectedSeminarId = $request->query('seminar_id');
+        if (!$selectedSeminarId && $cohort) {
+            $selectedSeminarId = $cohort->seminars()->first()?->id;
+        }
+
+        // Si non défini, présélectionner le premier séminaire ouvert aux candidatures
+        if (!$selectedSeminarId) {
+            $firstOpen = $seminars->first(fn($s) => $s->isOpenForApplication());
+            $selectedSeminarId = $firstOpen?->id;
+        }
+
+        return view('public.registration.form', compact('seminars', 'cohort', 'selectedSeminarId'));
     }
 
-    public function store(Request $request, Edition $edition)
+    /**
+     * Traite et enregistre le dossier de candidature.
+     */
+    public function store(PublicRegistrationRequest $request)
     {
-        // Extensive Validation
-        $request->validate([
-            // Identity
-            'first_names' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'birth_date' => 'required|date',
-            'birth_place' => 'required|string',
-            'gender' => 'required|in:M,F',
-            'nationality' => 'required|string',
-            'residence_country' => 'required|string',
-            'family_status' => 'required|in:single,married,divorced,widowed',
-            'religion' => 'nullable|string|max:255',
-            'photo' => 'nullable|image|max:2048',
-            
-            // Contact
-            'phone' => 'required|string',
-            'address' => 'required|string',
-            'emergency_name' => 'required|string',
-            'emergency_phone' => 'required|string',
-            'emergency_email' => 'nullable|email',
-            'emergency_relation' => 'required|string',
-            
-            // Background & Pro
-            'highest_degree' => 'required|string',
-            'current_profession' => 'required|string',
-            'current_employer' => 'required|string',
-            'previous_employer' => 'nullable|string',
-            'job_description' => 'nullable|string',
-            'training_utility' => 'required|string',
-            
-            // Academic History (Arrays)
-            'acad_establishment.*' => 'nullable|string',
-            'acad_field.*' => 'nullable|string',
-            'acad_degree.*' => 'nullable|string',
-            'acad_year.*' => 'nullable|numeric',
-            
-            // Health & Logistics
-            'health_record_obs' => 'nullable|string',
-            'health_q' => 'nullable|array',
-            'insurance_details' => 'nullable|string',
-            'insurance_premium' => 'nullable|numeric',
-            'accommodation_preference' => 'required|in:hotel,allocation,none',
-            
-            // Documents
-            'cv' => 'required|file|mimes:pdf,doc,docx|max:5120',
-            'official_intro' => 'required|file|mimes:pdf,doc,docx|max:5120',
-            'engagement_letter' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-            'diploma' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:10240',
-        ]);
+        $validated = $request->validated();
+
+        $seminar = Seminar::findOrFail($request->seminar_id);
+
+        // Vérification de la règle d'éligibilité : le séminaire doit être à venir
+        if (!$seminar->isOpenForApplication()) {
+            return back()->withInput()->with('error', "Impossible de soumettre votre candidature : les inscriptions pour le séminaire « {$seminar->title} » sont closes car la session est déjà en cours ou terminée.");
+        }
 
         try {
             DB::beginTransaction();
 
-            // 1. Create User
-            $candidateRole = Role::where('name', 'Candidate')->first();
+            // 1. Création du compte utilisateur
+            $candidateRole = Role::where('name', 'Candidat')->first();
             $tempPassword = Str::random(10);
             
             $user = User::create([
@@ -89,13 +74,13 @@ class RegistrationController extends Controller
                 'role_id' => $candidateRole ? $candidateRole->id : null,
             ]);
 
-            // 2. Save Photo
+            // 2. Sauvegarde de la photo d'identité
             $photoPath = null;
             if ($request->hasFile('photo')) {
                 $photoPath = $request->file('photo')->store('candidates/photos', 'public');
             }
 
-            // 3. Create Profile
+            // 3. Création du profil candidat
             $profile = CandidateProfile::create([
                 'user_id' => $user->id,
                 'first_names' => $request->first_names,
@@ -127,60 +112,77 @@ class RegistrationController extends Controller
                 'accommodation_preference' => $request->accommodation_preference,
             ]);
 
-            // 4. Save Academic History
+            // 4. Historique académique
             if ($request->has('acad_establishment')) {
                 foreach ($request->acad_establishment as $index => $establishment) {
                     if ($establishment) {
-                        AcademicHistory::create([
+                        Education::create([
                             'candidate_profile_id' => $profile->id,
                             'establishment_name' => $establishment,
                             'field_of_study' => $request->acad_field[$index] ?? 'N/A',
                             'degree_obtained' => $request->acad_degree[$index] ?? 'N/A',
                             'distinction' => $request->acad_distinction[$index] ?? null,
                             'graduation_year' => $request->acad_year[$index] ?? date('Y'),
-                            'level' => ($index === 0) ? 'secondary' : 'university', // Simple logic for demo
+                            'level' => ($index === 0) ? 'secondary' : 'university',
                         ]);
                     }
                 }
             }
 
-            // 5. Save Documents
+            // 5. Sauvegarde des documents justificatifs
             $docTypes = ['cv', 'official_intro', 'engagement_letter', 'diploma'];
             foreach ($docTypes as $type) {
                 if ($request->hasFile($type)) {
-                    $this->saveDocument($user->id, $type, $request->file($type));
+                    $this->saveResource($user->id, $type, $request->file($type));
                 }
             }
 
-            // 6. Create Enrollment for the Edition
-            $enrollment = Enrollment::create([
+            // 6. Création de l'inscription rattachée au séminaire et au thème choisi
+            $registration = Registration::create([
                 'user_id' => $user->id,
-                'seminar_id' => $edition->seminars()->first()?->id,
+                'seminar_id' => $seminar->id,
+                'topic_id' => $request->topic_id ?: null,
                 'status' => 'pending',
             ]);
 
             DB::commit();
 
-            // Notification asynchrone (Queue)
-            $user->notify(new CandidateStatusNotification($enrollment));
+            // Génération d'un jeton d'initialisation de mot de passe sécurisé à durée limitée
+            $token = Str::random(64);
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $user->email],
+                [
+                    'email' => $user->email,
+                    'token' => Hash::make($token),
+                    'created_at' => now(),
+                ]
+            );
 
-            \Log::info("New Candidate Registered: {$user->email}. Temp Password: {$tempPassword}");
+            $setupUrl = route('password.setup', ['token' => $token, 'email' => $user->email]);
 
-            return redirect()->route('welcome')->with('success', 'Votre candidature a été soumise avec succès ! Un email de confirmation vous sera envoyé.');
+            // Notification asynchrone avec lien d'activation sécurisé
+            $user->notify(new CandidateStatusNotification($registration, $setupUrl));
+
+            \Log::info("New Candidate Registered: {$user->email}");
+
+            return redirect()->route('welcome')->with('success', "Votre candidature au séminaire « {$seminar->title} » a été soumise avec succès ! Un email contenant votre lien d'activation vous a été envoyé.");
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Registration Error: " . $e->getMessage());
-            return back()->withInput()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+            \Log::error("Registration Error: " . $e->getMessage(), [
+                'exception' => $e,
+                'email' => $request->email ?? null
+            ]);
+            return back()->withInput()->with('error', 'Une erreur inattendue est survenue lors de la soumission de votre dossier. Veuillez vérifier vos informations ou contacter le secrétariat du CFPT.');
         }
     }
 
-    private function saveDocument($userId, $type, $file)
+    private function saveResource($userId, $type, $file)
     {
-        $path = $file->store('candidates/documents', 'public');
-        CandidateDocument::create([
+        $path = $file->store('candidates/resources', 'public');
+        ApplicationDocument::create([
             'user_id' => $userId,
-            'document_type' => $type,
+            'resource_type' => $type,
             'file_path' => $path,
             'original_filename' => $file->getClientOriginalName(),
         ]);

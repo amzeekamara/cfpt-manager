@@ -24,10 +24,10 @@ class ActivityLogger
             'ip_address' => request()->ip(),
         ]);
 
-        // 2. Notify Admin if the action was by a Secretary
-        if ($user->role && $user->role->name === 'Secretary') {
+        // 2. Notify Admin if the action was by a Coordinateur
+        if ($user->role && $user->role->name === 'Coordinateur') {
             $admins = User::whereHas('role', function($q) {
-                $q->where('name', 'Admin');
+                $q->where('name', 'Administrateur');
             })->get();
 
             Notification::send($admins, new StaffActionNotification($user, $action, $description));

@@ -15,12 +15,29 @@ class PortalAuthMiddleware
      */
     public function handle(Request $request, Closure $next, string $type): Response
     {
-        if ($type === 'candidate' && !$request->session()->has('portal_candidate_id')) {
-            return redirect()->route('portal.candidate.login')->with('error', 'Veuillez vous connecter pour accéder à votre espace.');
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('login')->with('error', 'Veuillez vous connecter pour accéder à votre espace.');
         }
 
-        if ($type === 'trainer' && !$request->session()->has('portal_trainer_id')) {
-            return redirect()->route('portal.trainer.login')->with('error', 'Veuillez vous connecter pour accéder à votre espace.');
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        if ($type === 'candidate' && (!$user->role || $user->role->name !== 'Candidat')) {
+            return redirect()->route('login')->with('error', 'Accès réservé aux candidats.');
+        }
+
+        if ($type === 'trainer') {
+            if (!$user->role || $user->role->name !== 'Formateur') {
+                return redirect()->route('login')->with('error', 'Accès réservé aux formateurs.');
+            }
+
+            if (!$request->session()->has('portal_trainer_id')) {
+                $trainer = \App\Models\Trainer::where('email', $user->email)->first();
+                if ($trainer) {
+                    $request->session()->put('portal_trainer_id', $trainer->id);
+                } else {
+                    return redirect()->route('login')->with('error', 'Aucun profil de formateur associé à ce compte.');
+                }
+            }
         }
 
         return $next($request);

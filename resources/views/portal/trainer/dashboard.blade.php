@@ -2,122 +2,571 @@
 @section('title', 'Espace Formateur')
 
 @section('content')
-<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-        <h1 class="text-3xl font-headline font-bold text-gray-900">Bienvenue, {{ $trainer->name }}</h1>
-        <p class="text-gray-500 mt-1">Gérez vos communications et séminaires.</p>
-    </div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Colonne Gauche: Profil & Envoi de Message -->
-    <div class="lg:col-span-1 flex flex-col gap-6">
-        
-        <!-- Info Séminaire Principal -->
-        <div class="bg-brand-primary rounded-3xl p-6 text-white shadow-lg shadow-brand-primary/20 relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <div class="text-brand-light font-bold text-xs uppercase tracking-wider mb-2">Séminaire Assigné</div>
-            <h2 class="text-xl font-headline font-bold mb-4">{{ $trainer->seminar->title ?? 'Aucun séminaire' }}</h2>
-            
-            <div class="flex items-center gap-2 text-sm text-brand-light">
-                <span class="material-symbols-outlined text-[16px]">mail</span>
-                {{ $trainer->email ?? 'Non renseigné' }}
-            </div>
-            <div class="flex items-center gap-2 text-sm text-brand-light mt-1">
-                <span class="material-symbols-outlined text-[16px]">call</span>
-                {{ $trainer->phone ?? 'Non renseigné' }}
-            </div>
-        </div>
+{{-- =========================================
+     STYLES SPÉCIFIQUES AU DASHBOARD
+     ========================================= --}}
+<style>
+    :root {
+        --brand: #4B6A95;
+        --brand-light: #d2e4ff;
+        --brand-dark: #354e70;
+        --bg-card: #ffffff;
+        --bg-page: #F8FAFC;
+        --text-main: #1f2937;
+        --text-muted: #9ca3af;
+        --border: #e5e7eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-red: #ef4444;
+    }
 
-        <!-- Formulaire d'envoi de message -->
-        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <h3 class="text-lg font-headline font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-brand-primary">send</span>
-                Nouveau Message
-            </h3>
-            
-            <form action="{{ route('portal.trainer.messages.send') }}" method="POST" class="flex flex-col gap-4">
-                @csrf
-                
-                <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-2">
-                    <p class="text-xs text-gray-500 mb-3 uppercase font-bold tracking-wider">Filtres de Ciblage (Optionnel)</p>
-                    
-                    <div class="flex flex-col gap-3">
-                        <div>
-                            <select name="edition_id" class="w-full text-sm py-2 px-3 bg-white border border-gray-200 rounded-xl focus:ring-1 focus:ring-brand-primary outline-none">
-                                <option value="">Toutes les Éditions</option>
-                                @foreach($editions as $edition)
-                                    <option value="{{ $edition->id }}">{{ $edition->title }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <select name="department_id" class="w-full text-sm py-2 px-3 bg-white border border-gray-200 rounded-xl focus:ring-1 focus:ring-brand-primary outline-none">
-                                <option value="">Toutes les Filières</option>
-                                @foreach($departments as $department)
-                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                @endforeach
-                            </select>
+    .dash-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+    }
+
+    .dash-card.dark {
+        background: #2d3f5a;
+        color: white;
+        border-color: #2d3f5a;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr; } }
+
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .bottom-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 1024px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    /* ---- KPI COMPACT (horizontal, B&W icon, sparkline) ---- */
+    .kpi-grid { gap: 12px; }
+
+    .kpi-card {
+        background: rgba(255,255,255,0.88);
+        border: 1px solid rgba(255,255,255,0.5);
+        border-radius: 14px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow .25s, transform .25s;
+        cursor: default;
+        backdrop-filter: blur(6px);
+    }
+    .kpi-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+        transform: translateY(-2px);
+    }
+    .kpi-card.kpi-dark {
+        background: rgba(30,45,61,0.75);
+        border-color: rgba(255,255,255,0.12);
+        color: white;
+    }
+
+    /* Icône B&W */
+    .kpi-bw-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        background: #f3f4f6;
+        color: #111827;
+    }
+    .kpi-dark .kpi-bw-icon {
+        background: rgba(255,255,255,.12);
+        color: #fff;
+    }
+
+    .kpi-body { flex: 1; min-width: 0; }
+    .kpi-lbl  { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+    .kpi-dark .kpi-lbl { color: rgba(255,255,255,.5); }
+    .kpi-val  { font-size: 22px; font-weight: 800; color: #111827; line-height: 1.1; }
+    .kpi-dark .kpi-val { color: #fff; }
+    .kpi-sub  { font-size: 10px; color: #d1d5db; margin-top: 2px; }
+    .kpi-dark .kpi-sub { color: rgba(255,255,255,.4); }
+
+    /* Sparkline SVG */
+    .kpi-spark { flex-shrink: 0; opacity: .55; }
+    .kpi-card:hover .kpi-spark { opacity: 1; }
+
+    /* Badge tendance */
+    .kpi-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        font-size: 10px; font-weight: 700;
+        padding: 2px 6px; border-radius: 5px;
+        background: #f3f4f6; color: #374151;
+        margin-top: 4px;
+    }
+    .kpi-dark .kpi-badge { background: rgba(255,255,255,.12); color: rgba(255,255,255,.8); }
+
+    .badge-up   { background: rgba(16,185,129,0.1); color: var(--accent-green); }
+    .badge-down { background: rgba(239,68,68,0.1);  color: var(--accent-red); }
+    .badge-neu  { background: rgba(245,158,11,0.1); color: var(--accent-amber); }
+    .trend-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        padding: 2px 7px; border-radius: 5px;
+        font-size: 11px; font-weight: 700;
+    }
+
+    /* Table styles */
+    .dash-table { width: 100%; border-collapse: collapse; }
+    .dash-table th {
+        text-align: left; font-size: 11px; color: var(--text-muted);
+        font-weight: 600; padding-bottom: 10px;
+        border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .4px;
+    }
+    .dash-table td {
+        padding: 11px 0; font-size: 13px;
+        border-bottom: 1px solid #f9fafb; vertical-align: middle;
+    }
+
+    /* Nav tabs */
+    .tab-btn { font-size: 12px; padding: 5px 14px; border-radius: 14px; border: none; cursor: pointer; font-weight: 600; background: none; color: var(--text-muted); transition: all .2s; }
+    .tab-btn.active { background: #2d3f5a; color: white; }
+
+    /* Message card */
+    .msg-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; transition: all .2s; background: #fafafa; }
+    .msg-card:hover { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
+
+    /* Section header */
+    .section-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; }
+    .section-title { font-size: 15px; font-weight: 700; color: var(--text-main); }
+
+    /* Status pill */
+    .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+    .pill-green { background: rgba(16,185,129,0.1); color: var(--accent-green); }
+    .pill-amber { background: rgba(245,158,11,0.1);  color: var(--accent-amber); }
+    .pill-red   { background: rgba(239,68,68,0.1);   color: var(--accent-red); }
+    .pill-blue  { background: rgba(75,106,149,0.1);  color: var(--brand); }
+
+    /* Btn */
+    .btn-brand { background: #2d3f5a; color: white; border: none; padding: 9px 0; border-radius: 9px; width: 100%; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+    .btn-brand:hover { opacity: .85; }
+    .btn-outline-brand { background: white; color: var(--text-main); border: 1px solid var(--border); padding: 9px 0; border-radius: 9px; width: 100%; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; }
+    .btn-outline-brand:hover { border-color: #2d3f5a; }
+</style>
+
+
+{{-- =========================================
+     HERO BLOCK : Header Profil + KPIs (with shared background)
+     ========================================= --}}
+<div class="relative overflow-hidden rounded-2xl mb-5"
+     style="background: #2d3f5a;">
+    {{-- Background image --}}
+    <div class="absolute inset-0"
+         style="background-image: url('{{ asset('images/centre.png') }}'); background-size: cover; background-position: center; opacity: 0.25;"></div>
+    {{-- Gradient overlay covering full hero --}}
+    <div class="absolute inset-0"
+         style="background: linear-gradient(135deg, rgba(45,63,90,0.90) 0%, rgba(53,78,112,0.80) 60%, rgba(45,63,90,0.75) 100%);"></div>
+
+    {{-- Inner content --}}
+    <div class="relative z-10">
+
+        {{-- HEADER : Profil --}}
+        <div class="p-5">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                {{-- Avatar + Nom --}}
+                <div class="flex items-center gap-5">
+                    @if(isset($trainer) && $trainer->avatar)
+                        <img src="{{ asset('storage/' . $trainer->avatar) }}" alt="{{ $trainer->name }}"
+                             class="w-20 h-20 rounded-full border-4 border-white/30 shadow-xl object-cover shrink-0">
+                    @else
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($trainer->name) }}&background=4B6A95&color=fff&size=200"
+                             alt="{{ $trainer->name }}"
+                             class="w-20 h-20 rounded-full border-4 border-white/30 shadow-xl object-cover shrink-0">
+                    @endif
+                    <div>
+                        <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">Espace Formateur</p>
+                        <h1 class="text-2xl md:text-3xl font-headline font-bold text-white leading-tight">{{ $trainer->name }}</h1>
+                        <div class="flex items-center gap-4 mt-2">
+                            <span class="flex items-center gap-1 text-blue-200 text-xs">
+                                <span class="material-symbols-outlined text-[14px]">mail</span>
+                                {{ $trainer->email ?? 'Non renseigné' }}
+                            </span>
+                            <span class="flex items-center gap-1 text-blue-200 text-xs">
+                                <span class="material-symbols-outlined text-[14px]">call</span>
+                                {{ $trainer->phone ?? 'Non renseigné' }}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Sujet</label>
-                    <input type="text" name="subject" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-1 focus:ring-brand-primary outline-none text-sm">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Message</label>
-                    <textarea name="body" required rows="5" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-1 focus:ring-brand-primary outline-none text-sm resize-none"></textarea>
-                </div>
+                {{-- Bouton accès présences --}}
+                <a href="{{ route('portal.trainer.attendances') }}"
+                   class="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 text-white rounded-xl font-bold text-sm transition-all backdrop-blur-sm">
+                    <span class="material-symbols-outlined text-[18px]">checklist</span>
+                    Gérer les Présences
+                </a>
+            </div>
+        </div>
 
-                <button type="submit" class="w-full py-3 bg-brand-primary text-white rounded-xl font-bold shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-2">
+        {{-- Separator line --}}
+        <div class="border-t border-white/10 mx-5"></div>
+
+        {{-- KPI GRID inside the hero block --}}
+        <div class="kpi-grid p-5">
+
+
+    {{-- KPI 1 : Séminaires — dark --}}
+    <div class="kpi-card kpi-dark">
+        <div class="kpi-bw-icon">
+            <span class="material-symbols-outlined text-[20px]">school</span>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-lbl">Séminaires</div>
+            <div class="kpi-val">{{ $trainer->seminars->count() }}</div>
+            <span class="kpi-badge">
+                <span class="material-symbols-outlined text-[11px]">trending_up</span> Actif ce cycle
+            </span>
+        </div>
+        <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
+            <polyline points="0,24 8,18 16,20 24,10 32,14 40,6 52,2" stroke="rgba(255,255,255,.5)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="52" cy="2" r="3" fill="rgba(255,255,255,.7)"/>
+        </svg>
+    </div>
+
+    {{-- KPI 2 : Candidats --}}
+    <div class="kpi-card">
+        <div class="kpi-bw-icon">
+            <span class="material-symbols-outlined text-[20px]">group</span>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-lbl">Candidats</div>
+            <div class="kpi-val">{{ $totalCandidates }}</div>
+            <span class="kpi-badge">
+                <span class="material-symbols-outlined text-[11px]">verified</span> Approuvés
+            </span>
+        </div>
+        <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
+            <polyline points="0,22 10,16 20,18 30,8 40,12 52,4" stroke="#1e2d3d" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="52" cy="4" r="3" fill="#1e2d3d"/>
+        </svg>
+    </div>
+
+    {{-- KPI 3 : Messages envoyés --}}
+    <div class="kpi-card">
+        <div class="kpi-bw-icon">
+            <span class="material-symbols-outlined text-[20px]">campaign</span>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-lbl">Messages</div>
+            <div class="kpi-val">{{ $messages->count() }}</div>
+            @if($messages->count() > 0)
+                <span class="kpi-badge"><span class="material-symbols-outlined text-[11px]">mark_email_read</span> Envoyés</span>
+            @else
+                <span class="kpi-badge"><span class="material-symbols-outlined text-[11px]">inbox</span> Aucun</span>
+            @endif
+        </div>
+        <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
+            <polyline points="0,20 12,20 20,12 28,16 36,8 44,10 52,4" stroke="#1e2d3d" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="52" cy="4" r="3" fill="#1e2d3d"/>
+        </svg>
+    </div>
+
+    {{-- KPI 4 : Ressources --}}
+    <div class="kpi-card">
+        <div class="kpi-bw-icon">
+            <span class="material-symbols-outlined text-[20px]">folder_open</span>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-lbl">Ressources</div>
+            <div class="kpi-val">{{ $resources->count() }}</div>
+            <span class="kpi-badge">
+                <span class="material-symbols-outlined text-[11px]">attach_file</span> Disponibles
+            </span>
+        </div>
+        <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
+            <polyline points="0,26 10,22 20,24 30,14 40,18 52,8" stroke="#1e2d3d" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="52" cy="8" r="3" fill="#1e2d3d"/>
+        </svg>
+        </div>
+
+    </div>{{-- end kpi-grid --}}
+    </div>{{-- end inner content --}}
+</div>{{-- end hero block --}}
+
+{{-- =========================================
+     GRILLE PRINCIPALE
+     ========================================= --}}
+<div class="main-grid">
+
+    {{-- COLONNE GAUCHE : Tableau candidats par thème --}}
+    <div class="dash-card">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <p class="section-label">Suivi</p>
+                <h2 class="section-title">Candidats par Thème</h2>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ route('portal.trainer.attendances') }}"
+                   class="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <span class="material-symbols-outlined text-[15px]">checklist</span> Présences
+                </a>
+            </div>
+        </div>
+
+        @if($topicsWithCounts->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>Thème / Séminaire</th>
+                            <th>Candidats</th>
+                            <th>Statut</th>
+                            <th>Export</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($topicsWithCounts as $topic)
+                        <tr>
+                            <td>
+                                <div style="font-size:13px; font-weight:700; color:var(--text-main);">{{ $topic->name }}</div>
+                                <div style="font-size:11px; color:var(--text-muted); margin-top:1px;">{{ $topic->seminar->title ?? 'N/A' }}</div>
+                            </td>
+                            <td>
+                                <span style="font-size:18px; font-weight:800; color:var(--text-main);">{{ $topic->registrations_count }}</span>
+                            </td>
+                            <td>
+                                @if($topic->registrations_count > 0)
+                                    <span class="pill pill-green">Actif</span>
+                                @else
+                                    <span class="pill pill-amber">Vide</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($topic->registrations_count > 0)
+                                    <a href="{{ route('portal.trainer.topics.export', $topic->id) }}"
+                                       class="flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-brand-primary transition-colors"
+                                       title="Télécharger CSV">
+                                        <span class="material-symbols-outlined text-[18px]">file_download</span>
+                                        CSV
+                                    </a>
+                                @else
+                                    <span class="material-symbols-outlined text-gray-300 text-[18px]">block</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                <span class="material-symbols-outlined text-[40px] mb-2">topic</span>
+                <p class="text-sm">Aucun thème disponible dans vos séminaires.</p>
+            </div>
+        @endif
+    </div>
+
+    {{-- COLONNE DROITE : Nouveau Message --}}
+    <div class="dash-card">
+        <div class="mb-5">
+            <p class="section-label">Communication</p>
+            <h2 class="section-title">Envoyer un Message</h2>
+        </div>
+
+        @if(session('success'))
+            <div class="mb-4 flex items-center gap-2 px-3 py-2.5 bg-green-50 text-green-700 rounded-lg text-sm border border-green-100">
+                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <form action="{{ route('portal.trainer.messages.send') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3 flex-grow">
+            @csrf
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Séminaire concerné</label>
+                <select id="seminar_select" name="seminar_id"
+                        class="w-full text-sm py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/30 transition-all" required>
+                    <option value="">-- Sélectionnez un séminaire --</option>
+                    @foreach($trainer->seminars as $seminar)
+                        <option value="{{ $seminar->id }}">{{ $seminar->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div id="topics_container" class="hidden">
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Thèmes ciblés <span class="font-normal normal-case text-gray-400">(optionnel)</span></label>
+                <div id="topics_list" class="flex flex-col gap-1.5 max-h-28 overflow-y-auto p-2 bg-gray-50 rounded-lg border border-gray-200"></div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Sujet</label>
+                <input type="text" name="subject" required
+                       class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/30 text-sm transition-all"
+                       placeholder="Objet du message">
+            </div>
+
+            <div class="flex-grow">
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Message</label>
+                <textarea name="body" required rows="4"
+                          class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/30 text-sm resize-none transition-all"
+                          placeholder="Tapez votre message..."></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Fichier joint <span class="font-normal normal-case text-gray-400">(optionnel)</span></label>
+                <input type="file" name="attachment"
+                       class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-brand-primary hover:file:bg-blue-100">
+            </div>
+
+            <div class="flex gap-3 mt-1">
+                <button type="submit" class="btn-brand flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-[18px]">send</span> Envoyer
                 </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Colonne Droite: Historique des Messages -->
-    <div class="lg:col-span-2">
-        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm h-full">
-            <h2 class="text-xl font-headline font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <span class="material-symbols-outlined text-brand-primary">history</span>
-                Historique des envois
-            </h2>
-            
-            <div class="flex flex-col gap-4">
-                @forelse($messages as $msg)
-                    <div class="p-4 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-gray-900 text-sm">{{ $msg->subject }}</h4>
-                            <span class="text-[11px] font-medium text-gray-400 bg-white px-2 py-1 rounded-md border border-gray-100">{{ $msg->created_at->format('d/m/Y H:i') }}</span>
-                        </div>
-                        
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            @if($msg->edition)
-                                <span class="text-[10px] font-bold text-brand-primary bg-brand-light/30 px-2 py-1 rounded-md">Édition: {{ $msg->edition->title }}</span>
-                            @endif
-                            @if($msg->department)
-                                <span class="text-[10px] font-bold text-brand-primary bg-brand-light/30 px-2 py-1 rounded-md">Filière: {{ $msg->department->name }}</span>
-                            @endif
-                            <span class="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded-md">Séminaire: {{ $msg->seminar->title ?? 'N/A' }}</span>
-                        </div>
-
-                        <p class="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{{ $msg->body }}</p>
-                    </div>
-                @empty
-                    <div class="py-10 text-center text-gray-500">
-                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span class="material-symbols-outlined text-gray-400">speaker_notes_off</span>
-                        </div>
-                        <p class="text-sm">Vous n'avez envoyé aucun message pour l'instant.</p>
-                    </div>
-                @endforelse
             </div>
+        </form>
+    </div>
+
+</div>
+
+{{-- =========================================
+     GRILLE BAS : Séminaires détail + Historique messages
+     ========================================= --}}
+<div class="bottom-grid">
+
+    {{-- Historique des messages --}}
+    <div class="dash-card">
+        <div class="flex justify-between items-center mb-5">
+            <div>
+                <p class="section-label">Activité</p>
+                <h2 class="section-title">Historique des Messages</h2>
+            </div>
+            <span style="font-size:12px; color:var(--text-muted); font-weight:600; background:#f3f4f6; padding:4px 10px; border-radius:8px;">
+                {{ $messages->count() }} au total
+            </span>
+        </div>
+
+        <div class="flex flex-col gap-3 overflow-y-auto" style="max-height: 420px;">
+            @forelse($messages as $msg)
+                <div class="msg-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 style="font-size:13px; font-weight:700; color:var(--text-main);">{{ $msg->subject }}</h4>
+                        <span style="font-size:10px; color:var(--text-muted); white-space:nowrap; margin-left:8px;">
+                            {{ $msg->created_at->format('d/m/Y H:i') }}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mb-2">
+                        <span class="pill pill-blue">{{ $msg->seminar->title ?? 'N/A' }}</span>
+                    </div>
+                    <p style="font-size:12px; color:#6b7280; line-height:1.5;">{{ Str::limit($msg->body, 120) }}</p>
+                    @if($msg->attachment_path)
+                        <div class="mt-2 pt-2" style="border-top: 1px solid var(--border);">
+                            <a href="{{ Storage::url($msg->attachment_path) }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary hover:underline">
+                                <span class="material-symbols-outlined text-[15px]">attachment</span>
+                                Document joint
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                    <span class="material-symbols-outlined text-[44px] mb-3">speaker_notes_off</span>
+                    <p class="text-sm">Aucun message envoyé pour l'instant.</p>
+                </div>
+            @endforelse
         </div>
     </div>
+
+    {{-- Séminaires assignés + infos --}}
+    <div class="dash-card">
+        <div class="mb-5">
+            <p class="section-label">Programme</p>
+            <h2 class="section-title">Séminaires Assignés</h2>
+        </div>
+
+        <div class="flex flex-col gap-3 mb-5">
+            @forelse($trainer->seminars as $seminar)
+                <div style="border:1px solid var(--border); border-radius:12px; padding:14px; transition: all .2s;"
+                     onmouseover="this.style.borderColor='#4B6A95'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p style="font-size:13px; font-weight:700; color:var(--text-main);">{{ $seminar->title }}</p>
+                            @if($seminar->cohort)
+                                <p style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                                    <span class="material-symbols-outlined text-[13px]" style="vertical-align:middle;">calendar_month</span>
+                                    {{ $seminar->cohort->title ?? '' }}
+                                </p>
+                            @endif
+                        </div>
+                        <span class="pill pill-blue">{{ $seminar->registrations()->where('status','approved')->count() }} candidats</span>
+                    </div>
+                </div>
+            @empty
+                <div class="flex flex-col items-center justify-center py-8 text-gray-400">
+                    <span class="material-symbols-outlined text-[36px] mb-2">school</span>
+                    <p class="text-sm">Aucun séminaire assigné.</p>
+                </div>
+            @endforelse
+        </div>
+
+        <a href="{{ route('portal.trainer.attendances') }}" class="btn-brand flex items-center justify-center gap-2 no-underline">
+            <span class="material-symbols-outlined text-[18px]">checklist</span>
+            Gestion des Présences
+        </a>
+    </div>
+
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const topicsBySeminar = @json($topicsBySeminar);
+        const seminarSelect = document.getElementById('seminar_select');
+        const topicsContainer = document.getElementById('topics_container');
+        const topicsList = document.getElementById('topics_list');
+
+        seminarSelect.addEventListener('change', function() {
+            const seminarId = this.value;
+            topicsList.innerHTML = '';
+            if (seminarId && topicsBySeminar[seminarId] && topicsBySeminar[seminarId].length > 0) {
+                topicsContainer.classList.remove('hidden');
+                topicsBySeminar[seminarId].forEach(topic => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-2 cursor-pointer';
+                    label.innerHTML = `
+                        <input type="checkbox" name="topic_ids[]" value="${topic.id}"
+                               class="text-brand-primary rounded border-gray-300 focus:ring-brand-primary">
+                        <span class="text-sm text-gray-700">${topic.name}</span>
+                    `;
+                    topicsList.appendChild(label);
+                });
+            } else {
+                topicsContainer.classList.add('hidden');
+            }
+        });
+    });
+</script>
+@endpush
 @endsection

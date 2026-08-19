@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('form_template_id')->constrained('form_templates')->cascadeOnDelete();
             $table->json('answers_json'); // { field_key: value, ... }
             $table->string('respondent_ip', 45)->nullable();
-            $table->foreignId('enrollment_id')->nullable()->constrained('enrollments')->nullOnDelete();
+            $table->foreignId('registration_id')->nullable()->constrained('registrations')->nullOnDelete();
             $table->timestamp('submitted_at')->useCurrent();
             $table->timestamps();
         });

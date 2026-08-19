@@ -3,24 +3,24 @@
 @section('header_title', 'Historique des Notifications')
 
 @section('content')
-<div class="p-4 md:p-8">
-    <div class="max-w-[1200px] mx-auto bg-white rounded-[2rem] shadow-xl p-6 border border-gray-100 overflow-hidden">
+<div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800">
+    <div class="w-full max-w-[1600px] mx-auto">
         
         <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-4">
-                <a href="{{ route('admin.dashboard') }}" class="p-2 border border-gray-200 rounded-full hover:bg-gray-50 cursor-pointer transition-colors">
+                <a href="{{ route('admin.dashboard') }}" class="p-2.5 border border-slate-200 rounded-full hover:bg-slate-50 cursor-pointer transition shadow-2xs bg-white text-slate-700" title="Retour au tableau de bord">
                     <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-headline font-bold text-gray-900 tracking-tight">Historique</h1>
-                    <p class="text-gray-500 text-sm mt-1">Consultez et filtrez l'historique complet des actions.</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Historique</h1>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Consultez et filtrez l'historique complet des actions.</p>
                 </div>
             </div>
         </header>
 
         <!-- Filters Bar -->
-        <div class="flex flex-wrap items-center justify-between mb-6 gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+        <div class="flex flex-wrap items-center justify-between mb-6 gap-4 bg-gray-50/50 p-4 rounded-md border border-gray-100">
             <form action="{{ route('admin.notifications.index') }}" method="GET" id="filterForm" class="m-0 flex flex-wrap items-center gap-3 w-full">
                 
                 <div class="relative shadow-sm rounded-full flex-1 min-w-[200px] max-w-[400px]">
@@ -47,7 +47,7 @@
         </div>
 
         <!-- Notifications List -->
-        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-lg border border-gray-100 shadow-sm overflow-visible">
             <div class="divide-y divide-gray-100">
                 @forelse($notifications as $notification)
                     <div class="p-4 hover:bg-gray-50 transition-colors flex gap-4 {{ $notification->read_at ? '' : 'bg-primary/5' }}">

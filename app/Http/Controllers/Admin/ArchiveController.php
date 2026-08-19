@@ -14,11 +14,11 @@ class ArchiveController extends Controller
             ->orderBy('end_date', 'desc')
             ->get();
 
-        $archivedEditions = \App\Models\Edition::where('status', 'completed')
+        $archivedCohorts = \App\Models\Cohort::where('status', 'completed')
             ->withCount('seminars')
             ->orderBy('end_date', 'desc')
             ->get();
 
-        return view('admin.archives', compact('pastSeminars', 'archivedEditions'));
+        return view('admin.archives', compact('pastSeminars', 'archivedCohorts'));
     }
 }

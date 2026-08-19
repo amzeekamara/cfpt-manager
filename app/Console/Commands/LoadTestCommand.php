@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\User;
-use App\Models\Enrollment;
+use App\Models\Registration;
 use App\Models\CandidateProfile;
 use App\Models\Role;
 use App\Models\Seminar;
@@ -28,7 +28,7 @@ class LoadTestCommand extends Command
             return;
         }
 
-        $role = Role::where('name', 'Candidate')->first();
+        $role = Role::where('name', 'Candidat')->first();
         $startTime = microtime(true);
 
         $this->withProgressBar($count, function ($i) use ($seminar, $role) {
@@ -58,7 +58,7 @@ class LoadTestCommand extends Command
                     'accommodation_preference' => 'none',
                 ]);
 
-                Enrollment::create([
+                Registration::create([
                     'user_id' => $user->id,
                     'seminar_id' => $seminar->id,
                     'status' => 'pending',

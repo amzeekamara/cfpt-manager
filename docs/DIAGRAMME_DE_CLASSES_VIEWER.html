@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagramme de Classes UML & Notice Descriptive - PFPT Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+    }
+    .mermaid {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .page-break { page-break-after: always; }
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased p-4 md:p-8 lg:p-12">
+
+  <!-- Header Banner -->
+  <div class="max-w-7xl mx-auto mb-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-bold text-[#4B6A95] uppercase tracking-widest mb-1">
+        <span>Conception & Modélisation UML • Mémoire de Projet</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        Diagramme de Classes & Notice Descriptive
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+        Plateforme PFPT • CFPT Sénégal-Japon & JICA (28 Classes & Tables • 10 Modules Métier)
+      </p>
+    </div>
+    
+    <div class="flex items-center gap-3 no-print">
+      <button onclick="window.print()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full flex items-center gap-2 shadow-xs transition">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        <span>Imprimer / Exporter en PDF</span>
+      </button>
+      <a href="DIAGRAMME_DE_CLASSES.md" class="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-full flex items-center gap-2 shadow-2xs transition">
+        <i data-lucide="file-text" class="w-4 h-4 text-[#4B6A95]"></i>
+        <span>Fichier Markdown</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto space-y-12">
+
+    <!-- 1. DIAGRAMME DE CLASSES GLOBAL (28 TABLES) -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+        <div>
+          <span class="px-3 py-1 bg-blue-50 text-[#4B6A95] rounded-full text-[11px] font-extrabold uppercase">Figure 01</span>
+          <h2 class="text-xl font-extrabold text-slate-900 mt-2">Diagramme de Classes de Conception (UML)</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Vue d'ensemble des 28 classes d'entités, attributs, opérations et relations du système.</p>
+        </div>
+      </div>
+
+      <div class="mermaid overflow-x-auto">
+classDiagram
+    direction TB
+
+    %% MODULE 1
+    class Role {
+        +BigInteger id
+        +String name
+        +String description
+        +DateTime created_at
+        +DateTime updated_at
+        +users() HasMany~User~
+    }
+
+    class User {
+        +BigInteger id
+        +BigInteger role_id
+        +String name
+        +String email
+        +DateTime email_verified_at
+        +String password
+        +String remember_token
+        +String google_id
+        +String avatar
+        +Boolean must_change_password
+        +String specialty
+        +String position
+        +String supervisor
+        +DateTime created_at
+        +DateTime updated_at
+        +role() BelongsTo~Role~
+        +candidateProfile() HasOne~CandidateProfile~
+        +registrations() HasMany~Registration~
+        +documents() HasMany~ApplicationDocument~
+        +profileUpdateRequests() HasMany~ProfileUpdateRequest~
+        +readMessages() BelongsToMany~Message~
+        +activityLogs() HasMany~ActivityLog~
+        +isAdmin() Boolean
+        +hasRole(roleName) Boolean
+        +seConnecter()
+        +seDeconnecter()
+        +modifierProfil()
+    }
+
+    class PasswordResetToken {
+        +String email
+        +String token
+        +DateTime created_at
+    }
+
+    %% MODULE 2
+    class Cohort {
+        +BigInteger id
+        +String title
+        +Decimal total_budget
+        +DateTime start_date
+        +DateTime end_date
+        +String status
+        +DateTime created_at
+        +DateTime updated_at
+        +seminars() HasMany~Seminar~
+        +expenses() HasMany~Expense~
+        +isUpcoming() Boolean
+        +isOngoing() Boolean
+        +isPast() Boolean
+        +isOpenForApplication() Boolean
+        +calculerTauxConsommation() Decimal
+    }
+
+    %% MODULE 3
+    class Department {
+        +BigInteger id
+        +String name
+        +Boolean is_active
+        +DateTime created_at
+        +DateTime updated_at
+        +seminars() BelongsToMany~Seminar~
+    }
+
+    class Seminar {
+        +BigInteger id
+        +BigInteger cohort_id
+        +String title
+        +String description
+        +DateTime start_date
+        +DateTime end_date
+        +Integer max_participants
+        +String status
+        +String image
+        +DateTime created_at
+        +DateTime updated_at
+        +cohort() BelongsTo~Cohort~
+        +topics() HasMany~Topic~
+        +departments() BelongsToMany~Department~
+        +trainers() BelongsToMany~Trainer~
+        +registrations() HasMany~Registration~
+        +expenses() HasMany~Expense~
+        +resources() HasMany~Resource~
+        +formTemplates() HasMany~FormTemplate~
+        +isUpcoming() Boolean
+        +isOpenForApplication() Boolean
+        +archiver()
+        +calculerTauxRemplissage() Decimal
+    }
+
+    class Topic {
+        +BigInteger id
+        +BigInteger seminar_id
+        +String name
+        +Boolean is_active
+        +DateTime created_at
+        +DateTime updated_at
+        +seminar() BelongsTo~Seminar~
+        +registrations() HasMany~Registration~
+        +attendances() HasMany~Attendance~
+        +affecterFormateur()
+    }
+
+    class DepartmentSeminar {
+        +BigInteger id
+        +BigInteger department_id
+        +BigInteger seminar_id
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    %% MODULE 4
+    class CandidateProfile {
+        +BigInteger id
+        +BigInteger user_id
+        +String matricule
+        +String grade
+        +String job_function
+        +String first_names
+        +String last_name
+        +Date birth_date
+        +String birth_place
+        +String gender
+        +String nationality
+        +String residence_country
+        +String photo_path
+        +String family_status
+        +String religion
+        +String address
+        +String phone
+        +String emergency_contact_name
+        +String emergency_contact_phone
+        +String emergency_contact_email
+        +String emergency_contact_relation
+        +String highest_degree
+        +String current_profession
+        +String current_employer
+        +String previous_employer
+        +String job_description
+        +String training_utility
+        +String health_record_obs
+        +Array health_questionnaire_json
+        +String insurance_details
+        +Decimal insurance_premium
+        +String accommodation_preference
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+        +academicHistories() HasMany~Education~
+        +soumettreCandidature()
+        +telechargerDossierComplet()
+    }
+
+    class Education {
+        +BigInteger id
+        +BigInteger candidate_profile_id
+        +String establishment_name
+        +String field_of_study
+        +String degree_obtained
+        +String distinction
+        +Integer graduation_year
+        +String level
+        +String resource_path
+        +DateTime created_at
+        +DateTime updated_at
+        +candidateProfile() BelongsTo~CandidateProfile~
+    }
+
+    class ApplicationDocument {
+        +BigInteger id
+        +BigInteger user_id
+        +String resource_type
+        +String file_path
+        +String original_filename
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+    }
+
+    class Registration {
+        +BigInteger id
+        +BigInteger user_id
+        +BigInteger seminar_id
+        +BigInteger topic_id
+        +String status
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+        +seminar() BelongsTo~Seminar~
+        +topic() BelongsTo~Topic~
+        +invoice() HasOne~Invoice~
+        +attendances() HasMany~Attendance~
+        +changeRequests() HasMany~SeminarChangeRequest~
+        +formSubmissions() HasMany~FormSubmission~
+        +validerAdmission()
+        +rejeterAdmission()
+    }
+
+    class ProfileUpdateRequest {
+        +BigInteger id
+        +BigInteger user_id
+        +Array requested_changes
+        +String status
+        +String admin_feedback
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+    }
+
+    class SeminarChangeRequest {
+        +BigInteger id
+        +BigInteger user_id
+        +BigInteger registration_id
+        +BigInteger new_seminar_id
+        +String reason
+        +String status
+        +String admin_feedback
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+        +registration() BelongsTo~Registration~
+        +newSeminar() BelongsTo~Seminar~
+    }
+
+    %% MODULE 5
+    class Trainer {
+        +BigInteger id
+        +BigInteger seminar_id
+        +String name
+        +String email
+        +String phone
+        +Date birth_date
+        +String birth_place
+        +Decimal remuneration
+        +String payment_status
+        +DateTime created_at
+        +DateTime updated_at
+        +seminars() BelongsToMany~Seminar~
+        +sessions() HasMany~TrainerSession~
+        +attendances() HasMany~Attendance~
+        +validerEmargement()
+    }
+
+    class TrainerSession {
+        +BigInteger id
+        +BigInteger trainer_id
+        +BigInteger seminar_id
+        +BigInteger topic_id
+        +Date session_date
+        +Integer hours_taught
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class SeminarTrainer {
+        +BigInteger id
+        +BigInteger seminar_id
+        +BigInteger trainer_id
+        +Decimal remuneration
+        +String payment_status
+        +Integer themes_count
+        +Integer hours_count
+        +Array selected_topics
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    %% MODULE 6
+    class Attendance {
+        +BigInteger id
+        +BigInteger registration_id
+        +BigInteger topic_id
+        +BigInteger trainer_id
+        +Date session_date
+        +String status
+        +DateTime created_at
+        +DateTime updated_at
+        +registration() BelongsTo~Registration~
+        +topic() BelongsTo~Topic~
+        +trainer() BelongsTo~Trainer~
+        +marquerPresence()
+        +justifierAbsence()
+    }
+
+    class Resource {
+        +BigInteger id
+        +BigInteger seminar_id
+        +String title
+        +String file_path
+        +String role_visibility
+        +Boolean is_archived
+        +DateTime created_at
+        +DateTime updated_at
+        +seminar() BelongsTo~Seminar~
+        +telecharger()
+    }
+
+    %% MODULE 7
+    class ExpenseCategory {
+        +BigInteger id
+        +String name
+        +DateTime created_at
+        +DateTime updated_at
+        +expenses() HasMany~Expense~
+    }
+
+    class Expense {
+        +BigInteger id
+        +BigInteger cohort_id
+        +BigInteger seminar_id
+        +BigInteger expense_category_id
+        +String description
+        +Decimal amount
+        +DateTime expense_date
+        +String receipt_path
+        +DateTime created_at
+        +DateTime updated_at
+        +cohort() BelongsTo~Cohort~
+        +seminar() BelongsTo~Seminar~
+        +category() BelongsTo~ExpenseCategory~
+        +enregistrer()
+        +lierAuProjet()
+        +imputerBudget()
+    }
+
+    class Invoice {
+        +BigInteger id
+        +BigInteger registration_id
+        +Decimal amount
+        +String status
+        +String transaction_id
+        +DateTime payment_date
+        +DateTime created_at
+        +DateTime updated_at
+        +registration() BelongsTo~Registration~
+        +genererRecuPDF()
+    }
+
+    %% MODULE 8
+    class FormTemplate {
+        +BigInteger id
+        +BigInteger seminar_id
+        +BigInteger created_by
+        +String title
+        +String description
+        +String slug
+        +String share_token
+        +Boolean is_active
+        +Array fields_json
+        +DateTime created_at
+        +DateTime updated_at
+        +seminar() BelongsTo~Seminar~
+        +creator() BelongsTo~User~
+        +submissions() HasMany~FormSubmission~
+        +genererLienPartage()
+    }
+
+    class FormSubmission {
+        +BigInteger id
+        +BigInteger form_template_id
+        +BigInteger registration_id
+        +Array answers_json
+        +String respondent_ip
+        +DateTime submitted_at
+        +DateTime created_at
+        +DateTime updated_at
+        +form() BelongsTo~FormTemplate~
+        +registration() BelongsTo~Registration~
+        +soumettre()
+    }
+
+    %% MODULE 9
+    class Message {
+        +BigInteger id
+        +BigInteger user_id
+        +BigInteger trainer_id
+        +BigInteger cohort_id
+        +BigInteger department_id
+        +BigInteger seminar_id
+        +String subject
+        +String body
+        +String attachment_path
+        +Array target_roles
+        +Array target_seminars
+        +Array target_departments
+        +Array target_topics
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+        +trainer() BelongsTo~Trainer~
+        +cohort() BelongsTo~Cohort~
+        +seminar() BelongsTo~Seminar~
+        +readByUsers() BelongsToMany~User~
+        +diffuser()
+    }
+
+    class MessageUser {
+        +BigInteger id
+        +BigInteger message_id
+        +BigInteger user_id
+        +DateTime read_at
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Notification {
+        +String id
+        +String type
+        +String notifiable_type
+        +BigInteger notifiable_id
+        +Array data
+        +DateTime read_at
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    %% MODULE 10
+    class ActivityLog {
+        +BigInteger id
+        +BigInteger user_id
+        +String action
+        +String description
+        +String model_type
+        +BigInteger model_id
+        +String ip_address
+        +DateTime created_at
+        +DateTime updated_at
+        +user() BelongsTo~User~
+    }
+
+    %% RELATIONS
+    Role "1" <-- "0..*" User : possede
+    User "1" <-- "0..*" ActivityLog : genere
+    User "1" <--> "0..1" CandidateProfile : definit
+    CandidateProfile "1" *-- "0..*" Education : contient
+    User "1" *-- "0..*" ApplicationDocument : depose
+    User "1" <-- "0..*" ProfileUpdateRequest : soumet
+    User "1" <-- "0..*" Registration : souscrit
+    User "1" <-- "0..*" Notification : notifie
+
+    Cohort "1" *-- "0..*" Seminar : regroupe
+    Cohort "1" <-- "0..*" Expense : finance
+    Department "1" <-- "0..*" DepartmentSeminar : rattache
+    Seminar "1" <-- "0..*" DepartmentSeminar : inclut
+    Department "0..*" <--> "0..*" Seminar : dispense
+    Seminar "1" *-- "0..*" Topic : decompose_en
+    Seminar "0..*" <--> "0..*" Trainer : anime
+    Seminar "1" <-- "0..*" SeminarTrainer : contractualise
+    Trainer "1" <-- "0..*" SeminarTrainer : affecte
+    Seminar "1" <-- "0..*" Expense : engage
+    ExpenseCategory "1" <-- "0..*" Expense : categorise
+
+    Seminar "1" <-- "0..*" Registration : concerne
+    Topic "1" <-- "0..*" Registration : cible
+    Registration "1" *-- "0..1" Invoice : facture
+    Registration "1" <-- "0..*" Attendance : enregistre
+    Registration "1" <-- "0..*" SeminarChangeRequest : demande
+    Registration "1" <-- "0..*" FormSubmission : evalue
+
+    Trainer "1" <-- "0..*" Attendance : valide
+    Topic "1" <-- "0..*" Attendance : porte_sur
+    Trainer "1" <-- "0..*" TrainerSession : execute
+    Seminar "1" <-- "0..*" Resource : publie
+
+    Seminar "0..1" <-- "0..*" FormTemplate : associe
+    User "1" <-- "0..*" FormTemplate : concoit
+    FormTemplate "1" *-- "0..*" FormSubmission : collecte
+
+    User "0..1" <-- "0..*" Message : emet_admin
+    Trainer "0..1" <-- "0..*" Message : emet_formateur
+    Cohort "0..1" <-- "0..*" Message : filtre_cohorte
+    Seminar "0..1" <-- "0..*" Message : filtre_seminaire
+    Message "1" <-- "0..*" MessageUser : trace
+    User "1" <-- "0..*" MessageUser : accuse_reception
+    User "0..*" <--> "0..*" Message : consulte
+      </div>
+    </section>
+
+    <!-- 2. NOTICE DESCRIPTIVE DÉTAILLÉE POUR LE MÉMOIRE -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-8 page-break">
+      <div class="border-b border-slate-100 pb-4">
+        <span class="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[11px] font-extrabold uppercase">Section Académique</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Notice Descriptive & Analyse Technique (Mémoire)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Spécifications conceptuelles des classes, règles de gestion et contraintes d'intégrité.</p>
+      </div>
+
+      <!-- 2.1 Description des Classes Principales -->
+      <div class="space-y-4">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-[#4B6A95]"></i>
+          <span>1. Description Détaillée des Classes Fondamentales par Module</span>
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5 text-blue-600"></i> Classe Utilisateur (User)</h4>
+            <p><strong>Attributs :</strong> id, role_id, name, email, password, google_id, avatar, must_change_password, specialty, position, supervisor.</p>
+            <p class="mt-1"><strong>Méthodes :</strong> seConnecter(), seDeconnecter(), modifierProfil(), isAdmin(), hasRole().</p>
+            <p class="mt-1"><strong>Rôle :</strong> Représente le compte numérique universel du système avec authentification unifiée et attribution d'un profil RBAC.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i> Classe Édition (Cohort)</h4>
+            <p><strong>Attributs :</strong> id, title, total_budget, start_date, end_date, status.</p>
+            <p class="mt-1"><strong>Méthodes :</strong> creer(), archiver(), calculerTauxConsommation(), isOpenForApplication().</p>
+            <p class="mt-1"><strong>Rôle :</strong> Cadre institutionnel annuel du programme JICA supervisant une enveloppe budgétaire et regroupant plusieurs séminaires.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5"><i data-lucide="book-open" class="w-3.5 h-3.5 text-indigo-600"></i> Classe Séminaire (Seminar)</h4>
+            <p><strong>Attributs :</strong> id, cohort_id, title, description, start_date, end_date, max_participants, status, image.</p>
+            <p class="mt-1"><strong>Méthodes :</strong> creer(), modifier(), archiver(), calculerTauxRemplissage().</p>
+            <p class="mt-1"><strong>Rôle :</strong> Session de renforcement technique ciblée, découpée en thèmes, dispensée par des départements et animée par des formateurs.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5"><i data-lucide="user-check" class="w-3.5 h-3.5 text-amber-600"></i> Classe Candidat (CandidateProfile & Registration)</h4>
+            <p><strong>Attributs :</strong> matricule, etat_civil, contact_urgence, employeur, questionnaire_sante_json, prime_assurance.</p>
+            <p class="mt-1"><strong>Méthodes :</strong> soumettreCandidature(), telechargerDossierComplet(), validerAdmission().</p>
+            <p class="mt-1"><strong>Rôle :</strong> Sépare l'identité durable du candidat de son acte d'inscription multi-séminaires (Registration).</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5"><i data-lucide="tag" class="w-3.5 h-3.5 text-purple-600"></i> Classe Thème (Topic)</h4>
+            <p><strong>Attributs :</strong> id, seminar_id, name, is_active.</p>
+            <p class="mt-1"><strong>Méthodes :</strong> creer(), modifier(), affecterFormateur().</p>
+            <p class="mt-1"><strong>Rôle :</strong> Spécialité technique unitaire au sein du séminaire ciblée par l'apprenant lors de sa candidature.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5"><i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-teal-600"></i> Classe Dépense (Expense)</h4>
+            <p><strong>Attributs :</strong> id, cohort_id, seminar_id, expense_category_id, description, amount, expense_date, receipt_path.</p>
+            <p class="mt-1"><strong>Méthodes :</strong> enregistrer(), lierAuProjet(), imputerBudget().</p>
+            <p class="mt-1"><strong>Rôle :</strong> Enregistrement comptable d'un décaissement justifié rattaché soit à la Cohorte soit au Séminaire (XOR).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 Analyse Approfondie des Parties Sensibles -->
+      <div class="space-y-4 pt-4 border-t border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i>
+          <span>2. Analyse Approfondie des Composantes Sensibles du Système</span>
+        </h3>
+
+        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+          <div class="p-4 rounded-2xl bg-red-50/50 border border-red-100">
+            <h4 class="font-bold text-red-950 text-xs mb-1">A. Règle d'Imputation Budgétaire Exclusive (Cohorte vs Séminaire)</h4>
+            <p>Le contrôle financier exige une contrainte d'intégrité stricte sur l'entité <code>Expense</code> : une charge générale de projet (transport d'ensemble, location de site) est imputée directement à la cohorte (<code>cohort_id</code> renseigné, <code>seminar_id</code> nul), tandis qu'un coût didactique direct (consommables, vacations d'un thème) est affecté au séminaire. Cette règle <strong>XOR (Ou Exclusif)</strong> élimine tout risque de double comptabilisation lors des audits JICA.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
+            <h4 class="font-bold text-blue-950 text-xs mb-1">B. Cycle de Vie Multi-Sessions & Gestion des Comptes Candidats</h4>
+            <p>La dissociation entre le compte persistant (<code>User</code> + <code>CandidateProfile</code>) et les inscriptions (<code>Registration</code>) permet à un apprenant ayant suivi une formation lors d'une édition passée de postuler à nouveau lors d'éditions ultérieures sans recréer de compte. Le système préserve l'historique complet de ses présences et attestations.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-100">
+            <h4 class="font-bold text-amber-950 text-xs mb-1">C. Émargement Journalier & Intégrité Pédagogique</h4>
+            <p>L'assiduité est verrouillée par la clé composite <code>(registration_id, topic_id, trainer_id, session_date)</code> dans la table <code>attendances</code>. Seul le formateur mandaté peut émarger sa classe, garantissant l'exactitude des feuilles de présence soumises aux bailleurs de fonds.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.3 Spécialisation et Héritage -->
+      <div class="space-y-4 pt-4 border-t border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i data-lucide="git-fork" class="w-4 h-4 text-[#4B6A95]"></i>
+          <span>3. Relations d'Héritage et Spécialisation des Acteurs</span>
+        </h3>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Le modèle conceptuel utilise une relation de généralisation/spécialisation où les 5 profils d'utilisateurs (<strong>Administrateur</strong>, <strong>Coordinateur</strong>, <strong>Formateur</strong>, <strong>Candidat</strong>, <strong>Agent JICA</strong>) héritent de la classe de base abstraite <strong>User</strong>. Cette hiérarchie factorise l'identité numérique commune (authentification, tokens, avatars) tout en permettant à chaque acteur de déclencher des méthodes et responsabilités propres.
+        </p>
+      </div>
+
+      <!-- 2.4 Tableau des Cardinalités -->
+      <div class="space-y-4 pt-4 border-t border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i data-lucide="table" class="w-4 h-4 text-[#4B6A95]"></i>
+          <span>4. Tableau des Cardinalités (Multiplicités) Principales</span>
+        </h3>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <th class="py-2.5 px-3">Association / Entités Liées</th>
+                <th class="py-2.5 px-3 text-center">Multiplicité</th>
+                <th class="py-2.5 px-3">Règle de Gestion & Interprétation Métier</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-600 font-medium">
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">Cohort ⟷ Seminar</td><td class="text-center font-bold text-blue-600">1 vers 0..*</td><td>Une cohorte organise plusieurs séminaires ; chaque séminaire est lié à 1 cohorte unique.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">Seminar ⟷ Topic</td><td class="text-center font-bold text-blue-600">1 vers 1..*</td><td>Un séminaire se décompose au minimum en 1 ou plusieurs modules thématiques.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">Seminar ⟷ Registration</td><td class="text-center font-bold text-blue-600">1 vers 0..*</td><td>Un séminaire accueille de 0 à N stagiaires inscrits dans la limite des places.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">User ⟷ Registration</td><td class="text-center font-bold text-blue-600">1 vers 0..*</td><td>Un utilisateur peut postuler à plusieurs séminaires distincts au fil du temps.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">User ⟷ CandidateProfile</td><td class="text-center font-bold text-blue-600">1 vers 0..1</td><td>Un utilisateur candidat possède au maximum un dossier de profil normalisé JICA.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">CandidateProfile ⟷ Education</td><td class="text-center font-bold text-blue-600">1 vers 0..*</td><td>Composition forte : le cursus académique est intégralement détenu par le profil candidat.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">Registration ⟷ Attendance</td><td class="text-center font-bold text-blue-600">1 vers 0..*</td><td>Une inscription validée produit des lignes d'émargement pour chaque jour de session.</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-800">Cohort / Seminar ⟷ Expense</td><td class="text-center font-bold text-blue-600">1 vers 0..*</td><td>Une dépense est imputée à une cohorte globale OU à un séminaire spécifique (XOR).</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    lucide.createIcons();
+  </script>
+</body>
+</html>

@@ -9,7 +9,7 @@ class Invoice extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'enrollment_id',
+        'registration_id',
         'amount',
         'status',
         'transaction_id',
@@ -20,8 +20,8 @@ class Invoice extends Model
         'payment_date' => 'datetime',
     ];
 
-    public function enrollment()
+    public function registration()
     {
-        return $this->belongsTo(Enrollment::class);
+        return $this->belongsTo(Registration::class);
     }
 }

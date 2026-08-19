@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\User;
-use App\Models\Edition;
+use App\Models\Cohort;
 use App\Models\Seminar;
-use App\Models\Enrollment;
+use App\Models\Registration;
 use App\Models\Expense;
-use App\Models\Intervenant;
+use App\Models\Trainer;
 use Illuminate\Support\Facades\DB;
 
 class GlobalHealthCheck extends Command
@@ -33,8 +33,8 @@ class GlobalHealthCheck extends Command
         // 2. Gestion des Rôles et Utilisateurs
         $this->section("2. Authentification et Rôles");
         $userCount = User::count();
-        $adminCount = User::whereHas('role', function($q){ $q->where('name', 'Admin'); })->count();
-        $candidateCount = User::whereHas('role', function($q){ $q->where('name', 'Candidate'); })->count();
+        $adminCount = User::whereHas('role', function($q){ $q->where('name', 'Administrateur'); })->count();
+        $candidateCount = User::whereHas('role', function($q){ $q->where('name', 'Candidat'); })->count();
         $this->line("- Total Utilisateurs : $userCount");
         $this->line("- Administrateurs : $adminCount");
         $this->line("- Candidats : $candidateCount");
@@ -44,11 +44,11 @@ class GlobalHealthCheck extends Command
 
         // 3. Gestion des Éditions (Cycles)
         $this->section("3. Gestion des Éditions");
-        $editions = Edition::count();
-        $activeEdition = Edition::where('status', 'active')->first();
-        $this->line("- Total Éditions : $editions");
-        if ($activeEdition) {
-            $this->info("✔ Édition Active : {$activeEdition->title} (Budget: {$activeEdition->budget} CFA)");
+        $cohorts = Cohort::count();
+        $activeCohort = Cohort::where('status', 'active')->first();
+        $this->line("- Total Éditions : $cohorts");
+        if ($activeCohort) {
+            $this->info("✔ Édition Active : {$activeCohort->title} (Budget: {$activeCohort->budget} CFA)");
         } else {
             $this->warn("! Aucune édition active actuellement.");
         }
@@ -56,11 +56,11 @@ class GlobalHealthCheck extends Command
         // 4. Séminaires et Candidatures
         $this->section("4. Séminaires et Candidatures");
         $seminarCount = Seminar::count();
-        $enrollmentCount = Enrollment::count();
-        $pendingEnrollments = Enrollment::where('status', 'pending')->count();
+        $registrationCount = Registration::count();
+        $pendingRegistrations = Registration::where('status', 'pending')->count();
         $this->line("- Total Séminaires : $seminarCount");
-        $this->line("- Total Candidatures : $enrollmentCount");
-        $this->line("- Candidatures en attente : $pendingEnrollments");
+        $this->line("- Total Candidatures : $registrationCount");
+        $this->line("- Candidatures en attente : $pendingRegistrations");
         
         if ($seminarCount > 0) $this->info("✔ Module Séminaire : OPÉRATIONNEL");
         else $this->warn("! Aucun séminaire créé.");
@@ -68,9 +68,9 @@ class GlobalHealthCheck extends Command
         // 5. Finance
         $this->section("5. Module Financier");
         $expenseTotal = Expense::sum('amount');
-        $intervenantPay = Intervenant::sum('payment_amount');
+        $trainerPay = Trainer::sum('payment_amount');
         $this->line("- Total Dépenses Logistiques : " . number_format($expenseTotal, 0, ',', ' ') . " CFA");
-        $this->line("- Total Honoraires Intervenants : " . number_format($intervenantPay, 0, ',', ' ') . " CFA");
+        $this->line("- Total Honoraires Trainers : " . number_format($trainerPay, 0, ',', ' ') . " CFA");
         $this->info("✔ Module Finance : OPÉRATIONNEL");
 
         // 6. Système de Notifications (Log)
