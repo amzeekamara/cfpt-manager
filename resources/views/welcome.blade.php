@@ -581,22 +581,21 @@
 
     .dept-card {
       background: #ffffff;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-xl);
       padding: 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      box-shadow: none;
       position: relative;
       overflow: hidden;
     }
 
     .dept-card:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--primary-dark);
+      transform: none;
+      box-shadow: none;
+      border-color: var(--border-subtle);
     }
 
     .dept-img-wrap {
@@ -606,7 +605,7 @@
       overflow: hidden;
       margin-bottom: 20px;
       background-color: var(--primary-deep);
-      box-shadow: var(--shadow-sm);
+      box-shadow: none;
       position: relative;
     }
 
@@ -615,11 +614,10 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.4s ease;
     }
 
     .dept-card:hover .dept-card-img {
-      transform: scale(1.05);
+      transform: none;
     }
 
     .dept-card-top {
@@ -652,10 +650,10 @@
     }
 
     .dept-impact-box {
-      background: var(--accent-bg);
+      background: #f8fafc;
       border-radius: var(--radius-md);
       padding: 16px 18px;
-      border: 1px solid var(--border-subtle);
+      border: none;
     }
 
     .dept-impact-title {
