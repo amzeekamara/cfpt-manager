@@ -79,11 +79,10 @@ classDiagram
 
     class Visiteur_Candidat {
         &lt;&lt;Acteur Externe&gt;&gt;
-        +Consulter catalogue séminaires()
-        +Télécharger TDR & brochures()
+        +Consulter espace public & séminaires()
         +Soumettre candidature JICA()
         +Téléverser pièces justificatives()
-        +Suivre statut dossier()
+        +Recevoir notifications e-mail()
     }
 
     class Candidat_Admis {
@@ -144,29 +143,27 @@ classDiagram
     <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
       <div class="border-b border-slate-100 pb-4 mb-6">
         <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-extrabold uppercase">Bloc 1</span>
-        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Visiteur / Candidat Externe (Candidature Publique)</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Dépôt et instruction des candidatures internationales pour le programme JICA.</p>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Visiteur / Candidat Externe (Espace Public & Candidature JICA)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Consultation de l'espace public, dépôt de dossier en 3 étapes et notifications e-mail.</p>
       </div>
 
       <div class="mermaid overflow-x-auto mb-6">
 flowchart LR
     Visiteur((Visiteur / Candidat))
 
-    subgraph Bloc1["BLOC 1 : Candidature Publique & Inscription"]
+    subgraph Bloc1["BLOC 1 : Espace Public & Candidature JICA"]
         direction TB
-        UC_VIS01["CU-VIS01 : Consulter le catalogue des séminaires"]
-        UC_VIS02["CU-VIS02 : Télécharger les TDR & brochures"]
-        UC_VIS03["CU-VIS03 : Soumettre une candidature en ligne"]
-        UC_VIS04["CU-VIS04 : Téléverser les pièces justificatives"]
-        UC_VIS05["CU-VIS05 : Suivre l'état de sa candidature"]
+        UC_VIS01["CU-VIS01 : Consulter l'espace public & séminaires disponibles"]
+        UC_VIS02["CU-VIS02 : Soumettre une candidature en ligne"]
+        UC_VIS03["CU-VIS03 : Téléverser les pièces justificatives"]
+        UC_VIS04["CU-VIS04 : Recevoir notifications d'état par e-mail"]
     end
 
     Visiteur --&gt; UC_VIS01
     Visiteur --&gt; UC_VIS02
-    Visiteur --&gt; UC_VIS03
-    Visiteur --&gt; UC_VIS05
 
-    UC_VIS03 -.-&gt;|include| UC_VIS04
+    UC_VIS02 -.-&gt;|include| UC_VIS03
+    UC_VIS02 -.-&gt;|extend| UC_VIS04
       </div>
     </section>
 
@@ -352,6 +349,7 @@ flowchart TB
         end
 
         subgraph Mod_Candidature["Module Candidatures & Admissions"]
+            UC_ConsulterSem["Consulter espace public & séminaires"]
             UC_Postuler["Déposer candidature JICA"]
             UC_Pieces["Téléverser pièces jointes"]
             UC_Select["Instruire & Valider dossiers"]
@@ -386,6 +384,7 @@ flowchart TB
         end
     end
 
+    Visiteur --&gt; UC_ConsulterSem
     Visiteur --&gt; UC_Postuler
     UC_Postuler -.-&gt;|include| UC_Pieces
 

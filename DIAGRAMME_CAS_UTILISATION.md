@@ -2,7 +2,7 @@
 
 > **Projet** : Plateforme de Gestion de la Formation Professionnelle et Technique (PFPT • CFPT Sénégal-Japon & JICA)  
 > **Type de document** : Modélisation conceptuelle & Spécification des Cas d'Utilisation pour **Mémoire de Fin d'Études / Rapport de Projet**  
-> **Organisation** : 6 Blocs d'Acteurs Opérationnels + 1 Bloc Transversal (35 Cas d'Utilisation au total)  
+> **Organisation** : 6 Blocs d'Acteurs Opérationnels + 1 Bloc Transversal (33 Cas d'Utilisation au total)  
 > **Conformité** : Alignement strict avec le **Diagramme de Classes**, le **Dictionnaire des Données** et le code applicatif Laravel.
 
 ---
@@ -11,41 +11,40 @@
 
 | # | Bloc Acteur | Identifiant | Cas d'Utilisation | Module Associé | Objectif Opérationnel |
 |:---:|---|:---:|---|---|---|
-| **1** | **Visiteur / Candidat** | `CU-VIS01` | Consulter le catalogue des séminaires ouverts | M3 : Pédagogie | Découvrir l'offre de formation continue et les critères. |
-| **2** | **Visiteur / Candidat** | `CU-VIS02` | Télécharger la brochure et les TDR | M3 : Pédagogie | Télécharger les termes de référence officiels du séminaire. |
-| **3** | **Visiteur / Candidat** | `CU-VIS03` | Déposer une candidature en ligne | M4 : Candidatures | Saisir le formulaire officiel JICA en 3 étapes. |
-| **4** | **Visiteur / Candidat** | `CU-VIS04` | Téléverser les pièces justificatives | M4 : Candidatures | Joindre CV, diplômes, passeport et certificat médical. |
-| **5** | **Visiteur / Candidat** | `CU-VIS05` | Suivre l'état d'avancement de son dossier | M4 : Candidatures | Consulter en temps réel le statut d'instruction du dossier. |
-| **6** | **Candidat Admis** | `CU-CND01` | Activer son compte stagiaire | M1 : Authentification | Définir son mot de passe via le jeton d'invitation sécurisé. |
-| **7** | **Candidat Admis** | `CU-CND02` | Consulter son calendrier & planning | M6 : Suivi Pédagogique | Visualiser l'emploi du temps, horaires et salles de cours. |
-| **8** | **Candidat Admis** | `CU-CND03` | Suivre son assiduité & émargements | M6 : Suivi Pédagogique | Contrôler ses présences, absences et volume horaire suivi. |
-| **9** | **Candidat Admis** | `CU-CND04` | Télécharger les supports pédagogiques | M6 : GED | Accéder aux polycopiés, diaporamas et guides partagés. |
-| **10** | **Candidat Admis** | `CU-CND05` | Répondre aux formulaires d'évaluation | M8 : Enquêtes | Compléter les évaluations de fin de module (à chaud / à froid). |
-| **11** | **Candidat Admis** | `CU-CND06` | Consulter les alertes & messages de classe | M9 : Communication | Recevoir les consignes et annonces émises par le formateur. |
-| **12** | **Formateur** | `CU-FOR01` | Consulter sa classe d'apprenants | M5 : Formateurs | Visualiser la liste nominative des stagiaires affectés. |
-| **13** | **Formateur** | `CU-FOR02` | Filtrer & Exporter les stagiaires par thème | M5 : Formateurs | Télécharger la liste filtrée par spécialité technique. |
-| **14** | **Formateur** | `CU-FOR03` | Enregistrer l'émargement journalier | M6 : Émargement | Cocher les présences/absences pour chaque séance de cours. |
-| **15** | **Formateur** | `CU-FOR04` | Enregistrer les heures de cours dispensées | M5 : Formateurs | Déclarer le volume horaire effectué par séance (4h/séance). |
-| **16** | **Formateur** | `CU-FOR05` | Déposer des ressources pédagogiques | M6 : GED | Mettre à disposition des documents réservés à sa cohorte. |
-| **17** | **Formateur** | `CU-FOR06` | Diffuser des messages ciblés à la classe | M9 : Communication | Envoyer un message/email collectif ou par sous-groupe. |
-| **18** | **Administrateur** | `CU-ADM01` | Gérer les utilisateurs, rôles & accès (RBAC) | M1 : Sécurité | Créer, modifier, suspendre des comptes et attribuer les rôles. |
-| **19** | **Administrateur** | `CU-ADM02` | Gérer la structure pédagogique | M3 : Structure | Administrer les départements, séminaires et thématiques. |
-| **20** | **Administrateur** | `CU-ADM03` | Gérer les éditions annuelles (Cohortes) | M2 : Éditions | Créer un cycle, allouer le budget, archiver ou réactiver. |
-| **21** | **Administrateur** | `CU-ADM04` | Instruire & Statuer sur les candidatures | M4 : Candidatures | Valider (admis), rejeter ou placer sur liste d'attente. |
-| **22** | **Administrateur** | `CU-ADM05` | Gérer la photothèque & documents officiels | M6 : GED | Administrer les attestations, règlements et archives globales. |
-| **23** | **Administrateur** | `CU-ADM06` | Consulter le journal d'audit (Audit Trail) | M10 : Traçabilité | Suivre l'historique complet et horodaté des actions système. |
-| **24** | **Administrateur** | `CU-ADM07` | Superviser les notifications système | M9 : Communication | Contrôler la délivrance des alertes et emails automatiques. |
-| **25** | **Coordinateur** | `CU-CRD01` | Planifier & Coordonner les sessions | M3 : Pédagogie | Organiser le calendrier logistique et l'accueil des délégations. |
-| **26** | **Coordinateur** | `CU-CRD02` | Concevoir des formulaires dynamiques | M8 : Enquêtes | Créer des enquêtes sur mesure avec champs modulables. |
-| **27** | **Coordinateur** | `CU-CRD03` | Analyser & Exporter les évaluations | M8 : Enquêtes | Exploiter les données de satisfaction et générer des synthèses. |
-| **28** | **Coordinateur** | `CU-CRD04` | Saisir les dépenses & factures logistiques | M7 : Finances | Enregistrer les frais d'hébergement, restauration, transport. |
-| **29** | **Coordinateur** | `CU-CRD05` | Enregistrer les vacations des formateurs | M7 : Finances | Comptabiliser les honoraires dus selon le barème JICA. |
-| **30** | **Coordinateur** | `CU-CRD06` | Diffuser des alertes & communications | M9 : Communication | Émettre des notes de service aux participants et intervenants. |
-| **31** | **Agent JICA** | `CU-JIC01` | Consulter le tableau de bord financier | M7 : Finances | Visualiser le taux d'exécution budgétaire en temps réel. |
-| **32** | **Agent JICA** | `CU-JIC02` | Examiner les dépenses & pièces justificatives | M7 : Finances | Consulter le journal analytique des dépenses et factures. |
-| **33** | **Agent JICA** | `CU-JIC03` | Analyser les statistiques de participation | M4 : Statistiques | Observer la représentativité par pays, genre et profil. |
-| **34** | **Agent JICA** | `CU-JIC04` | Exporter le Rapport Financier & Logistique (PDF A4) | M7 : Reporting | Télécharger le rapport officiel JICA avec titre personnalisable. |
-| **35** | **Tous Utilisateurs** | `CU-GEN01` | S'authentifier / Se déconnecter | M1 : Accès | Accéder de manière sécurisée aux interfaces selon son profil. |
+| **1** | **Visiteur / Candidat** | `CU-VIS01` | Consulter l'espace public & les séminaires disponibles | M3 : Pédagogie | Découvrir l'offre de formation continue et les conditions d'éligibilité. |
+| **2** | **Visiteur / Candidat** | `CU-VIS02` | Soumettre une candidature en ligne | M4 : Candidatures | Saisir le formulaire officiel JICA en 3 étapes. |
+| **3** | **Visiteur / Candidat** | `CU-VIS03` | Téléverser les pièces justificatives | M4 : Candidatures | Joindre CV, diplômes, passeport et certificat médical. |
+| **4** | **Visiteur / Candidat** | `CU-VIS04` | Recevoir les notifications d'état par e-mail | M9 : Communication | Être informé par e-mail (accusé de réception, sélection, mise en attente). |
+| **5** | **Candidat Admis** | `CU-CND01` | Activer son compte stagiaire | M1 : Authentification | Définir son mot de passe via le jeton d'invitation sécurisé. |
+| **6** | **Candidat Admis** | `CU-CND02` | Consulter son calendrier & planning | M6 : Suivi Pédagogique | Visualiser l'emploi du temps, horaires et salles de cours. |
+| **7** | **Candidat Admis** | `CU-CND03` | Suivre son assiduité & émargements | M6 : Suivi Pédagogique | Contrôler ses présences, absences et volume horaire suivi. |
+| **8** | **Candidat Admis** | `CU-CND04` | Télécharger les supports pédagogiques | M6 : GED | Accéder aux polycopiés, diaporamas et guides partagés. |
+| **9** | **Candidat Admis** | `CU-CND05` | Répondre aux formulaires d'évaluation | M8 : Enquêtes | Compléter les évaluations de fin de module (à chaud / à froid). |
+| **10** | **Candidat Admis** | `CU-CND06` | Consulter les alertes & messages de classe | M9 : Communication | Recevoir les consignes et annonces émises par le formateur. |
+| **11** | **Formateur** | `CU-FOR01` | Consulter sa classe d'apprenants | M5 : Formateurs | Visualiser la liste nominative des stagiaires affectés. |
+| **12** | **Formateur** | `CU-FOR02` | Filtrer & Exporter les stagiaires par thème | M5 : Formateurs | Télécharger la liste filtrée par spécialité technique. |
+| **13** | **Formateur** | `CU-FOR03` | Enregistrer l'émargement journalier | M6 : Émargement | Cocher les présences/absences pour chaque séance de cours. |
+| **14** | **Formateur** | `CU-FOR04` | Enregistrer les heures de cours dispensées | M5 : Formateurs | Déclarer le volume horaire effectué par séance (4h/séance). |
+| **15** | **Formateur** | `CU-FOR05` | Déposer des ressources pédagogiques | M6 : GED | Mettre à disposition des documents réservés à sa cohorte. |
+| **16** | **Formateur** | `CU-FOR06` | Diffuser des messages ciblés à la classe | M9 : Communication | Envoyer un message/email collectif ou par sous-groupe. |
+| **17** | **Administrateur** | `CU-ADM01` | Gérer les utilisateurs, rôles & accès (RBAC) | M1 : Sécurité | Créer, modifier, suspendre des comptes et attribuer les rôles. |
+| **18** | **Administrateur** | `CU-ADM02` | Gérer la structure pédagogique | M3 : Structure | Administrer les départements, séminaires et thématiques. |
+| **19** | **Administrateur** | `CU-ADM03` | Gérer les éditions annuelles (Cohortes) | M2 : Éditions | Créer un cycle, allouer le budget, archiver ou réactiver. |
+| **20** | **Administrateur** | `CU-ADM04` | Instruire & Statuer sur les candidatures | M4 : Candidatures | Valider (admis), rejeter ou placer sur liste d'attente. |
+| **21** | **Administrateur** | `CU-ADM05` | Gérer la photothèque & documents officiels | M6 : GED | Administrer les attestations, règlements et archives globales. |
+| **22** | **Administrateur** | `CU-ADM06` | Consulter le journal d'audit (Audit Trail) | M10 : Traçabilité | Suivre l'historique complet et horodaté des actions système. |
+| **23** | **Administrateur** | `CU-ADM07` | Superviser les notifications système | M9 : Communication | Contrôler la délivrance des alertes et emails automatiques. |
+| **24** | **Coordinateur** | `CU-CRD01` | Planifier & Coordonner les sessions | M3 : Pédagogie | Organiser le calendrier logistique et l'accueil des délégations. |
+| **25** | **Coordinateur** | `CU-CRD02` | Concevoir des formulaires dynamiques | M8 : Enquêtes | Créer des enquêtes sur mesure avec champs modulables. |
+| **26** | **Coordinateur** | `CU-CRD03` | Analyser & Exporter les évaluations | M8 : Enquêtes | Exploiter les données de satisfaction et générer des synthèses. |
+| **27** | **Coordinateur** | `CU-CRD04` | Saisir les dépenses & factures logistiques | M7 : Finances | Enregistrer les frais d'hébergement, restauration, transport. |
+| **28** | **Coordinateur** | `CU-CRD05` | Enregistrer les vacations des formateurs | M7 : Finances | Comptabiliser les honoraires dus selon le barème JICA. |
+| **29** | **Coordinateur** | `CU-CRD06` | Diffuser des alertes & communications | M9 : Communication | Émettre des notes de service aux participants et intervenants. |
+| **30** | **Agent JICA** | `CU-JIC01` | Consulter le tableau de bord financier | M7 : Finances | Visualiser le taux d'exécution budgétaire en temps réel. |
+| **31** | **Agent JICA** | `CU-JIC02` | Examiner les dépenses & pièces justificatives | M7 : Finances | Consulter le journal analytique des dépenses et factures. |
+| **32** | **Agent JICA** | `CU-JIC03` | Analyser les statistiques de participation | M4 : Statistiques | Observer la représentativité par pays, genre et profil. |
+| **33** | **Agent JICA** | `CU-JIC04` | Exporter le Rapport Financier & Logistique (PDF A4) | M7 : Reporting | Télécharger le rapport officiel JICA avec titre personnalisable. |
+| **34** | **Tous Utilisateurs** | `CU-GEN01` | S'authentifier / Se déconnecter | M1 : Accès | Accéder de manière sécurisée aux interfaces selon son profil. |
 
 ---
 
@@ -64,11 +63,10 @@ classDiagram
 
     class Visiteur_Candidat {
         <<Acteur Externe>>
-        +Consulter catalogue séminaires()
-        +Télécharger TDR & brochures()
+        +Consulter espace public & séminaires()
         +Soumettre candidature JICA()
         +Téléverser pièces justificatives()
-        +Suivre statut dossier()
+        +Recevoir notifications e-mail()
     }
 
     class Candidat_Admis {
@@ -137,7 +135,7 @@ classDiagram
                                SYSTÈME PFPT MANAGER
 ===================================================================================
  ┌───────────────────────────────────────────────────────────────────────────────┐
- │ BLOC 1 : VISITEUR & CANDIDAT EXTERNE (Candidature Publique & Inscription)     │
+ │ BLOC 1 : VISITEUR & CANDIDAT EXTERNE (Espace Public & Candidature JICA)       │
  ├───────────────────────────────────────────────────────────────────────────────┤
  │ BLOC 2 : CANDIDAT ADMIS / STAGIAIRE (Portail Participant & Pédagogie)         │
  ├───────────────────────────────────────────────────────────────────────────────┤
@@ -161,26 +159,29 @@ Ce bloc regroupe l'ensemble des interactions ouvertes au public et aux candidats
 flowchart LR
     Visiteur((Visiteur / Candidat))
 
-    subgraph Bloc1["BLOC 1 : Candidature Publique & Inscription"]
+    subgraph Bloc1["BLOC 1 : Espace Public & Candidature JICA"]
         direction TB
-        UC_VIS01["CU-VIS01 : Consulter le catalogue des séminaires"]
-        UC_VIS02["CU-VIS02 : Télécharger les TDR & brochures"]
-        UC_VIS03["CU-VIS03 : Soumettre une candidature en ligne"]
-        UC_VIS04["CU-VIS04 : Téléverser les pièces justificatives"]
-        UC_VIS05["CU-VIS05 : Suivre l'état de sa candidature"]
+        UC_VIS01["CU-VIS01 : Consulter l'espace public & séminaires disponibles"]
+        UC_VIS02["CU-VIS02 : Soumettre une candidature en ligne"]
+        UC_VIS03["CU-VIS03 : Téléverser les pièces justificatives"]
+        UC_VIS04["CU-VIS04 : Recevoir notifications d'état par e-mail"]
     end
 
     Visiteur --> UC_VIS01
     Visiteur --> UC_VIS02
-    Visiteur --> UC_VIS03
-    Visiteur --> UC_VIS05
 
-    UC_VIS03 -.->|<<include>>| UC_VIS04
+    UC_VIS02 -.->|<<include>>| UC_VIS03
+    UC_VIS02 -.->|<<extend>>| UC_VIS04
 ```
 
 #### Fiches Descriptives des Cas d'Utilisation - Bloc 1
 
-##### `CU-VIS03` : Soumettre une candidature en ligne
+##### `CU-VIS01` : Consulter l'espace public & les séminaires disponibles
+* **Acteur principal** : Visiteur / Candidat externe.
+* **Préconditions** : Aucune (accès libre sans authentification).
+* **Description** : Le visiteur consulte la vitrine publique du PFPT, découvre les séminaires de formation ouverts, les dates limites de soumission, les prérequis techniques et les pays cibles.
+
+##### `CU-VIS02` : Soumettre une candidature en ligne
 * **Acteur principal** : Visiteur / Candidat externe.
 * **Acteur secondaire** : Système d'information, Administrateur (destinataire de notification).
 * **Préconditions** : Le séminaire doit être publié (`status = active`) et la période de candidature ouverte.
@@ -189,18 +190,22 @@ flowchart LR
   1. Le candidat saisit ses informations d'identité (nom, prénom, genre, nationalité, pays de provenance).
   2. Le candidat renseigne son profil professionnel (ministère ou organisme de tutelle, établissement de formation, fonction, spécialité technique).
   3. Le candidat renseigne son état de santé et ses contraintes alimentaires/logistiques (norme JICA).
-  4. Le système valide la conformité des données et déclenche obligatoirement l'étape `CU-VIS04 : Téléverser les pièces justificatives`.
+  4. Le système valide la conformité des données et déclenche obligatoirement l'étape `CU-VIS03 : Téléverser les pièces justificatives`.
   5. Le candidat valide et soumet définitivement son dossier.
   6. Le système enregistre la candidature avec le statut `pending` (En cours d'examen).
-  7. Le système envoie un accusé de réception par email au candidat et notifie les administrateurs.
+  7. Le système déclenche automatiquement l'envoi d'un e-mail d'accusé de réception (`CU-VIS04`) et notifie les administrateurs.
 * **Scénarios alternatifs** :
   * *Email déjà existant pour la même cohorte* : Le système informe le candidat qu'une candidature est déjà enregistrée.
   * *Champs obligatoires manquants* : Le système surligne les champs erronés et bloque la soumission.
-* **Postconditions** : Une entrée `Registration` et `CandidateProfile` est créée ; le candidat peut suivre son dossier.
+* **Postconditions** : Une entrée `Registration` et `CandidateProfile` est créée ; le candidat attend la décision du comité par e-mail.
 
-##### `CU-VIS04` : Téléverser les pièces justificatives
-* **Relation** : `<<include>>` depuis `CU-VIS03`.
+##### `CU-VIS03` : Téléverser les pièces justificatives
+* **Relation** : `<<include>>` depuis `CU-VIS02`.
 * **Description** : Le candidat téléverse ses justificatifs obligatoires (CV actualisé, copie du passeport/CNI, diplôme technique le plus élevé, certificat médical). Les fichiers sont vérifiés (PDF/JPG, max 5 Mo) et stockés de façon sécurisée.
+
+##### `CU-VIS04` : Recevoir les notifications d'état par e-mail
+* **Relation** : `<<extend>>` depuis `CU-VIS02`.
+* **Description** : Le candidat ne dispose pas d'un tableau de bord de suivi à ce stade : l'ensemble des retours (accusé de dépôt, notification de sélection avec lien d'activation, placement sur liste d'attente ou notification de rejet) lui sont directement transmis par notification e-mail automatique.
 
 ---
 
@@ -441,6 +446,7 @@ flowchart TB
         end
 
         subgraph Mod_Candidature["Module Candidatures & Admissions"]
+            UC_ConsulterSem["Consulter espace public & séminaires"]
             UC_Postuler["Déposer candidature JICA"]
             UC_Pieces["Téléverser pièces jointes"]
             UC_Select["Instruire & Valider dossiers"]
@@ -476,6 +482,7 @@ flowchart TB
     end
 
     %% Relations Acteurs -> Cas d'Utilisation
+    Visiteur --> UC_ConsulterSem
     Visiteur --> UC_Postuler
     UC_Postuler -.->|<<include>>| UC_Pieces
 
@@ -547,10 +554,9 @@ rectangle "Système PFPT Manager (CFPT S-J / JICA)" {
   }
 
   package "Bloc 1 : Candidatures & Inscriptions" {
-    usecase "Consulter séminaires" as UC_ConsulterSem
+    usecase "Consulter espace public & séminaires" as UC_ConsulterSem
     usecase "Déposer candidature en ligne" as UC_Postuler
     usecase "Téléverser pièces jointes" as UC_Pieces
-    usecase "Suivre état dossier" as UC_SuiviDossier
     usecase "Instruire et sélectionner dossiers" as UC_Select
     usecase "Filtrer candidats par Thème" as UC_FilterTopic
   }
@@ -585,7 +591,6 @@ rectangle "Système PFPT Manager (CFPT S-J / JICA)" {
 ' --- Relations Visiteur ---
 Visiteur --> UC_ConsulterSem
 Visiteur --> UC_Postuler
-Visiteur --> UC_SuiviDossier
 UC_Postuler ..> UC_Pieces : <<include>>
 
 ' --- Relations Candidat Admis ---
