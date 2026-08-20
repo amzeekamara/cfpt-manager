@@ -92,6 +92,9 @@ class TrainerController extends Controller
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('messages_attachments', 'public');
+        }
+
         $message = Message::create([
             'trainer_id' => $trainerId,
             'cohort_id' => $request->cohort_id,
