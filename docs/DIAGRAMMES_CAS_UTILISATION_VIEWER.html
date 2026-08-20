@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schémas des Diagrammes de Cas d'Utilisation - PFPT / CFPT & JICA</title>
+  <title>Diagrammes de Cas d'Utilisation UML - PFPT Manager (CFPT S-J & JICA)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Mermaid JS -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -11,21 +11,21 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #f1f5f9;
+      background-color: #f8fafc;
     }
     .mermaid {
       background: white;
-      border-radius: 1rem;
+      border-radius: 1.25rem;
       padding: 1.5rem;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
     }
     @media print {
       .no-print { display: none !important; }
-      body { background: white; }
+      body { background: white; padding: 0 !important; }
       .page-break { page-break-after: always; }
     }
   </style>
@@ -35,96 +35,100 @@
   <!-- Header Banner -->
   <div class="max-w-7xl mx-auto mb-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
     <div>
-      <div class="flex items-center gap-2 text-xs font-bold text-[#4B6A95] uppercase tracking-widest mb-1">
-        <span>Documentation & Modélisation UML</span>
+      <div class="flex items-center gap-2 text-xs font-black text-[#4B6A95] uppercase tracking-widest mb-1">
+        <span>Spécification UML & Mémoire de Fin d'Études</span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-        Diagramme de Cas d'Utilisation (PFPT Manager)
+        Diagrammes de Cas d'Utilisation par Blocs d'Acteurs
       </h1>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-        Plateforme PFPT • CFPT Sénégal-Japon & JICA (Modélisation à 6 Acteurs)
+        Plateforme PFPT • CFPT Sénégal-Japon & JICA (Modélisation complète à 6 Acteurs)
       </p>
     </div>
     
     <div class="flex items-center gap-3 no-print">
-      <button onclick="window.print()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full flex items-center gap-2 shadow-xs transition">
+      <button onclick="window.print()" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#385172] text-white text-xs font-bold rounded-full flex items-center gap-2 shadow-xs transition cursor-pointer">
         <i data-lucide="printer" class="w-4 h-4"></i>
-        <span>Imprimer / Exporter en PDF</span>
+        <span>Imprimer / Exporter PDF (A4)</span>
       </button>
-      <a href="DIAGRAMME_CAS_UTILISATION.txt" class="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-full flex items-center gap-2 shadow-2xs transition">
-        <i data-lucide="file-text" class="w-4 h-4 text-[#4B6A95]"></i>
-        <span>Fichier Texte</span>
-      </a>
     </div>
   </div>
 
   <div class="max-w-7xl mx-auto space-y-12">
 
-    <!-- 1. HIÉRARCHIE DES 6 ACTEURS -->
+    <!-- 1. HIÉRARCHIE DES ACTEURS -->
     <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
         <div>
           <span class="px-3 py-1 bg-blue-50 text-[#4B6A95] rounded-full text-[11px] font-extrabold uppercase">Section 01</span>
           <h2 class="text-xl font-extrabold text-slate-900 mt-2">Hiérarchie des 6 Acteurs du Système</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Spécialisation des acteurs à partir de l'acteur abstrait Utilisateur.</p>
+          <p class="text-xs text-slate-500 mt-0.5">Spécialisation des profils à partir de l'acteur abstrait Utilisateur.</p>
         </div>
       </div>
 
       <div class="mermaid overflow-x-auto">
 classDiagram
+    direction TB
     class Utilisateur {
         &lt;&lt;Acteur Abstrait&gt;&gt;
         +S'authentifier()
         +Se déconnecter()
-        +Consulter la vitrine publique()
+        +Consulter vitrine publique()
         +Réinitialiser mot de passe()
     }
 
     class Visiteur_Candidat {
-        +Consulter les séminaires
-        +Déposer candidature JICA
-        +Téléverser pièces jointes
-        +Suivre état du dossier
+        &lt;&lt;Acteur Externe&gt;&gt;
+        +Consulter catalogue séminaires()
+        +Télécharger TDR & brochures()
+        +Soumettre candidature JICA()
+        +Téléverser pièces justificatives()
+        +Suivre statut dossier()
     }
 
     class Candidat_Admis {
-        +Consulter planning &amp; présences
-        +Télécharger supports de cours
-        +Répondre aux enquêtes
+        &lt;&lt;Acteur Bénéficiaire&gt;&gt;
+        +Activer compte personnel()
+        +Consulter planning & calendrier()
+        +Suivre assiduité & présences()
+        +Télécharger supports de cours()
+        +Répondre aux enquêtes()
     }
 
     class Formateur {
-        +Consulter sa classe
-        +Faire l'émargement
-        +Gérer ses ressources pédagogiques
-        +Exporter participants par thème
-        +Diffuser messages
+        &lt;&lt;Acteur Pédagogique&gt;&gt;
+        +Consulter classe d'apprenants()
+        +Filtrer & exporter par thème()
+        +Faire émargement journalier()
+        +Déclarer heures de cours()
+        +Partager ressources de cours()
+        +Diffuser consignes de classe()
     }
 
     class Administrateur {
-        +Gérer utilisateurs &amp; rôles
-        +Gérer structure système
-        +Gérer éditions (cohortes)
-        +Instruire &amp; valider candidatures
-        +Gérer documents officiels
-        +Consulter journal d'audit
+        &lt;&lt;Acteur Gouvernance&gt;&gt;
+        +Gérer comptes, rôles & accès()
+        +Gérer structure pédagogique()
+        +Gérer cohortes (cycles JICA)()
+        +Sélectionner & valider candidats()
+        +Consulter journal d'audit()
     }
 
     class Coordinateur {
-        +Participer gestion éditions
-        +Gérer communication &amp; messages
-        +Gérer ressources logistiques
-        +Suivre budget JICA &amp; indicateurs
-        +Enregistrer dépenses &amp; factures
-        +Concevoir formulaires dynamiques
+        &lt;&lt;Acteur Opérationnel&gt;&gt;
+        +Planifier sessions & logistique()
+        +Créer formulaires dynamiques()
+        +Analyser réponses enquêtes()
+        +Enregistrer dépenses & factures()
+        +Payer vacations formateurs()
     }
 
     class Agent_JICA {
-        &lt;&lt;Rôle Consultatif&gt;&gt;
-        +Consulter tableau financier
-        +Consulter dépenses &amp; factures
-        +Consulter rapports statistiques
-        +Exporter état récapitulatif
+        &lt;&lt;Acteur Superviseur&gt;&gt;
+        +Consulter cockpit budgétaire()
+        +Auditer dépenses & pièces()
+        +Consulter stats de participation()
+        +Exporter rapport officiel A4()
     }
 
     Utilisateur &lt;|-- Visiteur_Candidat
@@ -136,174 +140,309 @@ classDiagram
       </div>
     </section>
 
-    <!-- 2. DIAGRAMME GLOBAL DU SYSTÈME -->
-    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm page-break">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-        <div>
-          <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-extrabold uppercase">Section 02</span>
-          <h2 class="text-xl font-extrabold text-slate-900 mt-2">Diagramme Global du Système PFPT Manager</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Vue d'ensemble reliant les 6 acteurs aux cas d'utilisation modulaires.</p>
-        </div>
+    <!-- 2. BLOC 1 : VISITEUR / CANDIDAT -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-extrabold uppercase">Bloc 1</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Visiteur / Candidat Externe (Candidature Publique)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Dépôt et instruction des candidatures internationales pour le programme JICA.</p>
       </div>
 
-      <div class="mermaid overflow-x-auto">
+      <div class="mermaid overflow-x-auto mb-6">
 flowchart LR
-    subgraph ACTEURS["👥 ACTEURS DU SYSTÈME"]
+    Visiteur((Visiteur / Candidat))
+
+    subgraph Bloc1["BLOC 1 : Candidature Publique & Inscription"]
         direction TB
-        A_Visiteur["👤 Visiteur / Candidat"]
-        A_Candidat["🎓 Candidat Admis"]
-        A_Formateur["👨‍🏫 Formateur"]
-        A_Admin["⚙️ Administrateur"]
-        A_Coord["📋 Coordinateur"]
-        A_JICA["🌐 Agent JICA"]
+        UC_VIS01["CU-VIS01 : Consulter le catalogue des séminaires"]
+        UC_VIS02["CU-VIS02 : Télécharger les TDR & brochures"]
+        UC_VIS03["CU-VIS03 : Soumettre une candidature en ligne"]
+        UC_VIS04["CU-VIS04 : Téléverser les pièces justificatives"]
+        UC_VIS05["CU-VIS05 : Suivre l'état de sa candidature"]
     end
 
-    subgraph SYSTEME["💻 SYSTÈME PFPT MANAGER (CFPT S-J / JICA)"]
-        direction TB
-        
-        subgraph M_AUTH["🔐 Authentification & Sécurité"]
-            UC_Auth(["S'authentifier"])
-            UC_Deconnexion(["Se déconnecter"])
-        end
+    Visiteur --&gt; UC_VIS01
+    Visiteur --&gt; UC_VIS02
+    Visiteur --&gt; UC_VIS03
+    Visiteur --&gt; UC_VIS05
 
-        subgraph M_CAND["📝 Candidatures & Admissions"]
-            UC_Postuler(["Déposer candidature JICA"])
-            UC_Upload(["Téléverser pièces jointes"])
-            UC_Valider(["Instruire & Valider candidatures"])
-            UC_Filter(["Filtrer candidats par thème"])
-        end
-
-        subgraph M_PEDAG["🎓 Pédagogie & Émargement"]
-            UC_Emarge(["Faire l'émargement journalier"])
-            UC_GED_T(["Gérer ses ressources pédagogiques"])
-            UC_GED_C(["Télécharger supports de cours"])
-            UC_Planning(["Consulter planning & présences"])
-            UC_ExportT(["Exporter stagiaires par thème"])
-        end
-
-        subgraph M_ADMIN["⚙️ Administration & Structure"]
-            UC_Users(["Gérer utilisateurs & rôles"])
-            UC_Struct(["Gérer structure système"])
-            UC_Editions(["Gérer éditions & cohortes"])
-            UC_Audit(["Consulter journal d'audit"])
-        end
-
-        subgraph M_FIN["💰 Finances & Logistique"]
-            UC_Budget(["Suivre budget & indicateurs"])
-            UC_Depense(["Enregistrer dépenses & vacations"])
-            UC_ConsultDep(["Consulter dépenses & factures"])
-            UC_ExportF(["Exporter bilan financier"])
-        end
-
-        subgraph M_COMM["📨 Formulaires & Communication"]
-            UC_Form(["Gérer formulaires dynamiques"])
-            UC_Repondre(["Répondre enquêtes de satisfaction"])
-            UC_Message(["Diffuser annonces ciblées"])
-            UC_Notif(["Recevoir notifications d'alertes"])
-        end
-    end
-
-    %% Visiteur
-    A_Visiteur --> UC_Postuler
-    UC_Postuler -.->|&lt;&lt;include&gt;&gt;| UC_Upload
-
-    %% Candidat Admis
-    A_Candidat --> UC_Auth
-    A_Candidat --> UC_Planning
-    A_Candidat --> UC_GED_C
-    A_Candidat --> UC_Repondre
-    A_Candidat --> UC_Deconnexion
-
-    %% Formateur
-    A_Formateur --> UC_Auth
-    A_Formateur --> UC_Emarge
-    A_Formateur --> UC_GED_T
-    A_Formateur --> UC_ExportT
-    A_Formateur --> UC_Message
-    A_Formateur --> UC_Deconnexion
-
-    %% Administrateur
-    A_Admin --> UC_Auth
-    A_Admin --> UC_Users
-    A_Admin --> UC_Struct
-    A_Admin --> UC_Editions
-    A_Admin --> UC_Valider
-    A_Admin --> UC_Filter
-    A_Admin --> UC_Audit
-    A_Admin --> UC_Deconnexion
-
-    %% Coordinateur
-    A_Coord --> UC_Auth
-    A_Coord --> UC_Budget
-    A_Coord --> UC_Depense
-    A_Coord --> UC_Message
-    A_Coord --> UC_Form
-    A_Coord --> UC_ExportT
-    A_Coord --> UC_Deconnexion
-
-    %% Agent JICA (Consultatif)
-    A_JICA --> UC_Auth
-    A_JICA --> UC_Budget
-    A_JICA --> UC_ConsultDep
-    A_JICA --> UC_Deconnexion
-
-    %% Extensions
-    UC_Budget -.->|&lt;&lt;extend&gt;&gt;| UC_ExportF
-    UC_Valider -.->|&lt;&lt;extend&gt;&gt;| UC_Notif
+    UC_VIS03 -.-&gt;|include| UC_VIS04
       </div>
     </section>
 
-    <!-- 3. MATRICE COMPLÈTE -->
+    <!-- 3. BLOC 2 : CANDIDAT ADMIS -->
     <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
       <div class="border-b border-slate-100 pb-4 mb-6">
-        <span class="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[11px] font-extrabold uppercase">Section 03</span>
-        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Matrice des Cas d'Utilisation par Acteur</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Répartition stricte des droits pour les 6 profils d'acteurs.</p>
+        <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[11px] font-extrabold uppercase">Bloc 2</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Candidat Admis / Participant (Espace Stagiaire)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Suivi des enseignements, planning, assiduité et évaluations.</p>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
-              <th class="py-3 px-4">Cas d'Utilisation</th>
-              <th class="py-3 px-2 text-center">Visiteur</th>
-              <th class="py-3 px-2 text-center">Candidat Admis</th>
-              <th class="py-3 px-2 text-center">Formateur</th>
-              <th class="py-3 px-2 text-center">Administrateur</th>
-              <th class="py-3 px-2 text-center">Coordinateur</th>
-              <th class="py-3 px-2 text-center">Agent JICA</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 text-slate-600 font-medium">
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">S'authentifier (CU01)</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Se déconnecter (CU02)</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Déposer candidature JICA</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Téléverser pièces justificatives</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Consulter planning & présences</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Télécharger supports de cours</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Gérer ses ressources pédagogiques</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Faire l'émargement des séances</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Exporter stagiaires par thème</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Gérer utilisateurs & rôles</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Gérer la structure du système</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Gérer les éditions (Cohortes)</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Instruire & valider candidatures</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Gérer communication & messages</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Gérer formulaires dynamiques</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Suivre budget JICA & jauges</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-blue-600">✓*</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Enregistrer dépenses & factures</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Consulter dépenses & factures</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center font-bold text-emerald-600">✓</td></tr>
-            <tr class="hover:bg-slate-50"><td class="py-2.5 px-4 font-semibold text-slate-800">Consulter journal d'audit (Logs)</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td><td class="text-center font-bold text-emerald-600">✓</td><td class="text-center text-slate-300">—</td><td class="text-center text-slate-300">—</td></tr>
-          </tbody>
-        </table>
+      <div class="mermaid overflow-x-auto mb-6">
+flowchart LR
+    Candidat((Candidat Admis))
+
+    subgraph Bloc2["BLOC 2 : Espace Participant & Pédagogie"]
+        direction TB
+        UC_CND01["CU-CND01 : Activer son compte stagiaire"]
+        UC_CND02["CU-CND02 : Consulter planning & calendrier"]
+        UC_CND03["CU-CND03 : Suivre son assiduité & émargements"]
+        UC_CND04["CU-CND04 : Télécharger supports pédagogiques"]
+        UC_CND05["CU-CND05 : Répondre aux enquêtes d'évaluation"]
+        UC_CND06["CU-CND06 : Consulter alertes & messages de classe"]
+    end
+
+    Candidat --&gt; UC_CND01
+    Candidat --&gt; UC_CND02
+    Candidat --&gt; UC_CND03
+    Candidat --&gt; UC_CND04
+    Candidat --&gt; UC_CND05
+    Candidat --&gt; UC_CND06
       </div>
-      <p class="text-[11px] text-slate-400 mt-3 font-semibold">* Droits partagés ou délégués selon la configuration RBAC.</p>
+    </section>
+
+    <!-- 4. BLOC 3 : FORMATEUR -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <span class="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[11px] font-extrabold uppercase">Bloc 3</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Formateur / Enseignant (Espace Formateur & Émargement)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Gestion de classe, émargements, relevés d'heures et diffusion des cours.</p>
+      </div>
+
+      <div class="mermaid overflow-x-auto mb-6">
+flowchart LR
+    Formateur((Formateur / Enseignant))
+
+    subgraph Bloc3["BLOC 3 : Espace Formateur & Émargement"]
+        direction TB
+        UC_FOR01["CU-FOR01 : Consulter sa classe d'apprenants"]
+        UC_FOR02["CU-FOR02 : Filtrer & exporter les stagiaires par thème"]
+        UC_FOR03["CU-FOR03 : Enregistrer l'émargement journalier"]
+        UC_FOR04["CU-FOR04 : Enregistrer les heures de cours dispensées"]
+        UC_FOR05["CU-FOR05 : Déposer des ressources pédagogiques"]
+        UC_FOR06["CU-FOR06 : Diffuser des messages ciblés à la classe"]
+    end
+
+    Formateur --&gt; UC_FOR01
+    Formateur --&gt; UC_FOR03
+    Formateur --&gt; UC_FOR05
+    Formateur --&gt; UC_FOR06
+
+    UC_FOR01 -.-&gt;|extend| UC_FOR02
+    UC_FOR03 -.-&gt;|include| UC_FOR04
+      </div>
+    </section>
+
+    <!-- 5. BLOC 4 : ADMINISTRATEUR -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <span class="px-3 py-1 bg-rose-50 text-rose-700 rounded-full text-[11px] font-extrabold uppercase">Bloc 4</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Administrateur Système (Gouvernance & Sélections)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Administration des comptes, structure pédagogique, cycles et audit.</p>
+      </div>
+
+      <div class="mermaid overflow-x-auto mb-6">
+flowchart LR
+    Admin((Administrateur))
+
+    subgraph Bloc4["BLOC 4 : Administration & Pilotage Global"]
+        direction TB
+        UC_ADM01["CU-ADM01 : Gérer les utilisateurs, rôles & accès"]
+        UC_ADM02["CU-ADM02 : Gérer la structure pédagogique"]
+        UC_ADM03["CU-ADM03 : Gérer les éditions annuelles (Cohortes)"]
+        UC_ADM04["CU-ADM04 : Instruire & Statuer sur les candidatures"]
+        UC_ADM05["CU-ADM05 : Gérer la GED & photothèque"]
+        UC_ADM06["CU-ADM06 : Consulter le journal d'audit (Audit Trail)"]
+        UC_ADM07["CU-ADM07 : Superviser les flux de notifications"]
+    end
+
+    Admin --&gt; UC_ADM01
+    Admin --&gt; UC_ADM02
+    Admin --&gt; UC_ADM03
+    Admin --&gt; UC_ADM04
+    Admin --&gt; UC_ADM05
+    Admin --&gt; UC_ADM06
+    Admin --&gt; UC_ADM07
+      </div>
+    </section>
+
+    <!-- 6. BLOC 5 : COORDINATEUR -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-[11px] font-extrabold uppercase">Bloc 5</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Coordinateur du Programme (Logistique, Formulaires & Dépenses)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Supervision terrain, formulaires dynamiques et imputation des dépenses.</p>
+      </div>
+
+      <div class="mermaid overflow-x-auto mb-6">
+flowchart LR
+    Coordinateur((Coordinateur))
+
+    subgraph Bloc5["BLOC 5 : Logistique, Formulaires & Dépenses"]
+        direction TB
+        UC_CRD01["CU-CRD01 : Planifier & Coordonner les sessions"]
+        UC_CRD02["CU-CRD02 : Concevoir des formulaires dynamiques"]
+        UC_CRD03["CU-CRD03 : Analyser & Exporter les évaluations"]
+        UC_CRD04["CU-CRD04 : Saisir les dépenses & factures logistiques"]
+        UC_CRD05["CU-CRD05 : Enregistrer les vacations des formateurs"]
+        UC_CRD06["CU-CRD06 : Diffuser alertes & communications"]
+    end
+
+    Coordinateur --&gt; UC_CRD01
+    Coordinateur --&gt; UC_CRD02
+    Coordinateur --&gt; UC_CRD03
+    Coordinateur --&gt; UC_CRD04
+    Coordinateur --&gt; UC_CRD05
+    Coordinateur --&gt; UC_CRD06
+      </div>
+    </section>
+
+    <!-- 7. BLOC 6 : AGENT JICA -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <span class="px-3 py-1 bg-amber-50 text-amber-800 rounded-full text-[11px] font-extrabold uppercase">Bloc 6</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Agent / Représentant JICA (Supervision & Reporting)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Suivi budgétaire, consultation des dépenses et export des rapports officiels A4.</p>
+      </div>
+
+      <div class="mermaid overflow-x-auto mb-6">
+flowchart LR
+    JICA((Agent JICA))
+
+    subgraph Bloc6["BLOC 6 : Supervision Budgétaire & Reporting JICA"]
+        direction TB
+        UC_JIC01["CU-JIC01 : Consulter le cockpit financier de l'édition"]
+        UC_JIC02["CU-JIC02 : Examiner les dépenses & pièces justificatives"]
+        UC_JIC03["CU-JIC03 : Analyser les statistiques de participation"]
+        UC_JIC04["CU-JIC04 : Exporter le Rapport Financier & Logistique A4"]
+    end
+
+    JICA --&gt; UC_JIC01
+    JICA --&gt; UC_JIC02
+    JICA --&gt; UC_JIC03
+    JICA --&gt; UC_JIC04
+
+    UC_JIC01 -.-&gt;|extend| UC_JIC04
+      </div>
+    </section>
+
+    <!-- 8. DIAGRAMME GLOBAL INTÉGRÉ -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="border-b border-slate-100 pb-4 mb-6">
+        <span class="px-3 py-1 bg-slate-100 text-slate-800 rounded-full text-[11px] font-extrabold uppercase">Vue d'Ensemble</span>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-2">Diagramme Global Intégré du Système</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Cartographie complète des interactions acteurs - modules métier.</p>
+      </div>
+
+      <div class="mermaid overflow-x-auto">
+flowchart TB
+    Visiteur((Visiteur / Candidat))
+    Candidat((Candidat Admis))
+    Formateur((Formateur))
+    Admin((Administrateur))
+    Coordinateur((Coordinateur))
+    JICA((Agent JICA))
+
+    subgraph PFPT_System["PLATEFORME PFPT MANAGER (CFPT Sénégal-Japon & JICA)"]
+        direction TB
+
+        subgraph Securite["Sécurité & Authentification"]
+            UC_Auth["S'authentifier"]
+            UC_Logout["Se déconnecter"]
+        end
+
+        subgraph Mod_Candidature["Module Candidatures & Admissions"]
+            UC_Postuler["Déposer candidature JICA"]
+            UC_Pieces["Téléverser pièces jointes"]
+            UC_Select["Instruire & Valider dossiers"]
+            UC_Filter["Filtrer candidats par thème"]
+        end
+
+        subgraph Mod_Pedagogie["Module Pédagogie & Émargement"]
+            UC_Planning["Consulter planning & calendrier"]
+            UC_Presence["Faire l'émargement des séances"]
+            UC_Heures["Déclarer les heures dispensées"]
+            UC_GED["Gérer / Télécharger ressources"]
+        end
+
+        subgraph Mod_Finance["Module Finances & Budgets JICA"]
+            UC_Budget["Suivre cockpit budgétaire"]
+            UC_Depenses["Saisir dépenses & factures"]
+            UC_Honoraires["Payer honoraires formateurs"]
+            UC_ExportPDF["Exporter rapport financier A4"]
+        end
+
+        subgraph Mod_Evaluation["Module Formulaires & Évaluations"]
+            UC_CreateForm["Créer formulaires dynamiques"]
+            UC_AnswerForm["Répondre aux évaluations"]
+            UC_StatsForm["Analyser résultats enquêtes"]
+        end
+
+        subgraph Mod_Admin["Module Administration & Traçabilité"]
+            UC_Users["Gérer utilisateurs & rôles"]
+            UC_Cohortes["Gérer éditions & cycles"]
+            UC_Audit["Consulter journal d'audit"]
+            UC_Messages["Diffuser alertes & messages"]
+        end
+    end
+
+    Visiteur --&gt; UC_Postuler
+    UC_Postuler -.-&gt;|include| UC_Pieces
+
+    Candidat --&gt; UC_Auth
+    Candidat --&gt; UC_Planning
+    Candidat --&gt; UC_GED
+    Candidat --&gt; UC_AnswerForm
+    Candidat --&gt; UC_Logout
+
+    Formateur --&gt; UC_Auth
+    Formateur --&gt; UC_Presence
+    Formateur --&gt; UC_GED
+    Formateur --&gt; UC_Filter
+    Formateur --&gt; UC_Messages
+    Formateur --&gt; UC_Logout
+
+    UC_Presence -.-&gt;|include| UC_Heures
+
+    Admin --&gt; UC_Auth
+    Admin --&gt; UC_Users
+    Admin --&gt; UC_Cohortes
+    Admin --&gt; UC_Select
+    Admin --&gt; UC_Audit
+    Admin --&gt; UC_Logout
+
+    Coordinateur --&gt; UC_Auth
+    Coordinateur --&gt; UC_Budget
+    Coordinateur --&gt; UC_Depenses
+    Coordinateur --&gt; UC_Honoraires
+    Coordinateur --&gt; UC_CreateForm
+    Coordinateur --&gt; UC_Messages
+    Coordinateur --&gt; UC_Logout
+
+    JICA --&gt; UC_Auth
+    JICA --&gt; UC_Budget
+    JICA --&gt; UC_ExportPDF
+    JICA --&gt; UC_Logout
+
+    UC_Budget -.-&gt;|extend| UC_ExportPDF
+    UC_CreateForm -.-&gt;|extend| UC_StatsForm
+      </div>
     </section>
 
   </div>
 
   <script>
-    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        fontFamily: 'Plus Jakarta Sans',
+        primaryColor: '#e0e7ff',
+        primaryTextColor: '#1e1b4b',
+        primaryBorderColor: '#4338ca',
+        lineColor: '#64748b'
+      }
+    });
     lucide.createIcons();
   </script>
 </body>
