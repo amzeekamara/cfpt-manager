@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Models\Cohort;
 use App\Models\Department;
 use App\Models\Resource;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 class TrainerController extends Controller
@@ -109,7 +110,6 @@ class TrainerController extends Controller
         // 1. Notifier les candidats ciblés
         $candidateQuery = User::whereHas('role', fn($q) => $q->where('name', 'Candidat'))
             ->whereHas('registrations', function($q) use ($request, $trainer) {
-                $q->where('status', 'approved');
                 if ($request->seminar_id) {
                     $q->where('seminar_id', $request->seminar_id);
                 } else {
