@@ -20,11 +20,11 @@
         <h2 class="text-base font-bold text-[#4B6A95] mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined">upload_file</span> Téléverser un nouveau document
         </h2>
-        <form action="{{ route('admin.resources.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <form action="{{ route('admin.resources.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             @csrf
             <div class="space-y-1.5 md:col-span-1">
                 <label for="title" class="text-xs font-bold text-slate-700">Titre du document</label>
-                <input type="text" name="title" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition">
+                <input type="text" name="title" required placeholder="ex: Guide 5S-KAIZEN" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition">
             </div>
             <div class="space-y-1.5 md:col-span-1">
                 <label for="file" class="text-xs font-bold text-slate-700">Fichier</label>
@@ -33,10 +33,19 @@
             <div class="space-y-1.5 md:col-span-1">
                 <label for="role_visibility" class="text-xs font-bold text-slate-700">Visibilité</label>
                 <select name="role_visibility" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition cursor-pointer">
-                    <option value="all">Tous</option>
-                    <option value="coordinateur">Coordinateurs uniquement</option>
-                    <option value="formateur">Formateurs uniquement</option>
+                    <option value="all">Tous les profils</option>
                     <option value="candidat">Candidats uniquement</option>
+                    <option value="formateur">Formateurs uniquement</option>
+                    <option value="coordinateur">Coordinateurs uniquement</option>
+                </select>
+            </div>
+            <div class="space-y-1.5 md:col-span-1">
+                <label for="seminar_id" class="text-xs font-bold text-slate-700">Séminaire (Optionnel)</label>
+                <select name="seminar_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition cursor-pointer">
+                    <option value="">Tous les séminaires (Général)</option>
+                    @foreach($seminars as $sem)
+                        <option value="{{ $sem->id }}">{{ $sem->title }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="md:col-span-1">

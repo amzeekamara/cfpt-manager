@@ -166,12 +166,26 @@
 
                 @if($messages->count() > 0)
                     @php $latestMsg = $messages->first(); @endphp
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs">
+                    <div class="p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-100 text-xs cursor-pointer transition"
+                         @click="openMsg({
+                             sender: '{{ addslashes($latestMsg->trainer->name ?? $latestMsg->user->name ?? 'Administration') }}',
+                             date: '{{ $latestMsg->created_at->format('d M Y, H:i') }}',
+                             subject: '{{ addslashes($latestMsg->subject ?? 'Sans objet') }}',
+                             body: '{{ addslashes($latestMsg->body ?? '') }}',
+                             attachment: '{{ $latestMsg->attachment_path ? asset('storage/' . $latestMsg->attachment_path) : '' }}',
+                             attachmentName: '{{ $latestMsg->attachment_path ? basename($latestMsg->attachment_path) : '' }}'
+                         })">
                         <div class="font-bold text-slate-900 flex items-center justify-between mb-1">
-                            <span>Message récent</span>
-                            <span class="text-[10px] text-slate-400 font-normal">{{ $latestMsg->created_at->diffForHumans() }}</span>
+                            <span class="truncate">{{ $latestMsg->subject ?? 'Message récent' }}</span>
+                            <span class="text-[10px] text-slate-400 font-normal shrink-0">{{ $latestMsg->created_at->diffForHumans() }}</span>
                         </div>
-                        <p class="text-slate-600 line-clamp-2">{{ $latestMsg->content }}</p>
+                        <p class="text-slate-600 line-clamp-2">{{ $latestMsg->body ?? '' }}</p>
+                        @if($latestMsg->attachment_path)
+                            <div class="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-[#4B6A95]">
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                                <span>1 document joint</span>
+                            </div>
+                        @endif
                     </div>
                 @else
                     <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-400 text-center italic">
@@ -206,7 +220,7 @@
                     <button @click="activeTab = 'messages'" 
                             :class="{ 'bg-[#4B6A95] text-white shadow-xs': activeTab === 'messages', 'bg-slate-100 text-slate-600 hover:bg-slate-200': activeTab !== 'messages' }"
                             class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1.5">
-                        <span>Messages</span>
+                        <span>Messages & Documents joints</span>
                         @if($messages->count() > 0)
                             <span class="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-black">{{ $messages->count() }}</span>
                         @endif
@@ -253,12 +267,16 @@
                 <!-- TAB 2: MESSAGES -->
                 <div x-show="activeTab === 'messages'" class="space-y-3" style="display: none;">
                     @forelse($messages as $msg)
+                        @php
+                            $senderName = $msg->trainer->name ?? $msg->user->name ?? 'Administration';
+                            $senderInitial = mb_substr($senderName, 0, 1);
+                        @endphp
                         <button type="button"
                             @click="openMsg({
-                                sender: '{{ addslashes($msg->trainer->name ?? 'Formateur / Admin') }}',
+                                sender: '{{ addslashes($senderName) }}',
                                 date: '{{ $msg->created_at->format('d M Y, H:i') }}',
                                 subject: '{{ addslashes($msg->subject ?? 'Sans objet') }}',
-                                body: '{{ addslashes($msg->body ?? $msg->content ?? '') }}',
+                                body: '{{ addslashes($msg->body ?? '') }}',
                                 attachment: '{{ $msg->attachment_path ? asset('storage/' . $msg->attachment_path) : '' }}',
                                 attachmentName: '{{ $msg->attachment_path ? basename($msg->attachment_path) : '' }}'
                             })"
@@ -266,11 +284,14 @@
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 rounded-full bg-[#4B6A95] text-white font-bold flex items-center justify-center text-[10px]">
-                                        {{ substr($msg->trainer->name ?? 'F', 0, 1) }}
+                                        {{ $senderInitial }}
                                     </div>
-                                    <strong class="text-xs font-bold text-slate-900">{{ $msg->trainer->name ?? 'Formateur / Admin' }}</strong>
+                                    <strong class="text-xs font-bold text-slate-900">{{ $senderName }}</strong>
                                     @if($msg->attachment_path)
-                                        <i data-lucide="paperclip" class="w-3.5 h-3.5 text-slate-400"></i>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-[#4B6A95] text-[10px] font-bold">
+                                            <i data-lucide="paperclip" class="w-3 h-3"></i>
+                                            Document joint
+                                        </span>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -279,7 +300,7 @@
                                 </div>
                             </div>
                             <p class="text-xs font-bold text-slate-800 mb-1">{{ $msg->subject ?? 'Sans objet' }}</p>
-                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ $msg->body ?? $msg->content ?? '' }}</p>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ $msg->body ?? '' }}</p>
                         </button>
                     @empty
                         <div class="py-12 text-center text-slate-400 text-xs">
@@ -312,7 +333,14 @@
                                 </div>
                                 <div class="truncate">
                                     <div class="text-xs font-bold text-slate-800 truncate" title="{{ $res->title }}">{{ $res->title }}</div>
-                                    <div class="text-[10px] text-slate-400">{{ $res->created_at->format('d M Y') }}</div>
+                                    <div class="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                        <span>{{ $res->created_at->format('d M Y') }}</span>
+                                        @if($res->seminar)
+                                            <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold text-[9px]">Séminaire</span>
+                                        @else
+                                            <span class="px-1.5 py-0.2 rounded bg-blue-100 text-[#4B6A95] font-semibold text-[9px]">Général</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             <a href="{{ asset('storage/' . $res->file_path) }}" target="_blank" download class="p-2 text-slate-400 hover:text-[#4B6A95] hover:bg-blue-50 rounded-xl transition-colors shrink-0" title="Télécharger">

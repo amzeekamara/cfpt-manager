@@ -33,51 +33,60 @@ class CandidateController extends Controller
         // Get the active registration (assuming the latest one for simplicity)
         $registration = $profile->user->registrations()->latest()->first();
         
-        $messages = collect();
+        $messagesQuery = Message::with(['trainer', 'user', 'seminar', 'cohort']);
+
         if ($registration) {
             $cohortId = $registration->seminar ? $registration->seminar->cohort_id : null;
             $seminarId = $registration->seminar_id;
+            $topicId = $registration->topic_id;
 
-            $messages = Message::with(['trainer', 'user'])
-                ->where(function ($query) use ($cohortId) {
-                    $query->whereNull('cohort_id');
-                    if ($cohortId) {
-                        $query->orWhere('cohort_id', $cohortId);
-                    }
-                })
-                ->where(function ($query) use ($seminarId) {
-                    $query->whereNull('seminar_id');
-                    if ($seminarId) {
-                        $query->orWhere('seminar_id', $seminarId);
-                    }
-                })
-                ->where(function ($query) use ($registration) {
-                    $query->whereNull('target_topics');
-                    if ($registration->topic_id) {
-                        // Support string or int in JSON array
-                        $query->orWhereJsonContains('target_topics', (string)$registration->topic_id)
-                              ->orWhereJsonContains('target_topics', (int)$registration->topic_id);
-                    }
-                })
-                ->with(['readByUsers' => function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                }])
-                ->latest()
-                ->get();
+            $messagesQuery->where(function ($query) use ($cohortId) {
+                $query->whereNull('cohort_id');
+                if ($cohortId) {
+                    $query->orWhere('cohort_id', $cohortId);
+                }
+            });
+
+            $messagesQuery->where(function ($query) use ($seminarId) {
+                $query->whereNull('seminar_id');
+                if ($seminarId) {
+                    $query->orWhere('seminar_id', $seminarId)
+                          ->orWhereJsonContains('target_seminars', (string)$seminarId)
+                          ->orWhereJsonContains('target_seminars', (int)$seminarId);
+                }
+            });
+
+            $messagesQuery->where(function ($query) use ($topicId) {
+                $query->whereNull('target_topics')
+                      ->orWhere('target_topics', '[]')
+                      ->orWhere('target_topics', 'null');
+                if ($topicId) {
+                    $query->orWhereJsonContains('target_topics', (string)$topicId)
+                          ->orWhereJsonContains('target_topics', (int)$topicId);
+                }
+            });
         }
+
+        $messages = $messagesQuery->with(['readByUsers' => function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            }])
+            ->latest()
+            ->get();
 
         // Pass seminars for the change request modal
         $seminars = Seminar::where('status', 'active')->orWhere('status', 'published')->get();
 
-        // Fetch Resources for the seminar
-        $resources = collect();
-        if ($registration && $registration->seminar_id) {
-            $resources = Resource::where('seminar_id', $registration->seminar_id)
-                ->whereIn('role_visibility', ['all', 'candidat'])
-                ->where('is_archived', false)
-                ->latest()
-                ->get();
-        }
+        // Fetch Resources for the candidate (both global resources and seminar-specific resources)
+        $resources = Resource::where('is_archived', false)
+            ->whereIn('role_visibility', ['all', 'candidat'])
+            ->where(function ($query) use ($registration) {
+                $query->whereNull('seminar_id');
+                if ($registration && $registration->seminar_id) {
+                    $query->orWhere('seminar_id', $registration->seminar_id);
+                }
+            })
+            ->latest()
+            ->get();
 
         return view('portal.candidate.dashboard', compact('profile', 'registration', 'messages', 'seminars', 'resources'));
     }

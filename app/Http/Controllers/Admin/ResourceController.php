@@ -28,6 +28,7 @@ class ResourceController extends Controller
             'title' => 'required|string|max:255',
             'file' => 'required|file|max:10240', // 10MB max
             'role_visibility' => 'required|in:all,formateur,candidat,coordinateur',
+            'seminar_id' => 'nullable|exists:seminars,id',
         ]);
 
         $path = $request->file('file')->store('ged_resources', 'public');
@@ -36,10 +37,11 @@ class ResourceController extends Controller
             'title' => $request->title,
             'file_path' => $path,
             'role_visibility' => $request->role_visibility,
+            'seminar_id' => $request->seminar_id ?: null,
             'is_archived' => false,
         ]);
 
-        return redirect()->route('admin.resources.index')->with('success', 'Resource téléversé avec succès.');
+        return redirect()->route('admin.resources.index')->with('success', 'Document téléversé avec succès.');
     }
 
     public function archive(Resource $resource)
