@@ -223,5 +223,8 @@
     <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
         <p>&copy; {{ date('Y') }} CFPT Sénégal-Japon - Programme de Formation en Pays Tiers (PFPT / JICA).</p>
     </footer>
+
+    <!-- Widget Chatbot Flottant n8n -->
+    <x-n8n-chat />
 </body>
 </html>

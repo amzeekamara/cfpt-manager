@@ -178,7 +178,7 @@
                 <!-- STEP 1 : SÉMINAIRE, IDENTITÉ, CONTACT & URGENCE -->
                 <!-- ============================================================== -->
                 <div class="form-step active" id="step-1">
-                    
+
                     <!-- Section A : Choix de la Formation & Spécialité -->
                     <div class="mb-8 pb-6 border-b border-slate-100">
                         <div class="mb-4">
@@ -197,19 +197,18 @@
                                             class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#4B6A95] focus:ring-2 focus:ring-[#d2e4ff] rounded-xl text-xs sm:text-sm font-medium text-slate-800 outline-none transition cursor-pointer @error('seminar_id') border-rose-500 @enderror">
                                         <option value="" disabled {{ empty($selectedSeminarId) ? 'selected' : '' }}>-- Choisissez un séminaire de formation --</option>
                                         @foreach($seminars as $sem)
-                                            @if($sem->isOpenForApplication())
-                                                <option value="{{ $sem->id }}" {{ (old('seminar_id', $selectedSeminarId ?? '') == $sem->id) ? 'selected' : '' }} data-open="true">
-                                                    {{ $sem->title }} (Du {{ \Carbon\Carbon::parse($sem->start_date)->format('d/m/Y') }} au {{ \Carbon\Carbon::parse($sem->end_date)->format('d/m/Y') }}) — Inscriptions Ouvertes
-                                                </option>
-                                            @elseif($sem->isOngoing())
-                                                <option value="{{ $sem->id }}" disabled data-open="false">
-                                                    {{ $sem->title }} (Du {{ \Carbon\Carbon::parse($sem->start_date)->format('d/m/Y') }} au {{ \Carbon\Carbon::parse($sem->end_date)->format('d/m/Y') }}) — [En cours - Inscriptions Closes]
-                                                </option>
-                                            @else
-                                                <option value="{{ $sem->id }}" disabled data-open="false">
-                                                    {{ $sem->title }} — [Session Clôturée]
-                                                </option>
-                                            @endif
+                                            <option value="{{ $sem->id }}" 
+                                                    {{ (old('seminar_id', $selectedSeminarId ?? '') == $sem->id) ? 'selected' : '' }}
+                                                    data-open="{{ $sem->isOpenForApplication() ? 'true' : 'false' }}">
+                                                {{ $sem->title }} (Du {{ \Carbon\Carbon::parse($sem->start_date)->format('d/m/Y') }} au {{ \Carbon\Carbon::parse($sem->end_date)->format('d/m/Y') }})
+                                                @if($sem->isOpenForApplication())
+                                                     — Inscriptions Ouvertes
+                                                @elseif($sem->isOngoing())
+                                                     — [En cours]
+                                                @else
+                                                     — [Session Clôturée]
+                                                @endif
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -713,6 +712,8 @@
             @endforeach
         };
 
+        const preselectedTopicId = "{{ old('topic_id', $selectedTopicId ?? '') }}";
+
         function onSeminarChange(seminarId) {
             const topicSelect = document.getElementById('topic_id');
             if (!topicSelect) return;
@@ -727,20 +728,27 @@
                 defaultOpt.textContent = '-- Choisissez un thème / module spécialisé --';
                 topicSelect.appendChild(defaultOpt);
                 
-                const oldTopicId = "{{ old('topic_id') }}";
+                let isSelected = false;
                 topics.forEach(topic => {
                     const opt = document.createElement('option');
                     opt.value = topic.id;
                     opt.textContent = topic.name;
-                    if (oldTopicId && oldTopicId == topic.id) {
+                    if (preselectedTopicId && String(preselectedTopicId) === String(topic.id)) {
                         opt.selected = true;
+                        isSelected = true;
                     }
                     topicSelect.appendChild(opt);
                 });
+
+                // Si un seul thème existe dans le séminaire et aucun n'était présélectionné, le choisir automatiquement
+                if (!isSelected && topics.length === 1) {
+                    topicSelect.selectedIndex = 1;
+                }
             } else {
                 const opt = document.createElement('option');
                 opt.value = '';
                 opt.textContent = 'Module Général / Tronc Commun';
+                opt.selected = true;
                 topicSelect.appendChild(opt);
             }
 

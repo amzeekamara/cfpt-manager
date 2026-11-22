@@ -33,6 +33,7 @@ class RegistrationController extends Controller
 
         // Sélection par défaut via paramètre URL ?seminar_id=XX ou via cohort
         $selectedSeminarId = $request->query('seminar_id');
+        $selectedTopicId = $request->query('topic_id');
         if (!$selectedSeminarId && $cohort) {
             $selectedSeminarId = $cohort->seminars()->first()?->id;
         }
@@ -40,10 +41,10 @@ class RegistrationController extends Controller
         // Si non défini, présélectionner le premier séminaire ouvert aux candidatures
         if (!$selectedSeminarId) {
             $firstOpen = $seminars->first(fn($s) => $s->isOpenForApplication());
-            $selectedSeminarId = $firstOpen?->id;
+            $selectedSeminarId = $firstOpen?->id ?? $seminars->first()?->id;
         }
 
-        return view('public.registration.form', compact('seminars', 'cohort', 'selectedSeminarId'));
+        return view('public.registration.form', compact('seminars', 'cohort', 'selectedSeminarId', 'selectedTopicId'));
     }
 
     /**

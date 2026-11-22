@@ -61,6 +61,24 @@
         filterSeminar: '',
         filterTopic: '',
         filterStatus: '',
+        seminarsTopicsMap: {
+            @foreach($allSeminars as $sem)
+                '{{ addslashes($sem->title) }}': [
+                    @foreach($sem->topics as $top)
+                        { name: '{{ addslashes($top->name) }}' },
+                    @endforeach
+                ],
+            @endforeach
+        },
+        get availableTopics() {
+            if (!this.filterSeminar) {
+                return [];
+            }
+            return this.seminarsTopicsMap[this.filterSeminar] || [];
+        },
+        onSeminarChange() {
+            this.filterTopic = '';
+        },
         // Format countdown
         daysLeft: 0,
         hoursLeft: 0,
@@ -444,40 +462,106 @@
                         </div>
 
                         <!-- Filters & Search Bar -->
-                        <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2" x-data="{ openFilters: false, filterSeminar: '{{ request('seminar_id') }}', filterTopic: '{{ request('topic_id') }}', filterStatus: '{{ request('status') }}', searchCandidate: '{{ request('search') }}', seminarsTopicsMap: @json($seminarsMap ?? []), availableTopics: [] }" x-init="availableTopics = filterSeminar ? seminarsTopicsMap[filterSeminar] ?? [] : []" @change="onSeminarChange()" x-on:change="onSeminarChange()"><script>function onSeminarChange(){ if(filterSeminar){ availableTopics = seminarsTopicsMap[filterSeminar] || []; } else { availableTopics = []; } if(!availableTopics.find(t=>t.name===filterTopic)) filterTopic=''; }</script>
                             <!-- Search Input -->
                             <div class="relative">
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
                                 <input type="text" x-model="searchCandidate" placeholder="Rechercher..." 
-                                       class="bg-slate-50 border border-slate-200 rounded-lg pl-7 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#4B6A95] w-32 sm:w-40">
+                                       class="bg-slate-50 border border-slate-200 rounded-lg pl-7 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#4B6A95] w-36 sm:w-44">
                             </div>
 
-                            <!-- Filter by Seminar -->
-                            <select x-model="filterSeminar" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95] cursor-pointer max-w-[130px]">
-                                <option value="">Tous séminaires</option>
-                                @foreach($allSeminars as $seminar)
-                                    <option value="{{ $seminar->title }}">{{ Str::limit($seminar->title, 20) }}</option>
-                                @endforeach
-                            </select>
+                            <!-- Unified Filter Popover Button -->
+                            <div class="relative">
+                                <button type="button" 
+                                        @click="openFilters = !openFilters" 
+                                        class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                                    <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-[#4B6A95]"></i>
+                                    <span>Filtres</span>
+                                    <span x-show="filterSeminar || filterTopic || filterStatus" 
+                                          class="w-2 h-2 rounded-full bg-[#4B6A95]" 
+                                          style="display: none;"></span>
+                                </button>
 
-                            <!-- Filter by Topic / Thème -->
-                            <select x-model="filterTopic" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95] cursor-pointer max-w-[130px]">
-                                <option value="">Tous les thèmes</option>
-                                @foreach($allTopics as $top)
-                                    <option value="{{ $top->name }}">{{ Str::limit($top->name, 20) }}</option>
-                                @endforeach
-                            </select>
+                                <!-- Dropdown Filter Container -->
+                                <div x-show="openFilters" 
+                                     @click.outside="openFilters = false" 
+                                     x-transition 
+                                     x-cloak 
+                                     style="display: none;"
+                                     class="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-xl shadow-xl p-4 z-50 flex flex-col gap-3.5">
+                                    
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                        <span class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                            <i data-lucide="filter" class="w-3.5 h-3.5 text-[#4B6A95]"></i>
+                                            Filtres du tableau
+                                        </span>
+                                        <button type="button" @click="openFilters = false" class="text-slate-400 hover:text-slate-600">
+                                            <i data-lucide="x" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
 
-                            <!-- Filter by Status -->
-                            <select x-model="filterStatus" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95] cursor-pointer">
-                                <option value="">Tous statuts</option>
-                                <option value="pending">À Examiner</option>
-                                <option value="approved">Sélectionné</option>
-                                <option value="rejected">Refusé</option>
-                            </select>
+                                    <!-- Filter Séminaire -->
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Séminaire</label>
+                                        <select x-model="filterSeminar" 
+                                                @change="onSeminarChange()" 
+                                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95]">
+                                            <option value="">Tous les séminaires</option>
+                                            @foreach($allSeminars as $seminar)
+                                                <option value="{{ $seminar->title }}">{{ $seminar->title }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
+                                    <!-- Filter Thème (dépendant du séminaire sélectionné) -->
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Thème / Module</label>
+                                        <select x-model="filterTopic" 
+                                                :disabled="!filterSeminar"
+                                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95] disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <template x-if="!filterSeminar">
+                                                <option value="">-- Choisissez d'abord un séminaire --</option>
+                                            </template>
+                                            <template x-if="filterSeminar">
+                                                <option value="">Tous les thèmes de ce séminaire</option>
+                                            </template>
+                                            <template x-for="top in availableTopics" :key="top.name">
+                                                <option :value="top.name" x-text="top.name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+
+                                    <!-- Filter Statut -->
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Statut d'admission</label>
+                                        <select x-model="filterStatus" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95]">
+                                            <option value="">Tous les statuts</option>
+                                            <option value="pending">À Examiner</option>
+                                            <option value="approved">Sélectionné</option>
+                                            <option value="rejected">Refusé</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Footer Actions Inside Container -->
+                                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+                                        <button type="button" 
+                                                @click="filterSeminar = ''; filterTopic = ''; filterStatus = ''; searchCandidate = '';" 
+                                                class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">
+                                            Réinitialiser
+                                        </button>
+
+                                        <button type="button" 
+                                                @click="openFilters = false" 
+                                                class="px-3.5 py-1.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white rounded-lg text-xs font-bold transition shadow-2xs">
+                                            Mettre à jour
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Button Voir plus -->
                             <a href="{{ route('admin.candidates') }}" class="px-3.5 py-1.5 bg-[#4B6A95] text-white rounded-lg text-xs font-bold hover:bg-[#3c5678] transition shadow-2xs flex items-center gap-1 shrink-0 whitespace-nowrap">
-                                <span>Gérer tout</span>
+                                <span>Voir plus</span>
                                 <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
                             </a>
                         </div>

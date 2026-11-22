@@ -41,4 +41,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
+    'n8n' => [
+        'chat_webhook_url' => env('N8N_CHAT_WEBHOOK_URL', 'https://amzee.app.n8n.cloud/webhook/411474fa-3b94-4079-9d20-7bc669b062b4/chat'),
+        'chat_title' => env('N8N_CHAT_TITLE', 'Assistant CFPT / PFPT'),
+        'chat_subtitle' => env('N8N_CHAT_SUBTITLE', 'Posez vos questions sur les formations et séminaires.'),
+    ],
+
 ];

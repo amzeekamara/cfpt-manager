@@ -83,10 +83,10 @@ class Seminar extends Model
     }
 
     /**
-     * Règle métier : On ne peut postuler que pour les séminaires à venir.
+     * Règle métier : On peut postuler pour les séminaires actifs non terminés.
      */
     public function isOpenForApplication(): bool
     {
-        return $this->status === 'active' && $this->isUpcoming();
+        return $this->status === 'active' && !$this->isPast();
     }
 }

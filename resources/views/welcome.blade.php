@@ -339,6 +339,164 @@
       justify-content: space-between;
     }
 
+    /* Widget de Sélection & Liste Déroulante des Séminaires */
+    .hero-seminar-picker-widget {
+      position: absolute;
+      bottom: -32px;
+      right: -16px;
+      left: -16px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius-xl);
+      padding: 16px 20px;
+      box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.18);
+      z-index: 25;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hero-seminar-picker-widget:hover {
+      box-shadow: 0 24px 50px -10px rgba(75, 106, 149, 0.25);
+      border-color: #cbd5e1;
+    }
+
+    .hero-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .hero-picker-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary-dark);
+    }
+
+    .hero-picker-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0;
+      background: transparent;
+      color: #059669;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+    }
+
+    .hero-picker-select-wrapper {
+      position: relative;
+    }
+
+    .hero-picker-select {
+      width: 100%;
+      padding: 12px 42px 12px 14px;
+      background-color: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      outline: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .hero-picker-select:hover {
+      background-color: #ffffff;
+      border-color: var(--primary-dark);
+    }
+
+    .hero-picker-select:focus {
+      background-color: #ffffff;
+      border-color: var(--primary-dark);
+      box-shadow: 0 0 0 3px rgba(75, 106, 149, 0.15);
+    }
+
+    .hero-picker-select-icon {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--primary-dark);
+    }
+
+    .hero-picker-dropdown-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: var(--radius-lg);
+      padding: 8px;
+      box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.15);
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 50;
+    }
+
+    .hero-picker-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text-dark);
+      transition: all 0.15s ease;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .hero-picker-item:last-child {
+      border-bottom: none;
+    }
+
+    .hero-picker-item:hover {
+      background-color: #f1f5f9;
+      transform: translateX(3px);
+    }
+
+    .hero-picker-item-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hero-picker-item-meta {
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 991px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .hero-seminar-picker-widget {
+        position: relative;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        margin-top: 16px;
+      }
+    }
+
     /* ==========================================================================
        2. SECTION 3 CADRES PARTENAIRES INDIVIDUELS
        ========================================================================== */
@@ -1533,7 +1691,6 @@
         <li><a href="#accueil">Accueil</a></li>
         <li><a href="#acteurs">Les Acteurs</a></li>
         <li><a href="#departements">Départements & Pôles</a></li>
-        <li><a href="#pedagogie">Pédagogie & Kaizen</a></li>
         <li><a href="#actualites">Actualités</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
@@ -1572,7 +1729,6 @@
         <li><a href="#accueil" @click="mobileMenu = false">Accueil</a></li>
         <li><a href="#acteurs" @click="mobileMenu = false">Les Acteurs</a></li>
         <li><a href="#departements" @click="mobileMenu = false">Départements & Pôles</a></li>
-        <li><a href="#pedagogie" @click="mobileMenu = false">Pédagogie & Kaizen</a></li>
         <li><a href="#actualites" @click="mobileMenu = false">Actualités & Séminaires</a></li>
         <li><a href="#contact" @click="mobileMenu = false">Contact</a></li>
         <li style="border-top: 1px solid var(--border-subtle); padding-top: 10px; display: flex; gap: 10px;">
@@ -1603,18 +1759,105 @@
         </div>
       </div>
 
-      <!-- Hero Visual -->
-      <div class="hero-visual">
+      <!-- Hero Visual avec Liste Déroulante Interactive des Séminaires -->
+      <div class="hero-visual" x-data="{ 
+          dropdownOpen: false, 
+          selectedSeminarId: '{{ $seminars->first()?->id ?? '' }}',
+          seminars: [
+            @foreach($seminars as $s)
+              {
+                id: '{{ $s->id }}',
+                title: '{{ addslashes($s->title) }}',
+                dates: '{{ $s->start_date ? \Carbon\Carbon::parse($s->start_date)->format('d/m/Y') : '' }} - {{ $s->end_date ? \Carbon\Carbon::parse($s->end_date)->format('d/m/Y') : '' }}',
+                dept: '{{ $s->departments->isNotEmpty() ? addslashes($s->departments->pluck('name')->join(', ')) : 'Génie Technique' }}',
+                url: '{{ route('public.postuler', ['seminar_id' => $s->id]) }}',
+                isOpen: {{ $s->isOpenForApplication() ? 'true' : 'false' }}
+              },
+            @endforeach
+          ]
+      }">
         <div class="hero-img-box">
           <img src="{{ asset('images/centre.png') }}" alt="Campus et ateliers techniques CFPT Sénégal-Japon" onerror="this.src='https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&q=80'" />
         </div>
 
         <!-- Image flottante des formateurs en pleine formation en atelier -->
-        <div class="hero-floating-image-box">
+        <div class="hero-floating-image-box" style="display: none;">
           <img src="{{ asset('images/centre2.png') }}" alt="Formateurs et stagiaires en atelier de formation pratique CFPT Sénégal-Japon" />
           <div class="hero-floating-image-badge">
             <span>Ateliers Pratiques & Séminaires</span>
             <span style="color: var(--accent-light); font-weight: 800;">CFPT-SJ</span>
+          </div>
+        </div>
+
+        <!-- Widget Liste Déroulante Interactive des Séminaires -->
+        <div class="hero-seminar-picker-widget">
+          <div class="hero-picker-header">
+            <div class="hero-picker-title">
+              <span>Sélectionnez un Séminaire</span>
+            </div>
+            <span class="hero-picker-badge">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #059669; animation: pulse 2s infinite;"></span>
+              {{ $seminars->count() }} Sessions Disponibles
+            </span>
+          </div>
+
+          <div class="hero-picker-select-wrapper" style="position: relative;">
+            <!-- Select standard interactif (avec redirection instantanée au clic/choix) -->
+            <select class="hero-picker-select" 
+                    id="hero-seminar-select"
+                    onchange="if(this.value) { window.location.href = this.value; }">
+              <option value="" disabled selected>-- Cliquez pour choisir un séminaire & postuler --</option>
+              @foreach($seminars as $sem)
+                <option value="{{ route('public.postuler', ['seminar_id' => $sem->id]) }}">
+                  {{ $sem->title }} ({{ $sem->start_date ? \Carbon\Carbon::parse($sem->start_date)->format('d/m/Y') : '' }})
+                </option>
+              @endforeach
+            </select>
+
+            <div class="hero-picker-select-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- Bouton Menu Déroulant Détaillé (Toggle Alpine.js) -->
+          <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <button type="button" 
+                    @click="dropdownOpen = !dropdownOpen" 
+                    style="background: transparent; border: none; color: var(--primary-dark); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; padding: 4px 0; cursor: pointer;">
+              <span x-text="dropdownOpen ? '▲ Masquer la liste complète' : '▼ Voir la liste détaillée des séminaires'"></span>
+            </button>
+
+            <a :href="document.getElementById('hero-seminar-select')?.value || '{{ route('public.postuler') }}'" 
+               class="btn btn-primary" 
+               style="padding: 6px 14px; font-size: 11px; font-weight: 700; border-radius: var(--radius-full);">
+              Postuler en direct →
+            </a>
+          </div>
+
+          <!-- Menu Déroulant enrichi avec cartes cliquables -->
+          <div x-show="dropdownOpen" 
+               x-transition 
+               @click.outside="dropdownOpen = false" 
+               class="hero-picker-dropdown-menu custom-scrollbar" 
+               style="display: none;">
+            @foreach($seminars as $sem)
+              <a href="{{ route('public.postuler', ['seminar_id' => $sem->id]) }}" 
+                 class="hero-picker-item group">
+                <div class="hero-picker-item-title">
+                  <span style="font-weight: 800; color: #0f172a;">{{ $sem->title }}</span>
+                  @if($sem->isOpenForApplication())
+                    <span style="font-size: 10px; font-weight: 800; color: #059669;">Ouvert</span>
+                  @else
+                    <span style="font-size: 10px; font-weight: 800; color: #4B6A95;">Session PFPT</span>
+                  @endif
+                </div>
+                <div class="hero-picker-item-meta">
+                  <span>{{ $sem->start_date ? \Carbon\Carbon::parse($sem->start_date)->format('d/m/Y') : 'À venir' }} - {{ $sem->end_date ? \Carbon\Carbon::parse($sem->end_date)->format('d/m/Y') : '' }}</span>
+                  <span>•</span>
+                  <span>{{ $sem->departments->isNotEmpty() ? $sem->departments->pluck('name')->first() : 'Formation Technique' }}</span>
+                </div>
+              </a>
+            @endforeach
           </div>
         </div>
       </div>
@@ -1686,71 +1929,124 @@
   </section>
 
   <!-- 4. ACTEURS DU PROGRAMME -->
-  <section class="actors-section" id="acteurs">
-    <div class="container actors-grid">
-      <div class="actors-text">
-        <div class="section-eyebrow">Gouvernance & Partenariat</div>
-        <h2>Une alliance stratégique au service des compétences</h2>
-        <p>Ce programme associe l'expertise technologique japonaise, l'engagement de l'État du Sénégal et les besoins concrets du secteur industriel en Afrique subsaharienne.</p>
-        
-        <!-- Phrase d'introduction à la méthode Kaizen -->
-        <div class="kaizen-intro-box">
-          <p>
-            Le modèle d'apprentissage intègre la démarche d'amélioration continue <strong>Kaizen</strong> et la discipline <strong>5S</strong>, garantissant rigueur opérationnelle et efficacité industrielle.
-          </p>
+  <section class="actors-section" id="acteurs" x-data="{ showKaizen: false }">
+    <div class="container">
+      <div class="actors-grid">
+        <div class="actors-text">
+          <div class="section-eyebrow">Gouvernance & Partenariat</div>
+          <h2>Une alliance stratégique au service des compétences</h2>
+          <p>Ce programme associe l'expertise technologique japonaise, l'engagement de l'État du Sénégal et les besoins concrets du secteur industriel en Afrique subsaharienne.</p>
+          
+          <!-- Phrase d'introduction à la méthode Kaizen -->
+          <div class="kaizen-intro-box">
+            <p>
+              Le modèle d'apprentissage intègre la démarche d'amélioration continue <strong>Kaizen</strong> et la discipline <strong>5S</strong>, garantissant rigueur opérationnelle et efficacité industrielle.
+            </p>
+          </div>
+
+          <button type="button" 
+                  @click="showKaizen = !showKaizen" 
+                  class="btn btn-primary" 
+                  style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <span x-text="showKaizen ? 'Masquer la Méthode Kaizen ▲' : 'Découvrir la Méthode Kaizen ↗'"></span>
+          </button>
         </div>
 
-        <a href="#pedagogie" class="btn btn-primary">
-          Découvrir la Méthode Kaizen
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-        </a>
+        <!-- 2x2 Grid Acteurs avec Vrais Logos -->
+        <div class="features-2x2">
+          <!-- 1. JICA -->
+          <div class="actor-box">
+            <div class="actor-logo-wrap">
+              <img src="{{ file_exists(public_path('images/logos/logo-jica.png')) ? asset('images/logos/logo-jica.png') : asset('images/logos/drapeau-japon.svg') }}" 
+                   alt="Logo JICA" 
+                   class="actor-logo-img">
+            </div>
+            <h4>JICA (Coopération Japonaise)</h4>
+            <p>Financement intégral des équipements de pointe, assistance technique et experts japonais résidents.</p>
+          </div>
+
+          <!-- 2. Le CFPT Sénégal-Japon -->
+          <div class="actor-box">
+            <div class="actor-logo-wrap">
+              <img src="{{ file_exists(public_path('images/logos/logo-cfpt.png')) ? asset('images/logos/logo-cfpt.png') : asset('images/favicon.png') }}" 
+                   alt="Logo CFPT Sénégal-Japon" 
+                   class="actor-logo-img">
+            </div>
+            <h4>Le CFPT Sénégal-Japon</h4>
+            <p>Centre de référence africain assurant l'encadrement pédagogique et la formation pratique en ateliers.</p>
+          </div>
+
+          <!-- 3. État du Sénégal / MEFPT -->
+          <div class="actor-box">
+            <div class="actor-logo-wrap">
+              <img src="{{ file_exists(public_path('images/logos/logo-ministere.png')) ? asset('images/logos/logo-ministere.png') : asset('images/logos/drapeau-senegal.svg') }}" 
+                   alt="Logo MEFPT Sénégal" 
+                   class="actor-logo-img">
+            </div>
+            <h4>État du Sénégal (MEFPT)</h4>
+            <p>Ministère de l'Emploi, de la Formation Professionnelle et Technique : accréditation officielle, bourses et coordination institutionnelle.</p>
+          </div>
+
+          <!-- 4. Pays Partenaires & Industries -->
+          <div class="actor-box">
+            <div class="actor-logo-wrap">
+              <img src="{{ file_exists(public_path('images/africa_map.svg')) ? asset('images/africa_map.svg') : asset('images/logo-blue.png') }}" 
+                   alt="Logo PFPT Afrique" 
+                   class="actor-logo-img"
+                   style="height: 40px;">
+            </div>
+            <h4>Pays Partenaires & Industries</h4>
+            <p>Accueil des stagiaires, définition des référentiels métiers et perfectionnement des cadres régionaux.</p>
+          </div>
+        </div>
       </div>
 
-      <!-- 2x2 Grid Acteurs avec Vrais Logos -->
-      <div class="features-2x2">
-        <!-- 1. JICA -->
-        <div class="actor-box">
-          <div class="actor-logo-wrap">
-            <img src="{{ file_exists(public_path('images/logos/logo-jica.png')) ? asset('images/logos/logo-jica.png') : asset('images/logos/drapeau-japon.svg') }}" 
-                 alt="Logo JICA" 
-                 class="actor-logo-img">
+      <!-- Conteneur Déroulant Méthodologie Japonaise 5S Kaizen -->
+      <div x-show="showKaizen" 
+           x-transition 
+           x-cloak 
+           style="display: none; margin-top: 36px; padding: 32px; background: #f8fafc; border: 1.5px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+        <div class="feature-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;">
+          <div class="feature-text">
+            <div class="section-eyebrow">Méthodologie Japonaise</div>
+            <h3 style="font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 8px 0 12px 0;">70% de pratique et culture de la rigueur Kaizen</h3>
+            <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px;">
+              Au-delà de l'expertise technologique, les apprenants s'imprègnent de la rigueur professionnelle nippone : discipline 5S, optimisation continue des processus (Kaizen) et immersion directe en ateliers de production.
+            </p>
+            
+            <ul class="kaizen-points-list">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Seiri (Débarrasser)</strong> — Éliminer l'inutile pour maximiser l'espace</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Seiton (Ranger)</strong> — Un emplacement précis pour chaque outil</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Seiso (Nettoyer)</strong> — Maintenir les postes de travail irréprochables</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Seiketsu (Standardiser)</strong> — Établir des règles de travail claires</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Shitsuke (Pérenniser)</strong> — Rigueur, discipline et amélioration continue</span>
+              </li>
+            </ul>
           </div>
-          <h4>JICA (Coopération Japonaise)</h4>
-          <p>Financement intégral des équipements de pointe, assistance technique et experts japonais résidents.</p>
-        </div>
 
-        <!-- 2. Le CFPT Sénégal-Japon -->
-        <div class="actor-box">
-          <div class="actor-logo-wrap">
-            <img src="{{ file_exists(public_path('images/logos/logo-cfpt.png')) ? asset('images/logos/logo-cfpt.png') : asset('images/favicon.png') }}" 
-                 alt="Logo CFPT Sénégal-Japon" 
-                 class="actor-logo-img">
+          <div class="kaizen-visual-wrap" style="text-align: center;">
+            <div class="kaizen-img-card">
+              <img src="{{ file_exists(public_path('images/5s-kaizen.jpg')) ? asset('images/5s-kaizen.jpg') : asset('images/5S KAYZEN.jpg') }}" 
+                   alt="Méthodologie Kaizen 5S - Seiri, Seiton, Seiso, Seiketsu, Shitsuke" 
+                   class="kaizen-img-fluid"
+                   style="max-width: 100%; border-radius: var(--radius-lg);"
+                   onerror="this.src='{{ asset('images/5S KAYZEN.jpg') }}'">
+            </div>
           </div>
-          <h4>Le CFPT Sénégal-Japon</h4>
-          <p>Centre de référence africain assurant l'encadrement pédagogique et la formation pratique en ateliers.</p>
-        </div>
-
-        <!-- 3. État du Sénégal / MEFPT -->
-        <div class="actor-box">
-          <div class="actor-logo-wrap">
-            <img src="{{ file_exists(public_path('images/logos/logo-ministere.png')) ? asset('images/logos/logo-ministere.png') : asset('images/logos/drapeau-senegal.svg') }}" 
-                 alt="Logo MEFPT Sénégal" 
-                 class="actor-logo-img">
-          </div>
-          <h4>État du Sénégal (MEFPT)</h4>
-          <p>Ministère de l'Emploi, de la Formation Professionnelle et Technique : accréditation officielle, bourses et coordination institutionnelle.</p>
-        </div>
-
-        <!-- 4. Pays Partenaires & Industries -->
-        <div class="actor-box">
-          <div class="actor-logo-wrap">
-            <img src="{{ file_exists(public_path('images/africa_map.svg')) ? asset('images/africa_map.svg') : asset('images/logo-blue.png') }}" 
-                 alt="Logo PFPT Afrique" 
-                 class="actor-logo-img"
-                 style="height: 40px;">
-          </div>
-          <h4>Pays Partenaires & Industries</h4>
-          <p>Accueil des stagiaires, définition des référentiels métiers et perfectionnement des cadres régionaux.</p>
         </div>
       </div>
     </div>
@@ -1767,7 +2063,7 @@
 
       <div class="departments-grid">
         <!-- 1. DÉPARTEMENT ÉLECTRIQUE -->
-        <div class="dept-card">
+        <div class="dept-card" x-data="{ showImpact: false }">
           <div class="dept-card-top">
             <div class="dept-img-wrap">
               <img src="{{ asset('images/dept-electrique.jpg') }}" alt="Laboratoire Département Électrique et Automates" class="dept-card-img">
@@ -1777,9 +2073,17 @@
             <p class="dept-desc">
               Maîtrise des systèmes de distribution électrique industrielle, automates programmables (API), électromécanique, régulation et efficacité énergétique.
             </p>
+
+            <div style="margin-top: 14px;">
+              <button type="button" 
+                      @click="showImpact = !showImpact" 
+                      style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: transparent; border: 1.5px solid var(--border-color); border-radius: var(--radius-full); font-size: 12px; font-weight: 700; color: var(--primary-dark); cursor: pointer; transition: all 0.2s ease;">
+                <span x-text="showImpact ? 'Masquer ▲' : 'Voir plus ▼'"></span>
+              </button>
+            </div>
           </div>
 
-          <div class="dept-impact-box">
+          <div class="dept-impact-box" x-show="showImpact" x-transition x-cloak style="display: none; margin-top: 14px;">
             <div class="dept-impact-title">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
               Enjeu Développement Afrique
@@ -1793,7 +2097,7 @@
         </div>
 
         <!-- 2. DÉPARTEMENT INFORMATIQUE -->
-        <div class="dept-card">
+        <div class="dept-card" x-data="{ showImpact: false }">
           <div class="dept-card-top">
             <div class="dept-img-wrap">
               <img src="{{ asset('images/dept-informatique.jpg') }}" alt="Laboratoire Réseaux et Informatique Industrielle" class="dept-card-img">
@@ -1803,9 +2107,17 @@
             <p class="dept-desc">
               Infrastructures réseaux d'entreprise, sécurité des systèmes industriels, administration systèmes, cloud computing et télécommunications avancées.
             </p>
+
+            <div style="margin-top: 14px;">
+              <button type="button" 
+                      @click="showImpact = !showImpact" 
+                      style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: transparent; border: 1.5px solid var(--border-color); border-radius: var(--radius-full); font-size: 12px; font-weight: 700; color: var(--primary-dark); cursor: pointer; transition: all 0.2s ease;">
+                <span x-text="showImpact ? 'Masquer ▲' : 'Voir plus ▼'"></span>
+              </button>
+            </div>
           </div>
 
-          <div class="dept-impact-box">
+          <div class="dept-impact-box" x-show="showImpact" x-transition x-cloak style="display: none; margin-top: 14px;">
             <div class="dept-impact-title">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
               Enjeu Développement Afrique
@@ -1819,7 +2131,7 @@
         </div>
 
         <!-- 3. DÉPARTEMENT MÉCANIQUE -->
-        <div class="dept-card">
+        <div class="dept-card" x-data="{ showImpact: false }">
           <div class="dept-card-top">
             <div class="dept-img-wrap">
               <img src="{{ asset('images/dept-mecanique.jpg') }}" alt="Atelier d'Usinage CNC et Maintenance Mécanique" class="dept-card-img">
@@ -1829,9 +2141,17 @@
             <p class="dept-desc">
               Maintenance industrielle préventive et corrective, usinage de précision (conventionnel & CNC), hydraulique, pneumatique et fabrication mécanique.
             </p>
+
+            <div style="margin-top: 14px;">
+              <button type="button" 
+                      @click="showImpact = !showImpact" 
+                      style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: transparent; border: 1.5px solid var(--border-color); border-radius: var(--radius-full); font-size: 12px; font-weight: 700; color: var(--primary-dark); cursor: pointer; transition: all 0.2s ease;">
+                <span x-text="showImpact ? 'Masquer ▲' : 'Voir plus ▼'"></span>
+              </button>
+            </div>
           </div>
 
-          <div class="dept-impact-box">
+          <div class="dept-impact-box" x-show="showImpact" x-transition x-cloak style="display: none; margin-top: 14px;">
             <div class="dept-impact-title">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
               Enjeu Développement Afrique
@@ -1842,51 +2162,6 @@
               <li>Compétitivité renforcée du tissu manufacturier sous-régional.</li>
             </ul>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 6. DÉROULEMENT & MÉTHODOLOGIE 5S KAIZEN (GRAND FORMAT) -->
-  <section class="feature-section" id="pedagogie" style="background-color: #fafbfc;">
-    <div class="container feature-grid">
-      <!-- Contenu -->
-      <div class="feature-text">
-        <div class="section-eyebrow">Méthodologie Japonaise</div>
-        <h2>70% de pratique et culture de la rigueur Kaizen</h2>
-        <p>Au-delà de l'expertise technologique, les apprenants s'imprègnent de la rigueur professionnelle nippone : discipline 5S, optimisation continue des processus (Kaizen) et immersion directe en ateliers de production.</p>
-        
-        <ul class="kaizen-points-list">
-          <li>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Seiri (Débarrasser) — Éliminer l'inutile pour maximiser l'espace</span>
-          </li>
-          <li>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Seiton (Ranger) — Un emplacement précis pour chaque outil</span>
-          </li>
-          <li>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Seiso (Nettoyer) — Maintenir les postes de travail irréprochables</span>
-          </li>
-          <li>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Seiketsu (Standardiser) — Établir des règles de travail claires</span>
-          </li>
-          <li>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Shitsuke (Pérenniser) — Rigueur, discipline et amélioration continue</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Visuel Pédagogie 5S Kaizen en Grand Format -->
-      <div class="kaizen-visual-wrap">
-        <div class="kaizen-img-card">
-          <img src="{{ file_exists(public_path('images/5s-kaizen.jpg')) ? asset('images/5s-kaizen.jpg') : asset('images/5S KAYZEN.jpg') }}" 
-               alt="Méthodologie Kaizen 5S - Seiri, Seiton, Seiso, Seiketsu, Shitsuke"
-               class="kaizen-img-fluid"
-               onerror="this.src='{{ asset('images/5S KAYZEN.jpg') }}'">
         </div>
       </div>
     </div>
@@ -2079,7 +2354,7 @@
                 $percent = $seminar->max_participants > 0 ? min(100, round(($enrolledCount / $seminar->max_participants) * 100)) : 0;
                 $imageUrl = $seminar->image ? asset('storage/' . $seminar->image) : asset('images/centre.png');
             @endphp
-            <div class="seminar-card">
+            <div class="seminar-card" x-data="{ showDetails: false }">
               <div class="seminar-card-img" style="background-image: url('{{ $imageUrl }}');">
                 @if($seminar->cohort)
                   <span class="seminar-tag-top">{{ $seminar->cohort->title }}</span>
@@ -2102,6 +2377,37 @@
                   <p class="seminar-desc">
                     {{ $seminar->description ?: 'Formation technique de perfectionnement destinée aux cadres, techniciens et formateurs aux normes du Japon.' }}
                   </p>
+
+                  <!-- Bouton Voir plus juste après la description -->
+                  <div style="margin: 8px 0 10px 0;">
+                    <button type="button" 
+                            @click="showDetails = !showDetails" 
+                            style="display: inline-flex; align-items: center; gap: 4px; background: transparent; border: none; padding: 0; color: var(--primary-dark); font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline;">
+                      <span x-text="showDetails ? 'Masquer les détails ▲' : 'Voir plus de détails ▼'"></span>
+                    </button>
+                  </div>
+
+                  <!-- Détails complets du séminaire -->
+                  <div x-show="showDetails" x-transition x-cloak style="display: none; padding: 12px; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px; font-size: 12px; color: var(--text-dark); line-height: 1.5;">
+                    @if($seminar->cohort)
+                      <div style="margin-bottom: 4px;"><strong>Édition :</strong> {{ $seminar->cohort->title }}</div>
+                    @endif
+                    <div style="margin-bottom: 4px;"><strong>Dates complètes :</strong> Du {{ $seminar->start_date ? \Carbon\Carbon::parse($seminar->start_date)->format('d/m/Y') : 'À venir' }} au {{ $seminar->end_date ? \Carbon\Carbon::parse($seminar->end_date)->format('d/m/Y') : 'Non spécifié' }}</div>
+                    <div style="margin-bottom: 4px;"><strong>Capacité :</strong> {{ $seminar->max_participants ?: 30 }} participants ({{ $enrolledCount }} validés)</div>
+                    @if($seminar->departments->isNotEmpty())
+                      <div style="margin-bottom: 4px;"><strong>Pôle(s) :</strong> {{ $seminar->departments->pluck('name')->join(', ') }}</div>
+                    @endif
+                    @if($seminar->topics->isNotEmpty())
+                      <div>
+                        <strong>Thèmes de spécialisation :</strong>
+                        <ul style="margin: 4px 0 0 16px; padding: 0; list-style-type: disc;">
+                          @foreach($seminar->topics as $t)
+                            <li>{{ $t->name }}</li>
+                          @endforeach
+                        </ul>
+                      </div>
+                    @endif
+                  </div>
                 </div>
 
                 <div>
@@ -2263,7 +2569,7 @@
             <li><a href="#departements">Département Électrique</a></li>
             <li><a href="#departements">Département Informatique</a></li>
             <li><a href="#departements">Département Mécanique</a></li>
-            <li><a href="#pedagogie">Pédagogie & Kaizen</a></li>
+            <li><a href="#acteurs">Gouvernance & Kaizen</a></li>
           </ul>
         </div>
 
@@ -2325,5 +2631,8 @@
       }
     });
   </script>
+
+  <!-- Widget Chatbot Flottant n8n -->
+  <x-n8n-chat />
 </body>
 </html>

@@ -5,15 +5,20 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>PFPT CFPT - Administration</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    </noscript>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <script id="tailwind-config">
+        if (typeof tailwind !== 'undefined') {
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -83,6 +88,7 @@
                     }
                 }
             }
+        };
         }
     </script>
     <style>
@@ -106,48 +112,52 @@
 </head>
 <body class="bg-[#e9ebf0] text-slate-800 antialiased overflow-x-hidden" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('sidebarCollapsed', val))">
 
-<!-- Page Loader -->
-<div id="page-loader" class="fixed inset-0 z-[9999] bg-[#e9ebf0] flex flex-col items-center justify-center transition-opacity duration-300">
-    <div class="relative w-16 h-16">
-        <div class="absolute inset-0 border-4 border-[#4B6A95]/20 rounded-full"></div>
-        <div class="absolute inset-0 border-4 border-[#4B6A95] rounded-full border-t-transparent animate-spin"></div>
-    </div>
-    <p class="mt-4 text-[#4B6A95] font-bold font-sans animate-pulse text-sm">Chargement...</p>
-</div>
+<!-- Barre de progression fine en haut de page (non bloquante, ignore les téléchargements) -->
+<div id="top-nav-progress" class="fixed top-0 left-0 h-[3px] bg-[#4B6A95] z-[9999] transition-all duration-300 pointer-events-none opacity-0" style="width: 0%;"></div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const loader = document.getElementById('page-loader');
-        if (loader) {
-            // Give a slight delay for aesthetic reasons so it doesn't flicker on fast loads
-            setTimeout(() => {
-                loader.classList.add('opacity-0');
-                setTimeout(() => loader.style.display = 'none', 300);
-            }, 150);
-        }
-    });
+    (function() {
+        const bar = document.getElementById('top-nav-progress');
+        let timer = null;
 
-    window.addEventListener('beforeunload', () => {
-        const loader = document.getElementById('page-loader');
-        if (loader) {
-            loader.style.display = 'flex';
-            // Allow display block to apply before changing opacity
-            requestAnimationFrame(() => {
-                loader.classList.remove('opacity-0');
-            });
+        function startProgress() {
+            if (!bar) return;
+            clearTimeout(timer);
+            bar.style.opacity = '1';
+            bar.style.width = '35%';
+            timer = setTimeout(() => { bar.style.width = '75%'; }, 180);
         }
-    });
 
-    // Fix for Safari/Chrome back button (bfcache)
-    window.addEventListener('pageshow', (event) => {
-        if (event.persisted) {
-            const loader = document.getElementById('page-loader');
-            if (loader) {
-                loader.classList.add('opacity-0');
-                loader.style.display = 'none';
+        function resetProgress() {
+            if (!bar) return;
+            clearTimeout(timer);
+            bar.style.width = '0%';
+            bar.style.opacity = '0';
+        }
+
+        // Déclencher uniquement sur les vrais liens de navigation (jamais sur les téléchargements / exports / modales)
+        document.addEventListener('click', (e) => {
+            if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return;
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            const href = link.getAttribute('href') || '';
+            if (
+                link.hasAttribute('download') ||
+                link.hasAttribute('data-no-loader') ||
+                link.target === '_blank' ||
+                href === '' ||
+                href.startsWith('#') ||
+                href.startsWith('javascript:') ||
+                href.startsWith('mailto:') ||
+                /\/(export|download|import-template)(\?|$|\/)/i.test(href)
+            ) {
+                return;
             }
-        }
-    });
+            startProgress();
+        });
+
+        window.addEventListener('pageshow', resetProgress);
+    })();
 </script>
 
 <!-- Mobile Menu Drawer Overlay -->
@@ -268,20 +278,24 @@
         <!-- 4. Documents & Ressources (Liste déroulante) -->
         <div class="relative">
             <button @click="activeFlyout = activeFlyout === 'ged' ? null : 'ged'" 
-                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.resources.*') || request()->routeIs('admin.archives')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
-                    title="Documents & Ressources">
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.resources.*') || request()->routeIs('admin.archives') || request()->routeIs('admin.badges.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
+                    title="Documents, Cartes & Attestations">
                 <i data-lucide="folder-open" class="w-5 h-5"></i>
             </button>
 
             <!-- Flyout Dropdown -->
             <div x-show="activeFlyout === 'ged'" 
                  x-transition 
-                 class="absolute left-full top-0 ml-3 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50"
+                 class="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50"
                  style="display: none;">
                 <div class="px-3 py-2 border-b border-slate-100 mb-1">
-                    <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Documents</p>
+                    <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Documents & Studio PDF</p>
                 </div>
                 <div class="space-y-0.5 text-xs">
+                    <a href="{{ route('admin.badges.generator') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.badges.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="id-card" class="w-4 h-4 text-[#4B6A95]"></i>
+                        <span>Cartes, Badges & Attestations</span>
+                    </a>
                     <a href="{{ route('admin.resources.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.resources.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="files" class="w-4 h-4 text-[#4B6A95]"></i>
                         <span>Documents (Fichiers & Guides)</span>
@@ -429,6 +443,11 @@
                class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.forms.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                 Formulaires
             </a>
+
+            <a href="{{ route('admin.badges.generator') }}" 
+               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.badges.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Cartes & Attestations
+            </a>
         </nav>
 
         <!-- Right: Actions & Profile -->
@@ -445,7 +464,7 @@
                         class="w-10 h-10 rounded-full bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs flex items-center justify-center transition relative focus:outline-none">
                     <i data-lucide="bell" class="w-4 h-4"></i>
                     @php
-                        $unreadCount = auth()->user() ? auth()->user()->unreadNotifications->count() : 0;
+                        $unreadCount = auth()->user() ? auth()->user()->unreadNotifications()->count() : 0;
                     @endphp
                     @if($unreadCount > 0)
                         <span class="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full ring-2 ring-white"></span>
@@ -624,8 +643,8 @@
 </main>
 
 
-<!-- SweetAlert2 for beautiful confirmation popups -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SweetAlert2 for beautiful confirmation popups (non-bloquant) -->
+<script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Override all forms with native confirm()
@@ -640,6 +659,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            if (typeof Swal === 'undefined') {
+                if (window.confirm(message)) form.submit();
+                return;
+            }
             Swal.fire({
                 title: 'Confirmation',
                 text: message,

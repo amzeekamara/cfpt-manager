@@ -14,6 +14,13 @@
 <div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800" x-data="{ 
     drawerOpen: false, 
     candidate: null,
+    importModalOpen: false,
+    importSeminarId: '{{ $importSeminars->first()?->id ?? '' }}',
+    importTopicsMap: @js($importTopicsBySeminar),
+    importFileName: '',
+    get availableImportTopics() {
+        return this.importTopicsMap[this.importSeminarId] || [];
+    },
     openDrawer(data) {
         this.candidate = data;
         this.drawerOpen = true;
@@ -35,13 +42,35 @@
                     <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Examinez, filtrez et validez les dossiers des candidats en quelques clics.</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <a href="{{ route('admin.candidates.import-template') }}" download="modele_import_candidats_pfpt.xlsx" data-no-loader class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-full flex items-center gap-2 transition shadow-2xs">
+                    <span class="material-symbols-outlined text-[18px] leading-none text-emerald-600">download</span>
+                    Modèle Excel
+                </a>
+                <button type="button" @click="importModalOpen = true" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px] leading-none">upload_file</span>
+                    Importer Excel
+                </button>
                 <a href="{{ route('admin.candidates.create') }}" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm">
                     <span class="material-symbols-outlined text-[18px] leading-none">person_add</span>
                     Inscrire un candidat
                 </a>
             </div>
         </header>
+
+        @if(session('import_errors'))
+            <div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900">
+                <p class="font-bold mb-1.5 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px] text-amber-600">warning</span>
+                    Certaines lignes n'ont pas pu être importées :
+                </p>
+                <ul class="list-disc pl-5 space-y-0.5 max-h-36 overflow-y-auto">
+                    @foreach(session('import_errors') as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <!-- Stats summary -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
@@ -95,68 +124,128 @@
         </div>
 
         <!-- Filters Bar -->
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4" x-data="{ openFilters: false }">
             <form action="{{ route('admin.candidates') }}" method="GET" id="filterForm" class="m-0 flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                <div class="flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    <span class="material-symbols-outlined text-brand-primary text-[18px]">filter_list</span>
-                    <span>Filtres :</span>
+                <!-- Search Bar -->
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center">
+                        <span class="material-symbols-outlined text-[18px]">search</span>
+                    </span>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher candidat / email..." 
+                           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-brand-primary focus:bg-white focus:ring-2 focus:ring-brand-light transition">
                 </div>
-                
-                <select name="cohort_id" onchange="document.getElementById('filterForm').submit()" 
-                        class="text-xs border border-gray-200 rounded-xl px-3.5 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary focus:ring-2 focus:ring-brand-light cursor-pointer">
-                    <option value="">Toutes les cohortes</option>
-                    @foreach($cohorts as $cohort)
-                        <option value="{{ $cohort->id }}" {{ ($selectedCohort && $selectedCohort->id == $cohort->id) ? 'selected' : '' }}>
-                            {{ $cohort->title }} {{ $cohort->status == 'active' ? '(Active)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
 
-                <select name="status" onchange="document.getElementById('filterForm').submit()" 
-                        class="text-xs border border-gray-200 rounded-xl px-3.5 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary focus:ring-2 focus:ring-brand-light cursor-pointer">
-                    <option value="">Tous les statuts</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>À Examiner</option>
-                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approuvé</option>
-                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Refusé</option>
-                    <option value="waiting_list" {{ request('status') == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
-                </select>
+                <!-- Unified Filters Popover Button -->
+                <div class="relative">
+                    <button type="button" 
+                            @click="openFilters = !openFilters" 
+                            class="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                        <span class="material-symbols-outlined text-brand-primary text-[18px]">tune</span>
+                        <span>Filtres</span>
+                        @if(request()->anyFilled(['status', 'seminar_id', 'topic_id', 'cohort_id']))
+                            <span class="w-2 h-2 rounded-full bg-brand-primary"></span>
+                        @endif
+                    </button>
 
-                <select name="seminar_id" onchange="document.getElementById('filterForm').submit()" 
-                        class="text-xs border border-gray-200 rounded-xl px-3.5 py-2 bg-slate-50 outline-none text-gray-700 max-w-[220px] focus:border-brand-primary focus:ring-2 focus:ring-brand-light cursor-pointer">
-                    <option value="">Tous les séminaires</option>
-                    @foreach($seminars as $seminar)
-                        <option value="{{ $seminar->id }}" {{ request('seminar_id') == $seminar->id ? 'selected' : '' }}>
-                            {{ Str::limit($seminar->title, 30) }}
-                        </option>
-                    @endforeach
-                </select>
+                    <!-- Filters Popover Container -->
+                    <div x-show="openFilters" 
+                         @click.outside="openFilters = false" 
+                         x-transition 
+                         x-cloak 
+                         style="display: none;"
+                         class="absolute left-0 top-full mt-2 w-72 sm:w-80 bg-white border border-gray-200 rounded-2xl shadow-xl p-4.5 z-50 flex flex-col gap-3.5">
+                        
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-brand-primary text-[16px]">filter_alt</span>
+                                Filtres des candidatures
+                            </span>
+                            <button type="button" @click="openFilters = false" class="text-gray-400 hover:text-gray-600">
+                                <span class="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                        </div>
 
-                <select name="topic_id" onchange="document.getElementById('filterForm').submit()" 
-                        class="text-xs border border-gray-200 rounded-xl px-3.5 py-2 bg-slate-50 outline-none text-gray-700 max-w-[200px] focus:border-brand-primary focus:ring-2 focus:ring-brand-light cursor-pointer">
-                    <option value="">Tous les thèmes</option>
-                    @foreach($topics as $topic)
-                        <option value="{{ $topic->id }}" {{ request('topic_id') == $topic->id ? 'selected' : '' }}>
-                            {{ Str::limit($topic->name, 25) }}
-                        </option>
-                    @endforeach
-                </select>
+                        <!-- Cohorte -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Cohorte / Édition</label>
+                            <select name="cohort_id" 
+                                    class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
+                                <option value="">Toutes les cohortes</option>
+                                @foreach($cohorts as $cohort)
+                                    <option value="{{ $cohort->id }}" {{ ($selectedCohort && $selectedCohort->id == $cohort->id) ? 'selected' : '' }}>
+                                        {{ $cohort->title }} {{ $cohort->status == 'active' ? '(Active)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Statut -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Statut d'admission</label>
+                            <select name="status" 
+                                    class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
+                                <option value="">Tous les statuts</option>
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>À Examiner</option>
+                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approuvé</option>
+                                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Refusé</option>
+                                <option value="waiting_list" {{ request('status') == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
+                            </select>
+                        </div>
+
+                        <!-- Séminaire -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Séminaire</label>
+                            <select name="seminar_id" 
+                                    class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
+                                <option value="">Tous les séminaires</option>
+                                @foreach($seminars as $seminar)
+                                    <option value="{{ $seminar->id }}" {{ request('seminar_id') == $seminar->id ? 'selected' : '' }}>
+                                        {{ $seminar->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Thème -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Thème spécialisé</label>
+                            <select name="topic_id" 
+                                    class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
+                                <option value="">Tous les thèmes</option>
+                                @foreach($topics as $topic)
+                                    <option value="{{ $topic->id }}" {{ request('topic_id') == $topic->id ? 'selected' : '' }}>
+                                        {{ $topic->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons Inside Dropdown -->
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-100 gap-2">
+                            <a href="{{ route('admin.candidates') }}" class="text-[11px] font-semibold text-gray-500 hover:text-rose-600">
+                                Réinitialiser
+                            </a>
+
+                            <button type="submit" class="px-4 py-2 bg-brand-primary hover:bg-[#3c5678] text-white rounded-xl text-xs font-bold transition shadow-2xs">
+                                Mettre à jour
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 @if(request()->anyFilled(['search', 'status', 'seminar_id', 'topic_id', 'cohort_id']))
-                    <a href="{{ route('admin.candidates') }}" class="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition border border-rose-100 flex items-center gap-1">
+                    <a href="{{ route('admin.candidates') }}" class="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-xl font-semibold transition border border-rose-100 flex items-center gap-1">
                         <span class="material-symbols-outlined text-[14px]">close</span>
-                        Réinitialiser
+                        Effacer
                     </a>
                 @endif
             </form>
             
             <div class="w-full lg:w-auto flex items-center justify-end">
-                <div class="relative w-full sm:w-64">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center">
-                        <span class="material-symbols-outlined text-[18px]">search</span>
-                    </span>
-                    <input type="text" form="filterForm" name="search" value="{{ request('search') }}" onblur="document.getElementById('filterForm').submit()" placeholder="Rechercher candidat / email..." 
-                           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-brand-primary focus:bg-white focus:ring-2 focus:ring-brand-light transition">
-                </div>
+                <button type="submit" form="filterForm" class="px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-[#3c5678] transition shadow-2xs flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">search</span>
+                    <span>Rechercher</span>
+                </button>
             </div>
         </div>
 
@@ -463,6 +552,97 @@
                 </div>
 
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMPORT EXCEL CANDIDATS -->
+    <div x-show="importModalOpen" x-transition.opacity style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div @click.outside="importModalOpen = false"
+             class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900">Importer des candidats via Excel</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Téléchargez le modèle, remplissez vos candidats puis importez le fichier.</p>
+                </div>
+                <button type="button" @click="importModalOpen = false" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px] leading-none">close</span>
+                </button>
+            </div>
+
+            <!-- Étape 1 : Télécharger le modèle -->
+            <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="text-xs">
+                    <p class="font-extrabold text-emerald-900">1. Télécharger le fichier Excel modèle</p>
+                    <p class="text-emerald-700 mt-0.5">Contient toutes les colonnes officielles + un onglet « Instructions & Thèmes ».</p>
+                </div>
+                <a href="{{ route('admin.candidates.import-template') }}" download="modele_import_candidats_pfpt.xlsx" data-no-loader
+                   class="shrink-0 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition">
+                    <span class="material-symbols-outlined text-[16px] leading-none">download</span>
+                    Modèle (.xlsx)
+                </a>
+            </div>
+
+            <!-- Étape 2 & 3 : Formulaire d'import -->
+            <form action="{{ route('admin.candidates.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">2. Séminaire cible <span class="text-rose-500">*</span></label>
+                        <select name="seminar_id" x-model="importSeminarId" required
+                                class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-800 font-semibold focus:border-[#4B6A95] focus:outline-none">
+                            @foreach($importSeminars as $sem)
+                                <option value="{{ $sem->id }}">{{ $sem->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Thème par défaut (si vide dans Excel)</label>
+                        <select name="topic_id"
+                                class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-700 focus:border-[#4B6A95] focus:outline-none">
+                            <option value="">-- Aucun / Détecté via colonne « theme » --</option>
+                            <template x-for="t in availableImportTopics" :key="t.id">
+                                <option :value="t.id" x-text="t.title"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Statut par défaut <span class="text-rose-500">*</span></label>
+                        <select name="status" required
+                                class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-700 font-semibold focus:border-[#4B6A95] focus:outline-none">
+                            <option value="approved">Approuvé (Retenu)</option>
+                            <option value="pending">En attente d'examen</option>
+                            <option value="waiting_list">Liste d'attente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">3. Fichier Excel ou CSV rempli <span class="text-rose-500">*</span></label>
+                    <label class="block border-2 border-dashed border-slate-200 hover:border-[#4B6A95] rounded-2xl p-5 text-center cursor-pointer transition bg-slate-50/70 hover:bg-blue-50/30">
+                        <input type="file" name="excel_file" accept=".xlsx,.xls,.csv" required class="hidden"
+                               @change="importFileName = $event.target.files[0]?.name || ''">
+                        <span class="material-symbols-outlined text-3xl text-[#4B6A95] mb-1">upload_file</span>
+                        <p class="text-xs font-bold text-slate-700" x-text="importFileName || 'Cliquez pour sélectionner votre fichier (.xlsx, .xls, .csv)'"></p>
+                        <p class="text-[11px] text-slate-400 mt-1">Compatible avec le modèle PFPT ou tout tableau (Nom et prénom, Pays, Thème, Établissement).</p>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                    <button type="button" @click="importModalOpen = false"
+                            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2.5 rounded-xl bg-[#4B6A95] hover:bg-[#354e70] text-white text-xs font-bold shadow-sm inline-flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px] leading-none">check_circle</span>
+                        Lancer l'importation
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Débugger d\'Emails')
+@section('title', 'Info des e‑mails')
 
 @section('content')
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Débugger d'Emails</h1>
+            <h1 class="text-2xl font-bold text-gray-800">Info des e‑mails</h1>
             <p class="text-gray-600">Visualisation des emails envoyés (via le driver LOG)</p>
         </div>
     </div>
@@ -18,8 +18,7 @@
             </div>
             <div class="ml-3">
                 <p class="text-sm text-primary">
-                    Cette page permet de voir les emails générés par la plateforme sans avoir besoin d'un serveur SMTP réel. 
-                    Idéal pour tester le contenu et le design des notifications.
+                    Cette section présente les informations détaillées des e‑mails enregistrés dans les logs. Vous pouvez ainsi vérifier le sujet, le destinataire et le contenu des notifications sans serveur SMTP.
                 </p>
             </div>
         </div>

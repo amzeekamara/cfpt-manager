@@ -83,6 +83,8 @@ Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->g
     // MODULE 4 : CANDIDATURES, PROFILS & INSTRUCTIONS
     Route::get('/candidates', [\App\Http\Controllers\Admin\CandidateController::class, 'index'])->name('candidates');
     Route::get('/candidates/create', [\App\Http\Controllers\Admin\CandidateController::class, 'create'])->name('candidates.create');
+    Route::get('/candidates/import-template', [\App\Http\Controllers\Admin\CandidateController::class, 'downloadImportTemplate'])->name('candidates.import-template');
+    Route::post('/candidates/import', [\App\Http\Controllers\Admin\CandidateController::class, 'importExcel'])->name('candidates.import');
     Route::get('/candidates/{registration}', [\App\Http\Controllers\Admin\CandidateController::class, 'show'])->name('candidates.show');
     Route::get('/candidates/{registration}/edit', [\App\Http\Controllers\Admin\CandidateController::class, 'edit'])->name('candidates.edit');
     Route::patch('/candidates/{registration}/status', [\App\Http\Controllers\Admin\CandidateController::class, 'updateStatus'])->name('candidates.update-status');
@@ -104,6 +106,12 @@ Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->g
     Route::post('resources/export', [\App\Http\Controllers\Admin\ResourceController::class, 'export'])->name('resources.export');
     Route::patch('resources/{resource}/archive', [\App\Http\Controllers\Admin\ResourceController::class, 'archive'])->name('resources.archive');
     Route::get('/archives', [\App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('archives');
+
+    // MODULE 10 : GÉNÉRATEUR AUTOMATISÉ DE CARTES, BADGES & ATTESTATIONS (PDF + EXCEL)
+    Route::get('/badges-generator', [\App\Http\Controllers\Admin\BadgeGeneratorController::class, 'index'])->name('badges.generator');
+    Route::get('/badges-generator/seminar/{seminar}', [\App\Http\Controllers\Admin\BadgeGeneratorController::class, 'seminarParticipants'])->name('badges.seminar-participants');
+    Route::post('/badges-generator/presets', [\App\Http\Controllers\Admin\BadgeGeneratorController::class, 'savePreset'])->name('badges.save-preset');
+    Route::delete('/badges-generator/presets/{id}', [\App\Http\Controllers\Admin\BadgeGeneratorController::class, 'deletePreset'])->name('badges.delete-preset');
 
     // MODULE 8 : FORMULAIRES DYNAMIQUES & ENQUÊTES
     Route::get('/forms', [\App\Http\Controllers\Admin\FormController::class, 'index'])->name('forms.index');

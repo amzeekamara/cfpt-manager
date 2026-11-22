@@ -16,6 +16,9 @@ use App\Notifications\CandidateStatusNotification;
 use App\Http\Requests\Admin\CandidateRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CandidateImportTemplateExport;
+use App\Imports\CandidatesImport;
 
 class CandidateController extends Controller
 {
@@ -98,7 +101,69 @@ class CandidateController extends Controller
             return $q->where('seminar_id', $request->seminar_id);
         })->get();
 
-        return view('admin.candidates', compact('candidates', 'stats', 'seminars', 'cohorts', 'selectedCohort', 'topics'));
+        $importSeminars = Seminar::orderByDesc('created_at')->get();
+        $importTopicsBySeminar = \App\Models\Topic::whereIn('seminar_id', $importSeminars->pluck('id'))
+            ->get()
+            ->groupBy('seminar_id');
+
+        return view('admin.candidates', compact(
+            'candidates', 'stats', 'seminars', 'cohorts', 'selectedCohort', 'topics', 'importSeminars', 'importTopicsBySeminar'
+        ));
+    }
+
+    /**
+     * Télécharge le fichier Excel modèle (.xlsx) pré-formaté pour l'import en masse des candidats.
+     */
+    public function downloadImportTemplate()
+    {
+        return Excel::download(
+            new CandidateImportTemplateExport(),
+            'modele_import_candidats_pfpt.xlsx'
+        );
+    }
+
+    /**
+     * Importe une liste de candidats depuis un fichier Excel (.xlsx, .xls, .csv).
+     */
+    public function importExcel(Request $request)
+    {
+        $validated = $request->validate([
+            'seminar_id' => 'required|exists:seminars,id',
+            'topic_id' => 'nullable|exists:topics,id',
+            'status' => 'required|in:pending,approved,waiting_list,rejected',
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
+        ]);
+
+        $import = new CandidatesImport(
+            (int) $validated['seminar_id'],
+            !empty($validated['topic_id']) ? (int) $validated['topic_id'] : null,
+            $validated['status']
+        );
+
+        try {
+            Excel::import($import, $request->file('excel_file'));
+        } catch (\Throwable $e) {
+            return back()->with('error', "Erreur lors de la lecture du fichier Excel : " . $e->getMessage());
+        }
+
+        $seminar = Seminar::find($validated['seminar_id']);
+        ActivityLogger::log(
+            'Import Excel Candidats',
+            "{$import->importedCount} candidat(s) inscrit(s) via Excel dans le séminaire « {$seminar?->title} » ({$import->skippedCount} doublon(s) ignoré(s)).",
+            $seminar
+        );
+
+        $message = "{$import->importedCount} candidat(s) inscrit(s) avec succès.";
+        if ($import->skippedCount > 0) {
+            $message .= " {$import->skippedCount} doublon(s) déjà inscrit(s) ignoré(s).";
+        }
+        if (count($import->rowErrors) > 0) {
+            return redirect()->route('admin.candidates')
+                ->with('success', $message)
+                ->with('import_errors', $import->rowErrors);
+        }
+
+        return redirect()->route('admin.candidates')->with('success', $message);
     }
 
     public function show(Registration $registration)
