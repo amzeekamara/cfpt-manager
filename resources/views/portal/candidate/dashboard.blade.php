@@ -264,26 +264,88 @@
                 </div>
 
                 <!-- TAB: MON EMPLOI DU TEMPS -->
-                <div x-show="activeTab === 'timetable'" class="space-y-4">
+                <div x-show="activeTab === 'timetable'" class="space-y-4" x-data="{ studentView: 'week' }">
                     @if(isset($studentTimetables) && $studentTimetables->count() > 0)
-                        <div class="p-4 rounded-2xl bg-gradient-to-r from-[#162536] via-[#2b425e] to-[#4B6A95] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#162536] via-[#2b425e] to-[#4B6A95] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
                                     <i data-lucide="calendar-clock" class="w-5 h-5 text-amber-300"></i>
                                 </div>
                                 <div>
-                                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-200 block">Emploi du Temps Hebdomadaire</span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-200 block">Mon Emploi du Temps Hebdomadaire</span>
                                     <h4 class="text-sm font-black">{{ $registration->seminar?->title ?? 'Ma Filière' }}</h4>
                                 </div>
                             </div>
-                            <span class="px-3.5 py-1.5 rounded-full bg-white/15 border border-white/20 text-xs font-black">
-                                {{ $studentTimetables->count() }} cours • {{ $studentTimetables->sum('planned_hours') }}h / semaine
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <div class="bg-black/20 p-1 rounded-xl text-xs font-bold flex items-center">
+                                    <button type="button" @click="studentView = 'week'" :class="studentView === 'week' ? 'bg-white text-slate-900 shadow-xs' : 'text-white/80 hover:text-white'" class="px-3 py-1 rounded-lg transition cursor-pointer">
+                                        Vue Semaine
+                                    </button>
+                                    <button type="button" @click="studentView = 'list'" :class="studentView === 'list' ? 'bg-white text-slate-900 shadow-xs' : 'text-white/80 hover:text-white'" class="px-3 py-1 rounded-lg transition cursor-pointer">
+                                        Vue Liste
+                                    </button>
+                                </div>
+                                <span class="px-3 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-black">
+                                    {{ $studentTimetables->count() }} cours • {{ $studentTimetables->sum('planned_hours') }}h
+                                </span>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        <!-- VUE 1 : GRILLE CALENDAR HEBDOMADAIRE (PASTEL CARDS) -->
+                        <div x-show="studentView === 'week'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                            @foreach(['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as $dName)
+                                @php
+                                    $daySlots = $studentTimetables->where('day_of_week', $dName)->sortBy('start_time');
+                                @endphp
+                                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
+                                    <div class="px-4 py-2.5 bg-slate-900 text-white flex items-center justify-between text-xs font-black">
+                                        <span class="uppercase tracking-wider">{{ $dName }}</span>
+                                        <span class="text-[10px] text-blue-200">{{ $daySlots->count() }} cours</span>
+                                    </div>
+                                    <div class="p-3 space-y-2 flex-1 bg-slate-50/50">
+                                        @forelse($daySlots as $slot)
+                                            @php
+                                                $palette = match($slot->id % 4) {
+                                                    0 => 'bg-[#e0f2fe] border-[#bae6fd] text-[#0369a1]',
+                                                    1 => 'bg-[#dcfce7] border-[#bbf7d0] text-[#15803d]',
+                                                    2 => 'bg-[#f3e8ff] border-[#e9d5ff] text-[#7e22ce]',
+                                                    default => 'bg-[#ffedd5] border-[#fed7aa] text-[#c2410c]',
+                                                };
+                                                $bullet = match($slot->id % 4) {
+                                                    0 => 'bg-sky-500',
+                                                    1 => 'bg-emerald-500',
+                                                    2 => 'bg-purple-500',
+                                                    default => 'bg-amber-500',
+                                                };
+                                            @endphp
+                                            <div class="p-3 rounded-xl border {{ $palette }} transition shadow-2xs">
+                                                <div class="flex items-center justify-between gap-1 mb-1">
+                                                    <span class="text-[11px] font-black flex items-center gap-1.5">
+                                                        <span class="w-2 h-2 rounded-full {{ $bullet }}"></span>
+                                                        {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
+                                                    </span>
+                                                    <span class="text-[10px] font-bold opacity-80">{{ $slot->planned_hours }}h</span>
+                                                </div>
+                                                <h6 class="font-black text-xs leading-snug line-clamp-1 mb-1">{{ $slot->topic?->name ?? 'Cours' }}</h6>
+                                                <div class="pt-1.5 border-t border-black/5 flex items-center justify-between text-[10px] font-semibold">
+                                                    <span>📍 {{ $slot->classroom?->name ?? 'Salle' }}</span>
+                                                    <span>👤 {{ $slot->trainer?->name ?? 'Formateur' }}</span>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="py-6 text-center text-slate-400 text-xs">
+                                                <span>Pas de cours ce jour</span>
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- VUE 2 : LISTE SIMPLE -->
+                        <div x-show="studentView === 'list'" style="display: none;" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                             @foreach($studentTimetables as $slot)
-                                <div class="p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#4B6A95] bg-slate-50/50 hover:bg-white hover:shadow-md transition flex flex-col justify-between gap-2.5">
+                                <div class="p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#4B6A95] bg-white hover:shadow-md transition flex flex-col justify-between gap-2.5">
                                     <div class="flex items-center justify-between">
                                         <span class="px-3 py-1 rounded-lg bg-slate-900 text-white font-black text-xs uppercase tracking-wider">
                                             {{ $slot->day_of_week }}

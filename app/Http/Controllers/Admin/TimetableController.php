@@ -51,6 +51,86 @@ class TimetableController extends Controller
 
         $timetables = $timetablesQuery->orderBy('start_time')->get();
 
+        // Detect any conflicts among displayed slots or with the global active slots
+        $calendarSlots = $timetables->map(function ($s) use ($timetables, $seminars) {
+            $start = Carbon::parse($s->start_time);
+            $end = Carbon::parse($s->end_time);
+            $startHourFloat = $start->hour + ($start->minute / 60);
+            $endHourFloat = $end->hour + ($end->minute / 60);
+            $duration = round(max(0.5, $endHourFloat - $startHourFloat), 2);
+            $enrolled = $seminars->firstWhere('id', $s->seminar_id)?->enrolled_count ?? 0;
+
+            // Conflict detection: another slot on same day, overlapping time, sharing classroom, trainer, or filiere
+            $conflict = $timetables->first(function ($other) use ($s, $start, $end) {
+                if ($other->id === $s->id || $other->day_of_week !== $s->day_of_week) {
+                    return false;
+                }
+                $oStart = Carbon::parse($other->start_time);
+                $oEnd = Carbon::parse($other->end_time);
+                $overlaps = ($start < $oEnd && $end > $oStart);
+                if (!$overlaps) return false;
+
+                return ($other->classroom_id === $s->classroom_id)
+                    || ($other->trainer_id === $s->trainer_id)
+                    || ($other->seminar_id === $s->seminar_id);
+            });
+
+            $conflictReason = '';
+            if ($conflict) {
+                if ($conflict->classroom_id === $s->classroom_id) {
+                    $conflictReason = 'Conflit de salle : double réservation de « ' . ($s->classroom?->name ?? 'la salle') . ' »';
+                } elseif ($conflict->trainer_id === $s->trainer_id) {
+                    $conflictReason = 'Conflit de formateur : ' . ($s->trainer?->name ?? 'Ce formateur') . ' a 2 cours simultanés';
+                } else {
+                    $conflictReason = 'Conflit de classe : ' . ($s->seminar?->title ?? 'Cette classe') . ' a 2 cours en même temps';
+                }
+            }
+
+            // Assign pastel color category based on department or classroom type or topic
+            $colorKey = 'sky';
+            $cType = $s->classroom?->type ?? 'cours';
+            if ($cType === 'atelier') {
+                $colorKey = 'amber';
+            } elseif ($cType === 'labo') {
+                $colorKey = ($s->id % 2 === 0) ? 'purple' : 'emerald';
+            } else {
+                $colorKey = match($s->id % 4) {
+                    0 => 'sky',
+                    1 => 'emerald',
+                    2 => 'purple',
+                    default => 'indigo',
+                };
+            }
+
+            return [
+                'id' => $s->id,
+                'day_of_week' => $s->day_of_week,
+                'start_time' => $start->format('H:i'),
+                'end_time' => $end->format('H:i'),
+                'start_hour_float' => $startHourFloat,
+                'end_hour_float' => $endHourFloat,
+                'duration_hours' => $duration,
+                'planned_hours' => $s->planned_hours,
+                'seminar_title' => $s->seminar?->title ?? 'Filière',
+                'seminar_id' => $s->seminar_id,
+                'topic_name' => $s->topic?->name ?? $s->seminar?->title ?? 'Cours magistral',
+                'trainer_name' => $s->trainer?->name ?? 'Formateur non assigné',
+                'trainer_id' => $s->trainer_id,
+                'classroom_name' => $s->classroom?->name ?? 'Salle non définie',
+                'classroom_id' => $s->classroom_id,
+                'classroom_type' => $s->classroom?->type ?? 'cours',
+                'classroom_capacity' => $s->classroom?->capacity ?? 0,
+                'enrolled_count' => $enrolled,
+                'department_name' => $s->department?->name ?? 'CFPT',
+                'department_id' => $s->department_id,
+                'has_conflict' => !empty($conflictReason),
+                'conflict_reason' => $conflictReason,
+                'color' => $colorKey,
+                'delete_url' => route('admin.timetables.destroy', $s->id),
+                'attendance_url' => route('admin.attendances.index', ['seminar_id' => $s->seminar_id, 'topic_id' => $s->topic_id]),
+            ];
+        });
+
         // All active slots across all departments to compute live room & trainer availability
         $allSlots = Timetable::with(['classroom', 'trainer', 'seminar', 'topic'])
             ->where('is_active', true)
@@ -75,6 +155,7 @@ class TimetableController extends Controller
 
         return view('admin.timetables.index', compact(
             'timetables',
+            'calendarSlots',
             'allSlots',
             'departments',
             'seminars',

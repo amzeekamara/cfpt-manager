@@ -632,43 +632,58 @@
             <div id="tab-content-timetable" class="hidden">
                 @if (isset($trainerTimetables) && $trainerTimetables->count() > 0)
                     <div
-                        class="flex items-center justify-between p-3 mb-3 rounded-xl bg-gradient-to-r from-[#162536] to-[#4B6A95] text-white text-xs">
+                        class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 mb-3 rounded-2xl bg-gradient-to-r from-[#162536] via-[#2b425e] to-[#4B6A95] text-white text-xs shadow-xs gap-2">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-[18px] text-amber-300">calendar_clock</span>
-                            <span class="font-bold">Mon Planning Hebdomadaire des Cours</span>
+                            <span class="font-black text-sm">Mon Planning Hebdomadaire des Cours</span>
                         </div>
-                        <span class="px-2.5 py-0.5 rounded-full bg-white/15 font-black">
-                            {{ $trainerTimetables->sum('planned_hours') }}h / semaine
+                        <span class="px-3 py-1 rounded-full bg-white/15 border border-white/20 font-black text-xs">
+                            {{ $trainerTimetables->sum('planned_hours') }} heures programmées / semaine
                         </span>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         @foreach ($trainerTimetables as $slot)
-                            <div
-                                class="p-3.5 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#4B6A95] bg-white hover:shadow-md transition flex flex-col justify-between gap-2">
+                            @php
+                                $palette = match($slot->id % 4) {
+                                    0 => 'bg-[#e0f2fe] border-[#bae6fd] text-[#0369a1]',
+                                    1 => 'bg-[#dcfce7] border-[#bbf7d0] text-[#15803d]',
+                                    2 => 'bg-[#f3e8ff] border-[#e9d5ff] text-[#7e22ce]',
+                                    default => 'bg-[#ffedd5] border-[#fed7aa] text-[#c2410c]',
+                                };
+                                $bullet = match($slot->id % 4) {
+                                    0 => 'bg-sky-500',
+                                    1 => 'bg-emerald-500',
+                                    2 => 'bg-purple-500',
+                                    default => 'bg-amber-500',
+                                };
+                            @endphp
+                            <div class="p-3.5 rounded-2xl border {{ $palette }} hover:shadow-md transition flex flex-col justify-between gap-2.5">
                                 <div class="flex items-center justify-between">
-                                    <span
-                                        class="px-2.5 py-0.5 rounded-md bg-slate-900 text-white font-black text-[11px] uppercase">
+                                    <span class="px-2.5 py-0.5 rounded-md bg-slate-900 text-white font-black text-[11px] uppercase tracking-wider">
                                         {{ $slot->day_of_week }}
                                     </span>
-                                    <span class="text-xs font-black text-[#4B6A95]">
+                                    <span class="text-xs font-black flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full {{ $bullet }}"></span>
                                         {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} –
                                         {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
                                         ({{ $slot->planned_hours }}h)
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="font-black text-slate-900 text-xs leading-snug">
-                                        {{ $slot->topic?->name ?? 'Tronc commun' }}</div>
-                                    <div class="text-[11px] font-semibold text-slate-500 line-clamp-1">
-                                        {{ $slot->seminar?->title ?? 'Filière' }}</div>
+                                    <div class="font-black text-slate-900 text-xs leading-snug line-clamp-2">
+                                        {{ $slot->topic?->name ?? 'Tronc commun' }}
+                                    </div>
+                                    <div class="text-[11px] font-bold opacity-80 line-clamp-1 mt-0.5">
+                                        {{ $slot->seminar?->title ?? 'Filière' }}
+                                    </div>
                                 </div>
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                                    <span class="font-extrabold text-emerald-700 flex items-center gap-1">
+                                <div class="pt-2 border-t border-black/5 flex items-center justify-between text-[11px]">
+                                    <span class="font-extrabold flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[14px]">meeting_room</span>
                                         {{ $slot->classroom?->name ?? 'Salle assignée' }}
                                     </span>
                                     <a href="{{ route('portal.trainer.attendances', ['seminar_id' => $slot->seminar_id, 'topic_id' => $slot->topic_id]) }}"
-                                       class="px-2.5 py-1 rounded-lg bg-[#4B6A95] hover:bg-[#354e70] text-white font-bold text-[10px] flex items-center gap-1 transition">
+                                       class="px-2.5 py-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] flex items-center gap-1 transition shadow-2xs">
                                         <span class="material-symbols-outlined text-[13px]">fact_check</span>
                                         <span>Faire l'appel</span>
                                     </a>
