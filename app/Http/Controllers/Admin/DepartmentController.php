@@ -19,18 +19,34 @@ class DepartmentController extends Controller
             $query->where('id', $user->getEffectiveDepartmentId());
         }
 
-        $departments = $query->orderBy('name')->get();
+        $departments = $query->orderBy('id')->get();
+        $cohorts = \App\Models\Cohort::orderByDesc('start_date')->get();
+        $selectedCohortId = request('cohort_id', $cohorts->where('status', 'active')->first()?->id ?? $cohorts->first()?->id);
+
+        $departments->each(function ($dept) use ($selectedCohortId) {
+            $dept->load(['seminars' => function ($q) use ($selectedCohortId) {
+                if ($selectedCohortId) {
+                    $q->where('cohort_id', $selectedCohortId);
+                }
+                $q->with('cohort')->withCount(['registrations as enrolled_count' => fn($rq) => $rq->where('status', 'approved')]);
+            }]);
+        });
 
         // Eligible users to be head of department (Staff & Chef de Département)
         $eligibleHeads = User::with('role')->whereHas('role', function ($q) {
             $q->whereIn('name', ['Chef de Département', 'Administrateur', 'Coordinateur', 'Admin']);
         })->orderBy('name')->get();
 
-        return view('admin.departments.index', compact('departments', 'eligibleHeads'));
+        return view('admin.departments.index', compact('departments', 'eligibleHeads', 'cohorts', 'selectedCohortId'));
     }
 
     public function store(Request $request)
     {
+        if (Department::count() >= 3) {
+            return redirect()->route('admin.departments.index')
+                ->with('error', 'Le CFPT Sénégal-Japon ne comporte que 3 départements officiels (Informatique, Mécanique, Électrique). Vous pouvez ajouter de nouvelles filières au sein de chaque département selon l\'année académique.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'head_user_id' => 'nullable|exists:users,id',
@@ -74,6 +90,10 @@ class DepartmentController extends Controller
 
     public function destroy(Department $department)
     {
+        if (Department::count() <= 3) {
+            return redirect()->route('admin.departments.index')
+                ->with('error', 'Les 3 départements officiels du CFPT Sénégal-Japon (Informatique, Mécanique, Électrique) ne peuvent pas être supprimés.');
+        }
         $department->delete();
         return redirect()->route('admin.departments.index')->with('success', 'Département supprimé.');
     }

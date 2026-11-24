@@ -37,24 +37,23 @@
                     <div class="space-y-2">
                         <x-multi-select-dropdown 
                             name="departments[]" 
-                            label="Départements concernés" 
+                            label="Département de rattachement (Informatique, Mécanique ou Électrique)" 
                             :options="$departments" 
-                            :selected="old('departments', [])" 
-                            placeholder="Sélectionner les départements..." 
+                            :selected="old('departments', isset($preselectedDeptId) && $preselectedDeptId ? [$preselectedDeptId] : [])" 
+                            placeholder="Sélectionner le département..." 
                             :required="true" />
                         @error('departments')
                             <p class="text-xs text-red-600 font-bold mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="space-y-2">
-                        <label for="cohort_id" class="text-sm font-bold text-on-surface-variant">Édition / Cycle (Optionnel)</label>
-                        <select name="cohort_id" id="cohort_id" 
+                        <label for="cohort_id" class="text-sm font-bold text-on-surface-variant">Année Académique / Promotion <span class="text-red-500">*</span></label>
+                        <select name="cohort_id" id="cohort_id" required
                             class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
-                            <option value="">-- Session Indépendante --</option>
                             @foreach($cohorts as $cohort)
-                                <option value="{{ $cohort->id }}" {{ old('cohort_id') == $cohort->id ? 'selected' : '' }}>
+                                <option value="{{ $cohort->id }}" {{ old('cohort_id', $preselectedCohortId ?? '') == $cohort->id ? 'selected' : '' }}>
                                     {{ $cohort->title }} ({{ $cohort->start_date->format('Y') }}) 
-                                    — {{ $cohort->status === 'active' ? '✓ Actif' : ($cohort->status === 'completed' ? '📁 Archivé' : '✎ Brouillon') }}
+                                    — {{ $cohort->status === 'active' ? '✓ En cours' : ($cohort->status === 'completed' ? '📁 Clôturée' : '✎ En préparation') }}
                                 </option>
                             @endforeach
                         </select>

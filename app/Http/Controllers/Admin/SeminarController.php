@@ -12,34 +12,51 @@ use App\Http\Requests\Admin\SeminarRequest;
 
 class SeminarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        $deptId = ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : null;
+        $deptId = ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : $request->get('department_id');
+        $cohortId = $request->get('cohort_id');
+
+        $cohorts = Cohort::orderBy('start_date', 'desc')->get();
+        $departments = \App\Models\Department::where('is_active', true)
+            ->when($user && $user->isDepartmentHead() && $user->getEffectiveDepartmentId(), fn($q) => $q->where('id', $user->getEffectiveDepartmentId()))
+            ->orderBy('id')
+            ->get();
 
         $activeSeminars = Seminar::where('status', 'active')
             ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->when($cohortId, fn($q) => $q->where('cohort_id', $cohortId))
             ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
             ->orderBy('start_date', 'asc')
             ->get();
         $draftSeminars = Seminar::where('status', 'draft')
             ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->when($cohortId, fn($q) => $q->where('cohort_id', $cohortId))
             ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
             ->get();
         $pastSeminars = Seminar::where('status', 'completed')
             ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->when($cohortId, fn($q) => $q->where('cohort_id', $cohortId))
             ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
             ->orderBy('end_date', 'desc')
             ->get();
 
-        return view('admin.seminars', compact('activeSeminars', 'draftSeminars', 'pastSeminars'));
+        return view('admin.seminars', compact('activeSeminars', 'draftSeminars', 'pastSeminars', 'cohorts', 'departments', 'deptId', 'cohortId'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $user = auth()->user();
         $cohorts = Cohort::orderBy('start_date', 'desc')->get();
-        $departments = \App\Models\Department::where('is_active', true)->orderBy('name')->get();
-        return view('admin.seminars.create', compact('cohorts', 'departments'));
+        $departments = \App\Models\Department::where('is_active', true)
+            ->when($user && $user->isDepartmentHead() && $user->getEffectiveDepartmentId(), fn($q) => $q->where('id', $user->getEffectiveDepartmentId()))
+            ->orderBy('id')
+            ->get();
+        $preselectedDeptId = $request->get('department_id', ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : null);
+        $preselectedCohortId = $request->get('cohort_id', $cohorts->where('status', 'active')->first()?->id);
+
+        return view('admin.seminars.create', compact('cohorts', 'departments', 'preselectedDeptId', 'preselectedCohortId'));
     }
 
     public function store(SeminarRequest $request)

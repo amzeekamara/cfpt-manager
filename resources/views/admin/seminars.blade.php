@@ -25,11 +25,33 @@
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
-        <div class="flex items-center gap-2 mb-8 bg-white/70 backdrop-blur-xs p-1.5 rounded-full w-fit border border-slate-200 shadow-2xs" id="tabs">
-            <button onclick="switchTab('active')" id="tab-active" class="tab-btn px-5 py-2 bg-[#4B6A95] text-white font-bold text-xs rounded-full shadow-xs transition">Actifs ({{ $activeSeminars->count() }})</button>
-            <button onclick="switchTab('draft')" id="tab-draft" class="tab-btn px-5 py-2 text-slate-600 hover:text-slate-900 font-bold text-xs rounded-full hover:bg-slate-100 transition">Brouillons ({{ $draftSeminars->count() }})</button>
-            <button onclick="switchTab('completed')" id="tab-completed" class="tab-btn px-5 py-2 text-slate-600 hover:text-slate-900 font-bold text-xs rounded-full hover:bg-slate-100 transition">Passés ({{ $pastSeminars->count() }})</button>
+        <!-- Navigation Tabs & Filtres Département / Année Académique -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-2 bg-white/70 backdrop-blur-xs p-1.5 rounded-full w-fit border border-slate-200 shadow-2xs" id="tabs">
+                <button onclick="switchTab('active')" id="tab-active" class="tab-btn px-5 py-2 bg-[#4B6A95] text-white font-bold text-xs rounded-full shadow-xs transition">Filières Actives ({{ $activeSeminars->count() }})</button>
+                <button onclick="switchTab('draft')" id="tab-draft" class="tab-btn px-5 py-2 text-slate-600 hover:text-slate-900 font-bold text-xs rounded-full hover:bg-slate-100 transition">Brouillons ({{ $draftSeminars->count() }})</button>
+                <button onclick="switchTab('completed')" id="tab-completed" class="tab-btn px-5 py-2 text-slate-600 hover:text-slate-900 font-bold text-xs rounded-full hover:bg-slate-100 transition">Clôturées ({{ $pastSeminars->count() }})</button>
+            </div>
+
+            <form action="{{ route('admin.seminars') }}" method="GET" id="filiereFilterForm" class="m-0 flex flex-wrap items-center gap-2.5">
+                @if(isset($departments) && $departments->count() > 1)
+                <select name="department_id" onchange="document.getElementById('filiereFilterForm').submit()" class="bg-white border border-slate-200 rounded-full px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#4B6A95] shadow-2xs cursor-pointer">
+                    <option value="">Tous les 3 Départements</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->id }}" {{ ($deptId ?? '') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                    @endforeach
+                </select>
+                @endif
+
+                @if(isset($cohorts))
+                <select name="cohort_id" onchange="document.getElementById('filiereFilterForm').submit()" class="bg-white border border-slate-200 rounded-full px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#4B6A95] shadow-2xs cursor-pointer">
+                    <option value="">Toutes les Années Académiques</option>
+                    @foreach($cohorts as $cohort)
+                        <option value="{{ $cohort->id }}" {{ ($cohortId ?? '') == $cohort->id ? 'selected' : '' }}>{{ $cohort->title }}</option>
+                    @endforeach
+                </select>
+                @endif
+            </form>
         </div>
 
         @php
