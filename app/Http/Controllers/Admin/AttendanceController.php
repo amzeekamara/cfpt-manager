@@ -15,7 +15,13 @@ class AttendanceController extends Controller
         $date = $request->get('date');
         $status = $request->get('status');
 
-        $query = Attendance::with(['registration.user', 'registration.seminar', 'topic', 'trainer']);
+        $user = auth()->user();
+        $deptId = ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : null;
+
+        $query = Attendance::with(['registration.user', 'registration.seminar', 'topic', 'trainer'])
+            ->when($deptId, function ($q) use ($deptId) {
+                $q->whereHas('registration.seminar.departments', fn($dq) => $dq->where('departments.id', $deptId));
+            });
 
         if ($seminarId) {
             $query->whereHas('registration', function($q) use ($seminarId) {
@@ -39,7 +45,9 @@ class AttendanceController extends Controller
         $attendanceRate = $total > 0 ? round(($totalPresences / $total) * 100, 1) : 0;
 
         $attendances = $query->orderByDesc('session_date')->paginate(50);
-        $seminars = Seminar::orderBy('title')->get();
+        $seminars = Seminar::when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->orderBy('title')
+            ->get();
 
         return view('admin.attendances.index', compact('attendances', 'seminars', 'seminarId', 'date', 'status', 'totalPresences', 'totalAbsences', 'total', 'attendanceRate'));
     }

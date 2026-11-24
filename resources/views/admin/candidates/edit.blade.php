@@ -26,9 +26,15 @@
                 <p class="text-slate-500 font-medium">Candidat : <span class="font-bold text-primary">{{ $registration->user->name }}</span></p>
             </div>
         </div>
-        <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-primary rounded-full border border-blue-100 text-xs font-bold uppercase tracking-wider">
-            <span class="material-symbols-outlined text-sm">info</span>
-            ID Dossier #{{ str_pad($registration->id, 5, '0', STR_PAD_LEFT) }}
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-primary rounded-full border border-blue-100 text-xs font-bold uppercase tracking-wider">
+                <span class="material-symbols-outlined text-sm">info</span>
+                ID Dossier #{{ str_pad($registration->id, 5, '0', STR_PAD_LEFT) }}
+            </div>
+            <button type="submit" form="wizard-form" class="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase text-xs tracking-wider shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                <span class="material-symbols-outlined text-base">save</span>
+                Enregistrer
+            </button>
         </div>
     </div>
 
@@ -46,16 +52,20 @@
         </div>
     @endif
 
-    <!-- Stepper -->
+    <!-- Stepper cliquable -->
+    @php
+        $stepLabels = [1 => 'Identité', 2 => 'Profil', 3 => 'Parcours', 4 => 'Documents', 5 => 'Séminaire'];
+    @endphp
     <div class="flex justify-between items-center mb-12 max-w-2xl mx-auto relative z-10">
         @for($i=1; $i<=5; $i++)
-            <div class="flex flex-col items-center gap-2 relative z-20">
-                <div id="step-dot-{{$i}}" class="w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 {{ $i === 1 ? 'step-active' : 'step-inactive' }} bg-white">
+            <button type="button" onclick="goToStep({{$i}})" class="flex flex-col items-center gap-1.5 relative z-20 cursor-pointer group focus:outline-none">
+                <div id="step-dot-{{$i}}" class="w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 group-hover:scale-105 {{ $i === 1 ? 'step-active' : 'step-inactive' }} bg-white">
                     {{$i}}
                 </div>
-            </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-primary">{{ $stepLabels[$i] }}</span>
+            </button>
             @if($i < 5)
-                <div class="flex-1 h-[2px] bg-slate-200 mx-1 z-10"></div>
+                <div class="flex-1 h-[2px] bg-slate-200 mx-1 -mt-5 z-10"></div>
             @endif
         @endfor
     </div>
@@ -423,11 +433,16 @@
             </div>
 
             <!-- Form Controls -->
-            <div class="mt-16 flex justify-between items-center bg-slate-50 -mx-8 -mb-14 p-8 border-t border-slate-100">
-                <button type="button" id="prev-btn" class="hidden px-8 py-3 rounded-md font-bold text-slate-500 hover:bg-white transition-all border border-slate-200 shadow-sm">Précédent</button>
-                <div></div>
-                <button type="button" id="next-btn" class="px-10 py-4 rounded-md bg-primary text-white font-black uppercase text-xs tracking-[0.2em] shadow-md hover:-translate-y-1 transition-all">Suivant</button>
-                <button type="submit" id="submit-btn" class="hidden px-10 py-4 rounded-md bg-emerald-600 text-white font-black uppercase text-xs tracking-[0.2em] shadow-md hover:-translate-y-1 transition-all">Enregistrer</button>
+            <div class="mt-16 flex flex-wrap justify-between items-center gap-3 bg-slate-50 -mx-8 -mb-14 p-8 border-t border-slate-100">
+                <button type="button" id="prev-btn" class="hidden px-8 py-3 rounded-md font-bold text-slate-500 hover:bg-white transition-all border border-slate-200 shadow-sm cursor-pointer">Précédent</button>
+                <div class="flex-1"></div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" id="submit-btn" class="px-8 py-4 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs tracking-[0.2em] shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        Enregistrer
+                    </button>
+                    <button type="button" id="next-btn" class="px-10 py-4 rounded-md bg-primary text-white font-black uppercase text-xs tracking-[0.2em] shadow-md hover:-translate-y-0.5 transition-all cursor-pointer">Suivant</button>
+                </div>
             </div>
 
         </div>
@@ -489,14 +504,15 @@
         }
 
         prevBtn.classList.toggle('hidden', currentStep === 1);
-        if(currentStep === totalSteps) {
-            nextBtn.classList.add('hidden');
-            submitBtn.classList.remove('hidden');
-        } else {
-            nextBtn.classList.remove('hidden');
-            submitBtn.classList.add('hidden');
-        }
+        nextBtn.classList.toggle('hidden', currentStep === totalSteps);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goToStep(step) {
+        if (step >= 1 && step <= totalSteps) {
+            currentStep = step;
+            updateStep();
+        }
     }
 
     function addAcademicRow() {

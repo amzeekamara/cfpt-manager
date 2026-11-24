@@ -17,30 +17,30 @@ class RolesAndAdminSeeder extends Seeder
     {
         // 1. Roles
         $adminRole = Role::firstOrCreate(['name' => 'Administrateur'], [
-            'description' => 'Administrateur système'
+            'description' => 'Directeur des Études / Administrateur général'
+        ]);
+
+        $deptHeadRole = Role::firstOrCreate(['name' => 'Chef de Département'], [
+            'description' => 'Administrateur pédagogique de département'
         ]);
 
         $coordinatorRole = Role::firstOrCreate(['name' => 'Coordinateur'], [
-            'description' => 'Coordinateur de programme'
+            'description' => 'Coordinateur pédagogique'
         ]);
 
         $candidateRole = Role::firstOrCreate(['name' => 'Candidat'], [
-            'description' => 'Candidat aux séminaires'
+            'description' => 'Étudiant inscrit au CFPT'
         ]);
 
         Role::firstOrCreate(['name' => 'Formateur'], [
-            'description' => 'Formateur du programme'
+            'description' => 'Formateur / Enseignant du CFPT'
         ]);
 
-        Role::firstOrCreate(['name' => 'Agent JICA'], [
-            'description' => 'Représentant de la JICA'
-        ]);
-
-        // 2. Admin account
+        // 2. Admin account (Directeur des Études)
         User::firstOrCreate(
             ['email' => 'admin@cfptsj.sn'],
             [
-                'name' => 'Administrateur PFPT',
+                'name' => 'Directeur des Études CFPT',
                 'password' => Hash::make('password'),
                 'role_id' => $adminRole->id,
             ]

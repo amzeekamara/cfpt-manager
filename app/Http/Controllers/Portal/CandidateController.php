@@ -10,6 +10,9 @@ use App\Models\ProfileUpdateRequest;
 use App\Models\SeminarChangeRequest;
 use App\Models\Seminar;
 use App\Models\Resource;
+use App\Models\Timetable;
+use App\Models\Evaluation;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CandidateController extends Controller
 {
@@ -31,7 +34,59 @@ class CandidateController extends Controller
         }
 
         // Get the active registration (assuming the latest one for simplicity)
-        $registration = $profile->user->registrations()->latest()->first();
+        $registration = $profile->user->registrations()->with(['seminar.cohort', 'seminar.departments', 'topic', 'attendances.topic', 'attendances.trainer', 'grades.evaluation.topic'])->latest()->first();
+
+        $studentTimetables = collect();
+        $studentEvaluations = collect();
+        $studentAverage = null;
+        $totalCoef = 0;
+
+        if ($registration && $registration->seminar_id) {
+            $studentTimetables = Timetable::with(['topic', 'trainer', 'classroom', 'department'])
+                ->where('seminar_id', $registration->seminar_id)
+                ->where(function ($q) use ($registration) {
+                    $q->whereNull('topic_id');
+                    if ($registration->topic_id) {
+                        $q->orWhere('topic_id', $registration->topic_id);
+                    }
+                })
+                ->orderBy('start_time')
+                ->get();
+
+            $publishedEvaluations = Evaluation::with(['topic', 'trainer'])
+                ->where('seminar_id', $registration->seminar_id)
+                ->where('is_published', true)
+                ->where(function ($q) use ($registration) {
+                    $q->whereNull('topic_id');
+                    if ($registration->topic_id) {
+                        $q->orWhere('topic_id', $registration->topic_id);
+                    }
+                })
+                ->orderByDesc('evaluation_date')
+                ->get();
+
+            $gradesByEval = $registration->grades->keyBy('evaluation_id');
+            $weightedSum = 0;
+
+            foreach ($publishedEvaluations as $eval) {
+                $g = $gradesByEval->get($eval->id);
+                $s20 = null;
+                if ($g && $g->score !== null) {
+                    $s20 = ($g->score / max(1, $eval->max_score)) * 20;
+                    $weightedSum += $s20 * $eval->coefficient;
+                    $totalCoef += $eval->coefficient;
+                }
+                $studentEvaluations->push([
+                    'evaluation' => $eval,
+                    'grade' => $g,
+                    'score20' => $s20,
+                ]);
+            }
+
+            if ($totalCoef > 0) {
+                $studentAverage = round($weightedSum / $totalCoef, 2);
+            }
+        }
         
         $messagesQuery = Message::with(['trainer', 'user', 'seminar', 'cohort']);
 
@@ -88,7 +143,84 @@ class CandidateController extends Controller
             ->latest()
             ->get();
 
-        return view('portal.candidate.dashboard', compact('profile', 'registration', 'messages', 'seminars', 'resources'));
+        return view('portal.candidate.dashboard', compact(
+            'profile',
+            'registration',
+            'messages',
+            'seminars',
+            'resources',
+            'studentTimetables',
+            'studentEvaluations',
+            'studentAverage',
+            'totalCoef'
+        ));
+    }
+
+    public function downloadReportCard()
+    {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $registration = \App\Models\Registration::with(['user.candidateProfile', 'seminar.departments', 'seminar.cohort', 'topic', 'grades.evaluation.topic', 'grades.evaluation.trainer', 'attendances'])
+            ->where('user_id', $userId)
+            ->latest()
+            ->firstOrFail();
+
+        $evaluations = Evaluation::with(['topic', 'trainer'])
+            ->where('seminar_id', $registration->seminar_id)
+            ->where('is_published', true)
+            ->where(function ($q) use ($registration) {
+                $q->whereNull('topic_id');
+                if ($registration->topic_id) {
+                    $q->orWhere('topic_id', $registration->topic_id);
+                }
+            })
+            ->orderBy('evaluation_date')
+            ->get();
+
+        $gradesByEval = $registration->grades->keyBy('evaluation_id');
+        $totalWeighted = 0;
+        $totalCoef = 0;
+        $rows = [];
+
+        foreach ($evaluations as $eval) {
+            $grade = $gradesByEval->get($eval->id);
+            $score20 = null;
+            if ($grade && $grade->score !== null) {
+                $score20 = ($grade->score / max(1, $eval->max_score)) * 20;
+                $totalWeighted += $score20 * $eval->coefficient;
+                $totalCoef += $eval->coefficient;
+            }
+            $rows[] = [
+                'evaluation' => $eval,
+                'grade' => $grade,
+                'score20' => $score20,
+            ];
+        }
+
+        $generalAverage = $totalCoef > 0 ? round($totalWeighted / $totalCoef, 2) : null;
+        $mention = match (true) {
+            $generalAverage === null => 'Non évalué',
+            $generalAverage >= 16 => 'Très Bien',
+            $generalAverage >= 14 => 'Bien',
+            $generalAverage >= 12 => 'Assez Bien',
+            $generalAverage >= 10 => 'Passable',
+            default => 'Ajourné / Insuffisant',
+        };
+
+        $presentCount = $registration->attendances->where('status', 'present')->count();
+        $absentCount = $registration->attendances->where('status', 'absent')->count();
+
+        $pdf = Pdf::loadView('exports.pdf.report_card', compact(
+            'registration',
+            'rows',
+            'generalAverage',
+            'totalCoef',
+            'mention',
+            'presentCount',
+            'absentCount'
+        ))->setPaper('a4', 'portrait');
+
+        $filename = 'Bulletin_Notes_CFPT_' . str_replace(' ', '_', $registration->user->name) . '.pdf';
+        return $pdf->download($filename);
     }
 
     public function markMessageAsRead(Message $message)

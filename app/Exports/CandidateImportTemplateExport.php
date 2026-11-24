@@ -153,7 +153,7 @@ class CandidateTemplateGuideSheet implements FromArray, WithHeadings, WithTitle,
                 $rows[] = [$seminar->title, 'Séminaire', '(Aucun thème spécifique)'];
             } else {
                 foreach ($seminar->topics as $topic) {
-                    $rows[] = [$seminar->title, 'Thème', $topic->title];
+                    $rows[] = [$seminar->title, 'Thème', $topic->name];
                 }
             }
         }

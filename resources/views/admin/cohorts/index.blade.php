@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Éditions & Budgets')
+@section('header_title', 'Années Académiques & Promotions')
 
 @section('content')
 <div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800">
@@ -13,23 +13,21 @@
                     <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
                 </a>
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Cycles de Formation</h1>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Années Académiques & Promotions</h1>
                     <p class="text-slate-500 text-xs sm:text-sm mt-0.5">
-                        Gérez les éditions du programme. Les cycles terminés sont consultables dans 
+                        Gérez les promotions et années scolaires du CFPT Sénégal-Japon. Les promotions clôturées sont consultables dans 
                         <a href="{{ route('admin.archives') }}" class="text-[#4B6A95] font-bold hover:underline inline-flex items-center gap-1">
                             l'archivage <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                         </a>
                     </p>
                 </div>
             </div>
-            @if(auth()->user()->role->name !== 'Agent JICA')
             <div class="flex items-center gap-3">
                 <a href="{{ route('admin.cohorts.create') }}" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm">
                     <span class="material-symbols-outlined text-[18px] leading-none">add_circle</span>
-                    Nouvelle Édition
+                    Nouvelle Année Académique
                 </a>
             </div>
-            @endif
         </header>
 
         <style>
@@ -236,22 +234,18 @@
 
                     <div class="folder-details">
                         <div class="folder-row">
-                            <span class="storage-text">Budget Alloué</span>
-                            <span class="folder-value text-primary">{{ number_format($cohort->total_budget, 0, ',', ' ') }} FCFA</span>
+                            <span class="storage-text">Filières & Classes</span>
+                            <span class="folder-value">{{ $cohort->seminars_count }} filière(s)</span>
                         </div>
                         <div class="folder-row">
-                            <span class="storage-text">Séminaires</span>
-                            <span class="folder-value">{{ $cohort->seminars_count }} sessions</span>
-                        </div>
-                        <div class="folder-row">
-                            <span class="storage-text">Période</span>
-                            <span class="folder-value text-[13px] bg-gray-50 px-2 py-1 rounded-md border border-gray-100">{{ $cohort->start_date->format('d M') }} - {{ $cohort->end_date->format('d M Y') }}</span>
+                            <span class="storage-text">Période Académique</span>
+                            <span class="folder-value text-[13px] bg-gray-50 px-2 py-1 rounded-md border border-gray-100">{{ $cohort->start_date->format('d M Y') }} - {{ $cohort->end_date->format('d M Y') }}</span>
                         </div>
                     </div>
 
                     <div class="folder-footer">
-                        <a href="{{ route('admin.finances', ['cohort_id' => $cohort->id]) }}" class="folder-action-btn btn-budget">
-                            Détails Budget
+                        <a href="{{ route('admin.seminars') }}" class="folder-action-btn btn-budget">
+                            Voir les Filières
                         </a>
                         @if(auth()->user()->role->name !== 'Agent JICA')
                         <div class="folder-actions relative">

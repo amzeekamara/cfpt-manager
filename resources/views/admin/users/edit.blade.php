@@ -53,8 +53,8 @@
             role: '{{ old('role_id', $user->role_id) }}', 
             trainerRoleId: '{{ $roles->where('name', 'Formateur')->first()->id ?? '' }}',
             adminRoleId: '{{ $roles->where('name', 'Administrateur')->first()->id ?? '' }}',
+            deptHeadRoleId: '{{ $roles->where('name', 'Chef de Département')->first()->id ?? '' }}',
             coordinatorRoleId: '{{ $roles->where('name', 'Coordinateur')->first()->id ?? '' }}',
-            jicaRoleId: '{{ $roles->where('name', 'Agent JICA')->first()->id ?? '' }}',
             candidateRoleId: '{{ $roles->where('name', 'Candidat')->first()->id ?? '' }}'
         }">
             
@@ -151,11 +151,14 @@
                                 placeholder="Ex: Directeur Général, Coordonnateur JICA...">
                         </div>
 
-                        <div x-show="role == jicaRoleId" x-transition class="space-y-2 pt-2 border-t border-slate-100">
-                            <label for="position_jica" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Fonction au sein de la JICA</label>
-                            <input type="text" name="position" id="position_jica" value="{{ old('position', $user->position) }}"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition"
-                                placeholder="Ex: Représentant Résident, Chargé de Programme...">
+                        <div x-show="role == deptHeadRoleId || role == trainerRoleId" x-transition class="space-y-2 pt-2 border-t border-slate-100">
+                            <label for="department_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Département rattaché</label>
+                            <select name="department_id" id="department_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition">
+                                <option value="">-- Sélectionner un département --</option>
+                                @foreach($departments ?? [] as $dept)
+                                    <option value="{{ $dept->id }}" {{ old('department_id', $user->department_id) == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <!-- Candidate Info Clean Text -->

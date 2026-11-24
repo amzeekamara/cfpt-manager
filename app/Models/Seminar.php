@@ -55,6 +55,16 @@ class Seminar extends Model
         return $this->belongsToMany(Department::class);
     }
 
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class);
+    }
+
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class);
+    }
+
     /**
      * Vérifie si le séminaire est à venir (candidatures ouvertes).
      */

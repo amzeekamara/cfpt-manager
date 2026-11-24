@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>PFPT CFPT - Administration</title>
+    <title>CFPT Manager - CFPT Sénégal-Japon</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -197,80 +197,80 @@
             </a>
         </div>
 
-        <!-- 2. Catalogue & Séminaires (Liste déroulante) -->
+        <!-- 2. Pédagogie, Cours & Emplois du Temps (Liste déroulante) -->
         <div class="relative">
             <button @click="activeFlyout = activeFlyout === 'catalogue' ? null : 'catalogue'" 
-                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.seminars*') || request()->routeIs('admin.cohorts.*') || request()->routeIs('admin.topics.*') || request()->routeIs('admin.departments.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
-                    title="Catalogue & Séminaires">
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.seminars*') || request()->routeIs('admin.cohorts.*') || request()->routeIs('admin.topics.*') || request()->routeIs('admin.departments.*') || request()->routeIs('admin.timetables.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
+                    title="Pédagogie, Départements & Emplois du Temps">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
             </button>
 
             <!-- Flyout Dropdown -->
             <div x-show="activeFlyout === 'catalogue'" 
                  x-transition 
-                 class="absolute left-full top-0 ml-3 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50"
+                 class="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50"
                  style="display: none;">
                 <div class="px-3 py-2 border-b border-slate-100 mb-1">
-                    <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Catalogue & Formations</p>
+                    <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Pédagogie & Planning</p>
                 </div>
                 <div class="space-y-0.5 text-xs">
+                    <a href="{{ route('admin.timetables.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.timetables.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="calendar-clock" class="w-4 h-4 text-[#4B6A95]"></i>
+                        <span>Emplois du Temps & Salles</span>
+                    </a>
+                    <a href="{{ route('admin.departments.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.departments.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="building" class="w-4 h-4 text-[#4B6A95]"></i>
+                        <span>Départements & Salles</span>
+                    </a>
                     <a href="{{ route('admin.seminars') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.seminars') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="book-open" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Séminaires</span>
-                    </a>
-                    <a href="{{ route('admin.seminars.create') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition">
-                        <i data-lucide="plus-circle" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>+ Nouveau séminaire</span>
-                    </a>
-                    <a href="{{ route('admin.cohorts.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.cohorts.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
-                        <i data-lucide="layers" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Éditions & Budgets</span>
+                        <span>Filières & Cours</span>
                     </a>
                     <a href="{{ route('admin.topics.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.topics.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="tag" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Thèmes</span>
+                        <span>Matières / Modules</span>
                     </a>
-                    @if(auth()->user()->role->name !== 'Agent JICA')
-                    <a href="{{ route('admin.departments.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.departments.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
-                        <i data-lucide="building" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Départements</span>
+                    <a href="{{ route('admin.cohorts.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.cohorts.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="layers" class="w-4 h-4 text-[#4B6A95]"></i>
+                        <span>Années Académiques / Promotions</span>
                     </a>
-                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- 3. Scolarité & Candidatures (Liste déroulante) -->
+        <!-- 3. Scolarité, Étudiants, Présences & Notes (Liste déroulante) -->
         <div class="relative">
             <button @click="activeFlyout = activeFlyout === 'scolarite' ? null : 'scolarite'" 
-                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.candidates*') || request()->routeIs('admin.attendances.*') || request()->routeIs('admin.forms.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
-                    title="Scolarité & Candidatures">
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.candidates*') || request()->routeIs('admin.attendances.*') || request()->routeIs('admin.evaluations.*') || request()->routeIs('admin.forms.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
+                    title="Étudiants, Présences & Évaluations">
                 <i data-lucide="users" class="w-5 h-5"></i>
             </button>
 
             <!-- Flyout Dropdown -->
             <div x-show="activeFlyout === 'scolarite'" 
                  x-transition 
-                 class="absolute left-full top-0 ml-3 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50"
+                 class="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50"
                  style="display: none;">
                 <div class="px-3 py-2 border-b border-slate-100 mb-1">
-                    <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Scolarité & Candidats</p>
+                    <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Étudiants & Évaluations</p>
                 </div>
                 <div class="space-y-0.5 text-xs">
                     <a href="{{ route('admin.candidates') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.candidates') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="user-check" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Tous les Candidats</span>
+                        <span>Étudiants Inscrits</span>
                     </a>
-                    @if(auth()->user()->role->name !== 'Agent JICA')
+                    <a href="{{ route('admin.evaluations.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.evaluations.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="award" class="w-4 h-4 text-[#4B6A95]"></i>
+                        <span>Évaluations, Notes & Bulletins</span>
+                    </a>
                     <a href="{{ route('admin.attendances.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.attendances.index') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="clipboard-check" class="w-4 h-4 text-[#4B6A95]"></i>
                         <span>Feuilles de Présence</span>
                     </a>
                     <a href="{{ route('admin.forms.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.forms.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="file-text" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Formulaires d'inscription</span>
+                        <span>Formulaires & Enquêtes</span>
                     </a>
-                    @endif
                 </div>
             </div>
         </div>
@@ -325,25 +325,21 @@
                     <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Administration</p>
                 </div>
                 <div class="space-y-0.5 text-xs">
-                    <a href="{{ route('admin.finances') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.finances') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
-                        <i data-lucide="wallet" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Finances & Recettes</span>
-                    </a>
-                    @if(auth()->user()->role->name !== 'Agent JICA')
+                    @if(!auth()->user()->isDepartmentHead())
                     <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.users.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="shield" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Utilisateurs & Rôles</span>
+                        <span>Utilisateurs & Chefs de Dép.</span>
                     </a>
+                    @endif
                     <a href="{{ route('admin.messages.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.messages.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="mail" class="w-4 h-4 text-[#4B6A95]"></i>
                         <span>Messages & Diffusion</span>
                     </a>
-                    @if(Route::has('admin.debug.emails'))
+                    @if(Route::has('admin.debug.emails') && !auth()->user()->isDepartmentHead())
                     <a href="{{ route('admin.debug.emails') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.debug.emails') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="bug" class="w-4 h-4 text-[#4B6A95]"></i>
                         <span>Debugger Emails</span>
                     </a>
-                    @endif
                     @endif
                     <a href="{{ route('admin.notifications.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.notifications.index') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="bell" class="w-4 h-4 text-[#4B6A95]"></i>
@@ -397,11 +393,11 @@
 
             <!-- Brand Logo Pill -->
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 bg-white px-3.5 py-1.5 rounded-full border border-slate-200/90 shadow-2xs hover:shadow-xs transition group">
-                <img src="{{ asset('images/favicon.png') }}" alt="Logo PFPT" class="h-8 w-8 object-contain rounded-full">
+                <img src="{{ asset('images/favicon.png') }}" alt="Logo CFPT Manager" class="h-8 w-8 object-contain rounded-full">
                 <div class="hidden sm:flex flex-col">
-                    <span class="text-xs font-black text-slate-900 leading-none tracking-tight group-hover:text-[#4B6A95] transition">PFPT - CFPT</span>
+                    <span class="text-xs font-black text-slate-900 leading-none tracking-tight group-hover:text-[#4B6A95] transition">CFPT MANAGER</span>
                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mt-0.5">
-                        {{ (auth()->check() && auth()->user()->role && auth()->user()->role->name === 'Agent JICA') ? 'Portail Agent JICA' : 'Portail Administrateur' }}
+                        {{ (auth()->check() && auth()->user()->role && auth()->user()->role->name === 'Chef de Département') ? 'Chef de Département' : 'Direction des Études' }}
                     </span>
                 </div>
             </a>
@@ -410,43 +406,43 @@
         <!-- Center: Floating Navigation Pill (Bleu Principal) -->
         <nav class="hidden xl:flex items-center bg-white rounded-full p-1.5 border border-slate-200/90 shadow-2xs text-xs font-semibold text-slate-600 gap-1">
             <a href="{{ route('admin.dashboard') }}" 
-               class="px-5 py-2 rounded-full font-bold transition {{ request()->routeIs('admin.dashboard') ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+               class="px-4 py-2 rounded-full font-bold transition {{ request()->routeIs('admin.dashboard') ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                 Vue d'ensemble
             </a>
-            
-            <a href="{{ route('admin.candidates') }}" 
-               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.candidates*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Candidatures
+
+            <a href="{{ route('admin.departments.index') }}" 
+               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.departments.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Départements & Salles
+            </a>
+
+            <a href="{{ route('admin.timetables.index') }}" 
+               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.timetables.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Emplois du Temps
             </a>
 
             <a href="{{ route('admin.seminars') }}" 
                class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.seminars*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Séminaires
+                Filières & Cours
+            </a>
+            
+            <a href="{{ route('admin.candidates') }}" 
+               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.candidates*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Étudiants
             </a>
 
-            <a href="{{ route('admin.cohorts.index') }}" 
-               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.cohorts*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Éditions
+            <a href="{{ route('admin.attendances.index') }}" 
+               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.attendances.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Présences
             </a>
 
-            <a href="{{ route('admin.finances') }}" 
-               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.finances*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Finances
+            <a href="{{ route('admin.evaluations.index') }}" 
+               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.evaluations.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Évaluations & Notes
             </a>
 
             <a href="{{ route('admin.resources.index') }}" 
                class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.resources*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Documents
-            </a>
-
-            <a href="{{ route('admin.forms.index') }}" 
-               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.forms.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Formulaires
-            </a>
-
-            <a href="{{ route('admin.badges.generator') }}" 
-               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.badges.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Cartes & Attestations
+                Supports
             </a>
         </nav>
 

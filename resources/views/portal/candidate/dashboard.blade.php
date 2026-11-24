@@ -1,9 +1,9 @@
 @extends('portal.layout')
-@section('title', 'Espace Candidat - Tableau de bord')
+@section('title', 'Espace Étudiant - Tableau de bord')
 
 @section('content')
 <div x-data="{
-    activeTab: 'formation',
+    activeTab: 'timetable',
     msgModal: { open: false, sender: '', date: '', subject: '', body: '', attachment: '', attachmentName: '' },
     openMsg(data) {
         this.msgModal = { open: true, ...data };
@@ -16,12 +16,18 @@
     <!-- Breadcrumb & Top Action Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-            <span>Espace Candidat</span>
+            <span>Espace Étudiant</span>
             <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
-            <span class="text-slate-900 font-black">Mon Tableau de Bord</span>
+            <span class="text-slate-900 font-black">Mon Tableau de Bord Pédagogique</span>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
+            @if($registration)
+                <a href="{{ route('portal.candidate.report-card.pdf') }}" data-no-loader class="px-4 py-2.5 bg-white hover:bg-slate-50 text-[#4B6A95] border border-slate-200 text-xs font-bold rounded-full shadow-2xs flex items-center gap-2 transition-all">
+                    <i data-lucide="file-Spreadsheet" class="w-4 h-4"></i>
+                    <span>Télécharger mon Bulletin PDF</span>
+                </a>
+            @endif
             <a href="{{ route('portal.candidate.profile.edit') }}" class="px-5 py-2.5 bg-[#4B6A95] text-white text-xs font-bold rounded-full hover:bg-[#354e70] shadow-xs flex items-center gap-2 transition-all">
                 <i data-lucide="user-cog" class="w-4 h-4"></i>
                 <span>Modifier mon dossier / profil</span>
@@ -212,19 +218,209 @@
             <div>
                 <!-- Tab Navigation Pills -->
                 <div class="flex items-center gap-2 border-b border-slate-100 pb-4 mb-6 overflow-x-auto">
+                    <button @click="activeTab = 'timetable'" 
+                            :class="{ 'bg-[#4B6A95] text-white shadow-xs': activeTab === 'timetable', 'bg-slate-100 text-slate-600 hover:bg-slate-200': activeTab !== 'timetable' }"
+                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>
+                        <span>Mon Emploi du Temps</span>
+                    </button>
+                    <button @click="activeTab = 'grades'" 
+                            :class="{ 'bg-[#4B6A95] text-white shadow-xs': activeTab === 'grades', 'bg-slate-100 text-slate-600 hover:bg-slate-200': activeTab !== 'grades' }"
+                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                        <span>Mes Notes & Évaluations</span>
+                        @if(isset($studentAverage) && $studentAverage !== null)
+                            <span class="bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-black">{{ number_format($studentAverage, 1) }}/20</span>
+                        @endif
+                    </button>
+                    <button @click="activeTab = 'attendances'" 
+                            :class="{ 'bg-[#4B6A95] text-white shadow-xs': activeTab === 'attendances', 'bg-slate-100 text-slate-600 hover:bg-slate-200': activeTab !== 'attendances' }"
+                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
+                        <span>Mes Présences & Absences</span>
+                    </button>
                     <button @click="activeTab = 'formation'" 
                             :class="{ 'bg-[#4B6A95] text-white shadow-xs': activeTab === 'formation', 'bg-slate-100 text-slate-600 hover:bg-slate-200': activeTab !== 'formation' }"
-                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap">
-                        Ma Formation & Séminaire
+                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap cursor-pointer">
+                        Ma Filière
                     </button>
                     <button @click="activeTab = 'messages'" 
                             :class="{ 'bg-[#4B6A95] text-white shadow-xs': activeTab === 'messages', 'bg-slate-100 text-slate-600 hover:bg-slate-200': activeTab !== 'messages' }"
-                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1.5">
-                        <span>Messages & Documents joints</span>
+                            class="px-5 py-2.5 rounded-full font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer">
+                        <span>Messages</span>
                         @if($messages->count() > 0)
                             <span class="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-black">{{ $messages->count() }}</span>
                         @endif
                     </button>
+                </div>
+
+                <!-- TAB: MON EMPLOI DU TEMPS -->
+                <div x-show="activeTab === 'timetable'" class="space-y-4">
+                    @if(isset($studentTimetables) && $studentTimetables->count() > 0)
+                        <div class="p-4 rounded-2xl bg-gradient-to-r from-[#162536] via-[#2b425e] to-[#4B6A95] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                                    <i data-lucide="calendar-clock" class="w-5 h-5 text-amber-300"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-200 block">Emploi du Temps Hebdomadaire</span>
+                                    <h4 class="text-sm font-black">{{ $registration->seminar?->title ?? 'Ma Filière' }}</h4>
+                                </div>
+                            </div>
+                            <span class="px-3.5 py-1.5 rounded-full bg-white/15 border border-white/20 text-xs font-black">
+                                {{ $studentTimetables->count() }} cours • {{ $studentTimetables->sum('planned_hours') }}h / semaine
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            @foreach($studentTimetables as $slot)
+                                <div class="p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#4B6A95] bg-slate-50/50 hover:bg-white hover:shadow-md transition flex flex-col justify-between gap-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="px-3 py-1 rounded-lg bg-slate-900 text-white font-black text-xs uppercase tracking-wider">
+                                            {{ $slot->day_of_week }}
+                                        </span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-[#4B6A95] font-black text-xs">
+                                            {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }} ({{ $slot->planned_hours }}h)
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <h5 class="text-sm font-black text-slate-900 leading-snug">
+                                            {{ $slot->topic?->name ?? $registration->seminar?->title ?? 'Cours' }}
+                                        </h5>
+                                        <p class="text-[11px] font-semibold text-slate-500 mt-0.5">
+                                            Département {{ $slot->department?->name ?? 'Technique' }}
+                                        </p>
+                                    </div>
+
+                                    <div class="pt-2.5 border-t border-slate-200/70 flex items-center justify-between text-xs">
+                                        <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                            <i data-lucide="user" class="w-3.5 h-3.5 text-[#4B6A95]"></i>
+                                            {{ $slot->trainer?->name ?? 'Formateur' }}
+                                        </span>
+                                        <span class="px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold text-[11px]">
+                                            {{ $slot->classroom?->name ?? 'Salle assignée' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="py-10 text-center text-slate-400 text-xs">
+                            <i data-lucide="calendar-clock" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+                            <p class="font-bold text-slate-700 text-sm">Aucun créneau d'emploi du temps publié pour votre filière.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- TAB: MES NOTES & RESTITUTION -->
+                <div x-show="activeTab === 'grades'" class="space-y-4" style="display: none;">
+                    <div class="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-blue-200 block">Restitution Pédagogique — Moyenne Générale</span>
+                            <div class="text-2xl font-black mt-0.5">
+                                {{ isset($studentAverage) && $studentAverage !== null ? number_format($studentAverage, 2) . ' / 20' : 'Aucune note saisie' }}
+                            </div>
+                        </div>
+                        @if($registration)
+                            <a href="{{ route('portal.candidate.report-card.pdf') }}" data-no-loader class="px-4 py-2 rounded-full bg-[#4B6A95] hover:bg-[#354e70] text-white text-xs font-bold flex items-center gap-1.5 transition">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>Bulletin de notes PDF</span>
+                            </a>
+                        @endif
+                    </div>
+
+                    @if(isset($studentEvaluations) && $studentEvaluations->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400">
+                                        <th class="py-2.5 px-3">Évaluation</th>
+                                        <th class="py-2.5 px-3">Type & Coef.</th>
+                                        <th class="py-2.5 px-3">Matière</th>
+                                        <th class="py-2.5 px-3 text-center">Note obtenue</th>
+                                        <th class="py-2.5 px-3">Appréciation</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach($studentEvaluations as $item)
+                                        @php
+                                            $ev = $item['evaluation'];
+                                            $gr = $item['grade'];
+                                        @endphp
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="py-3 px-3">
+                                                <div class="font-bold text-slate-900">{{ $ev->title }}</div>
+                                                <div class="text-[10px] text-slate-400">{{ $ev->evaluation_date->format('d/m/Y') }}</div>
+                                            </td>
+                                            <td class="py-3 px-3">
+                                                <span class="px-2 py-0.5 rounded bg-blue-50 text-[#4B6A95] font-black text-[10px] uppercase">
+                                                    {{ $ev->type }} (Coef {{ $ev->coefficient }})
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-3 text-slate-600 font-semibold">{{ $ev->topic?->name ?? 'Tronc commun' }}</td>
+                                            <td class="py-3 px-3 text-center">
+                                                @if($gr && $gr->score !== null)
+                                                    <span class="px-2.5 py-1 rounded-lg font-black {{ (($gr->score / max(1, $ev->max_score)) * 20) >= 10 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
+                                                        {{ number_format($gr->score, 2) }} / {{ number_format($ev->max_score, 0) }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-slate-400 italic">En attente</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-3 px-3 font-semibold text-slate-700">{{ $gr?->appreciation ?? '-' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="py-8 text-center text-slate-400 text-xs">
+                            Aucune évaluation publiée pour le moment.
+                        </div>
+                    @endif
+                </div>
+
+                <!-- TAB: MES PRÉSENCES & ABSENCES -->
+                <div x-show="activeTab === 'attendances'" class="space-y-3" style="display: none;">
+                    @if($registration && $registration->attendances->count() > 0)
+                        <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-bold">
+                            <span class="text-emerald-600">● {{ $registration->attendances->where('status', 'present')->count() }} Présence(s)</span>
+                            <span class="text-rose-600">● {{ $registration->attendances->where('status', 'absent')->count() }} Absence(s)</span>
+                        </div>
+                        <div class="overflow-x-auto max-h-72 overflow-y-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400">
+                                        <th class="py-2 px-3">Date de séance</th>
+                                        <th class="py-2 px-3">Matière / Module</th>
+                                        <th class="py-2 px-3">Formateur</th>
+                                        <th class="py-2 px-3 text-right">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach($registration->attendances->sortByDesc('session_date') as $att)
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-bold text-slate-800">{{ $att->session_date->format('d/m/Y') }}</td>
+                                            <td class="py-2.5 px-3 text-slate-600">{{ $att->topic?->name ?? 'Cours général' }}</td>
+                                            <td class="py-2.5 px-3 text-slate-500">{{ $att->trainer?->name ?? '-' }}</td>
+                                            <td class="py-2.5 px-3 text-right">
+                                                @if($att->status === 'present')
+                                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[11px]">Présent</span>
+                                                @else
+                                                    <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-[11px]">Absent</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="py-8 text-center text-slate-400 text-xs">
+                            Aucun émargement enregistré pour le moment.
+                        </div>
+                    @endif
                 </div>
 
                 <!-- TAB 1: FORMATION & TIMELINE -->

@@ -333,15 +333,18 @@
         </div>
 
         {{-- Onglets de bascule --}}
-        <div class="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
+        <div class="flex flex-wrap items-center gap-2 mb-4 border-b border-gray-100 pb-2">
             <button type="button" id="tab-btn-candidates" onclick="switchTrainerTab('candidates')" class="tab-btn active text-xs font-bold">
-                Liste & Statut Aujourd'hui ({{ $recentCandidates->count() }})
+                Étudiants & Présences ({{ $recentCandidates->count() }})
+            </button>
+            <button type="button" id="tab-btn-timetable" onclick="switchTrainerTab('timetable')" class="tab-btn text-xs font-bold">
+                Mon Emploi du Temps ({{ isset($trainerTimetables) ? $trainerTimetables->count() : 0 }})
             </button>
             <button type="button" id="tab-btn-sessions" onclick="switchTrainerTab('sessions')" class="tab-btn text-xs font-bold">
-                Relevé des Heures ({{ $trainerSessions->count() }})
+                Heures Effectuées ({{ $trainerSessions->count() }})
             </button>
             <button type="button" id="tab-btn-topics" onclick="switchTrainerTab('topics')" class="tab-btn text-xs font-bold">
-                Par Thématique ({{ $topicsWithCounts->count() }})
+                Par Matière ({{ $topicsWithCounts->count() }})
             </button>
         </div>
 
@@ -411,6 +414,51 @@
                 <div class="flex flex-col items-center justify-center py-10 text-gray-400">
                     <span class="material-symbols-outlined text-[40px] mb-2">person_off</span>
                     <p class="text-sm font-bold text-gray-600">Aucun candidat approuvé.</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- Contenu Onglet Emploi du Temps Formateur --}}
+        <div id="tab-content-timetable" class="hidden">
+            @if(isset($trainerTimetables) && $trainerTimetables->count() > 0)
+                <div class="flex items-center justify-between p-3 mb-3 rounded-xl bg-gradient-to-r from-[#162536] to-[#4B6A95] text-white text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px] text-amber-300">calendar_clock</span>
+                        <span class="font-bold">Mon Planning Hebdomadaire des Cours</span>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full bg-white/15 font-black">
+                        {{ $trainerTimetables->sum('planned_hours') }}h / semaine
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
+                    @foreach($trainerTimetables as $slot)
+                        <div class="p-3.5 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#4B6A95] bg-white hover:shadow-md transition flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-0.5 rounded-md bg-slate-900 text-white font-black text-[11px] uppercase">
+                                    {{ $slot->day_of_week }}
+                                </span>
+                                <span class="text-xs font-black text-[#4B6A95]">
+                                    {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }} ({{ $slot->planned_hours }}h)
+                                </span>
+                            </div>
+                            <div>
+                                <div class="font-black text-slate-900 text-xs leading-snug">{{ $slot->topic?->name ?? 'Tronc commun' }}</div>
+                                <div class="text-[11px] font-semibold text-slate-500 line-clamp-1">{{ $slot->seminar?->title ?? 'Filière' }}</div>
+                            </div>
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                                <span class="font-extrabold text-emerald-700 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">meeting_room</span>
+                                    {{ $slot->classroom?->name ?? 'Salle assignée' }}
+                                </span>
+                                <span class="text-slate-400 font-medium truncate">{{ $slot->department?->name ?? '' }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-[40px] mb-2">calendar_month</span>
+                    <p class="text-sm font-bold text-gray-600">Aucun créneau d'emploi du temps programmé.</p>
                 </div>
             @endif
         </div>
@@ -666,20 +714,25 @@
 <script>
     function switchTrainerTab(tab) {
         const btnCandidates = document.getElementById('tab-btn-candidates');
+        const btnTimetable = document.getElementById('tab-btn-timetable');
         const btnSessions = document.getElementById('tab-btn-sessions');
         const btnTopics = document.getElementById('tab-btn-topics');
         
         const contentCandidates = document.getElementById('tab-content-candidates');
+        const contentTimetable = document.getElementById('tab-content-timetable');
         const contentSessions = document.getElementById('tab-content-sessions');
         const contentTopics = document.getElementById('tab-content-topics');
 
         // Reset all tabs
-        [btnCandidates, btnSessions, btnTopics].forEach(btn => btn && btn.classList.remove('active'));
-        [contentCandidates, contentSessions, contentTopics].forEach(c => c && c.classList.add('hidden'));
+        [btnCandidates, btnTimetable, btnSessions, btnTopics].forEach(btn => btn && btn.classList.remove('active'));
+        [contentCandidates, contentTimetable, contentSessions, contentTopics].forEach(c => c && c.classList.add('hidden'));
 
         if (tab === 'candidates') {
             if (btnCandidates) btnCandidates.classList.add('active');
             if (contentCandidates) contentCandidates.classList.remove('hidden');
+        } else if (tab === 'timetable') {
+            if (btnTimetable) btnTimetable.classList.add('active');
+            if (contentTimetable) contentTimetable.classList.remove('hidden');
         } else if (tab === 'sessions') {
             if (btnSessions) btnSessions.classList.add('active');
             if (contentSessions) contentSessions.classList.remove('hidden');

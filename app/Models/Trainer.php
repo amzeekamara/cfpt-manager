@@ -30,6 +30,16 @@ class Trainer extends Model
         return $this->hasMany(TrainerSession::class)->orderByDesc('session_date');
     }
 
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class);
+    }
+
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class);
+    }
+
     public function attendances()
     {
         return $this->hasMany(Attendance::class);

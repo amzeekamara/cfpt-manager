@@ -23,14 +23,16 @@ class CandidatesImport implements ToCollection, WithHeadingRow
 
     private int $seminarId;
     private ?int $defaultTopicId;
+    private bool $forceTopic;
     private string $defaultStatus;
     private ?int $candidateRoleId;
     private Collection $seminarTopics;
 
-    public function __construct(int $seminarId, ?int $defaultTopicId = null, string $defaultStatus = 'approved')
+    public function __construct(int $seminarId, ?int $defaultTopicId = null, string $defaultStatus = 'approved', bool $forceTopic = false)
     {
         $this->seminarId = $seminarId;
         $this->defaultTopicId = $defaultTopicId;
+        $this->forceTopic = $forceTopic;
         $this->defaultStatus = in_array($defaultStatus, ['pending', 'approved', 'waiting_list', 'rejected'])
             ? $defaultStatus
             : 'approved';
@@ -141,12 +143,15 @@ class CandidatesImport implements ToCollection, WithHeadingRow
                     default => $this->defaultStatus,
                 };
 
-                // 7. Éviter les doublons sur le même séminaire
-                $exists = Registration::where('user_id', $user->id)
+                // 7. Éviter les doublons sur le même séminaire (mais compléter le thème si manquant)
+                $existingReg = Registration::where('user_id', $user->id)
                     ->where('seminar_id', $this->seminarId)
-                    ->exists();
+                    ->first();
 
-                if ($exists) {
+                if ($existingReg) {
+                    if ($topicId && ($this->forceTopic || !$existingReg->topic_id)) {
+                        $existingReg->update(['topic_id' => $topicId]);
+                    }
                     $this->skippedCount++;
                     continue;
                 }
@@ -175,18 +180,60 @@ class CandidatesImport implements ToCollection, WithHeadingRow
         return $out;
     }
 
+    private function normalizeTopicLabel(string $label): string
+    {
+        $ascii = mb_strtolower(Str::ascii($label), 'UTF-8');
+        // Retirer un éventuel préfixe numéroté ("1 - ", "Thème 2 :", "3 — ", etc.)
+        $ascii = preg_replace('/^(theme\s*)?\d+\s*[-–—:.]+\s*/i', '', $ascii);
+        $ascii = preg_replace('/[^a-z0-9]+/', ' ', $ascii);
+        return trim(preg_replace('/\s+/', ' ', $ascii));
+    }
+
     private function resolveTopicId(string $themeText): ?int
     {
+        if ($this->forceTopic && $this->defaultTopicId) {
+            return $this->defaultTopicId;
+        }
+
         if ($themeText === '' || $this->seminarTopics->isEmpty()) {
             return $this->defaultTopicId;
         }
 
-        $needle = mb_strtolower($themeText, 'UTF-8');
+        $needle = $this->normalizeTopicLabel($themeText);
+        if ($needle === '') {
+            return $this->defaultTopicId;
+        }
+
+        // 1. Correspondance exacte ou par inclusion après normalisation
         foreach ($this->seminarTopics as $topic) {
-            $haystack = mb_strtolower($topic->title, 'UTF-8');
-            if ($haystack === $needle || str_contains($haystack, $needle) || str_contains($needle, $haystack)) {
+            $haystack = $this->normalizeTopicLabel((string) $topic->name);
+            if ($haystack !== '' && ($haystack === $needle || str_contains($haystack, $needle) || str_contains($needle, $haystack))) {
                 return $topic->id;
             }
+        }
+
+        // 2. Correspondance par mots significatifs communs (gère "des" vs "de", titres raccourcis, etc.)
+        $needleWords = array_values(array_filter(explode(' ', $needle), fn($w) => strlen($w) >= 4));
+        $bestId = null;
+        $bestScore = 0.0;
+
+        if (count($needleWords) > 0) {
+            foreach ($this->seminarTopics as $topic) {
+                $haystackWords = array_values(array_filter(explode(' ', $this->normalizeTopicLabel((string) $topic->name)), fn($w) => strlen($w) >= 4));
+                if (count($haystackWords) === 0) {
+                    continue;
+                }
+                $common = count(array_intersect($needleWords, $haystackWords));
+                $score = $common / min(count($needleWords), count($haystackWords));
+                if ($score > $bestScore) {
+                    $bestScore = $score;
+                    $bestId = $topic->id;
+                }
+            }
+        }
+
+        if ($bestId && $bestScore >= 0.5) {
+            return $bestId;
         }
 
         return $this->defaultTopicId;

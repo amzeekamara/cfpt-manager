@@ -17,4 +17,14 @@ class Topic extends Model
     {
         return $this->hasMany(Registration::class);
     }
+
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class);
+    }
+
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class);
+    }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Modifier le Séminaire')
+@section('header_title', 'Modifier la Filière / Cours')
 
 @section('content')
 <div class="p-8 max-w-4xl mx-auto">
@@ -9,8 +9,8 @@
             <span class="material-symbols-outlined">arrow_back</span>
         </a>
         <div>
-            <h1 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Modifier le Séminaire</h1>
-            <p class="text-on-surface-variant font-body">Mettez à jour les informations du séminaire "{{ $seminar->title }}".</p>
+            <h1 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Modifier la Filière / Cours</h1>
+            <p class="text-on-surface-variant font-body">Mettez à jour les informations de la filière "{{ $seminar->title }}".</p>
         </div>
     </div>
 

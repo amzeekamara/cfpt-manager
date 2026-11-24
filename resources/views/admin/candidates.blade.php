@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Gestion des Candidatures')
+@section('header_title', 'Gestion des Étudiants Inscrits')
 
 @section('header_subtitle')
     @if($selectedCohort)
@@ -16,6 +16,7 @@
     candidate: null,
     importModalOpen: false,
     importSeminarId: '{{ $importSeminars->first()?->id ?? '' }}',
+    importTopicId: '',
     importTopicsMap: @js($importTopicsBySeminar),
     importFileName: '',
     get availableImportTopics() {
@@ -38,22 +39,22 @@
                     <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
                 </a>
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Candidatures</h1>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Examinez, filtrez et validez les dossiers des candidats en quelques clics.</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Étudiants & Inscriptions</h1>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Gérez la liste des étudiants inscrits par filière, matière et département.</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
-                <a href="{{ route('admin.candidates.import-template') }}" download="modele_import_candidats_pfpt.xlsx" data-no-loader class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-full flex items-center gap-2 transition shadow-2xs">
+                <a href="{{ route('admin.candidates.import-template') }}" download="modele_import_etudiants_cfpt.xlsx" data-no-loader class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-full flex items-center gap-2 transition shadow-2xs">
                     <span class="material-symbols-outlined text-[18px] leading-none text-emerald-600">download</span>
                     Modèle Excel
                 </a>
                 <button type="button" @click="importModalOpen = true" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm cursor-pointer">
                     <span class="material-symbols-outlined text-[18px] leading-none">upload_file</span>
-                    Importer Excel
+                    Importer Liste Excel
                 </button>
                 <a href="{{ route('admin.candidates.create') }}" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm">
                     <span class="material-symbols-outlined text-[18px] leading-none">person_add</span>
-                    Inscrire un candidat
+                    Inscrire un étudiant
                 </a>
             </div>
         </header>
@@ -255,11 +256,11 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-gray-200 text-gray-600">
-                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Candidat</th>
-                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Formation</th>
-                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Date & Pays</th>
-                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Statut</th>
-                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider text-right">Actions Express</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Étudiant</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Filière & Promotion</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Date & Nationalité</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Statut d'inscription</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider text-right">Actions & Bulletin</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-slate-800">
@@ -590,7 +591,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div class="sm:col-span-2">
                         <label class="block font-bold text-slate-700 mb-1">2. Séminaire cible <span class="text-rose-500">*</span></label>
-                        <select name="seminar_id" x-model="importSeminarId" required
+                        <select name="seminar_id" x-model="importSeminarId" @change="importTopicId = ''" required
                                 class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-800 font-semibold focus:border-[#4B6A95] focus:outline-none">
                             @foreach($importSeminars as $sem)
                                 <option value="{{ $sem->id }}">{{ $sem->title }}</option>
@@ -599,14 +600,18 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Thème par défaut (si vide dans Excel)</label>
-                        <select name="topic_id"
-                                class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-700 focus:border-[#4B6A95] focus:outline-none">
-                            <option value="">-- Aucun / Détecté via colonne « theme » --</option>
+                        <label class="block font-bold text-slate-700 mb-1">Thème du séminaire</label>
+                        <select name="topic_id" x-model="importTopicId"
+                                class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-700 font-semibold focus:border-[#4B6A95] focus:outline-none">
+                            <option value="">-- Détection auto via colonne « Thème » --</option>
                             <template x-for="t in availableImportTopics" :key="t.id">
-                                <option :value="t.id" x-text="t.title"></option>
+                                <option :value="t.id" x-text="t.name"></option>
                             </template>
                         </select>
+                        <label x-show="importTopicId !== ''" class="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="force_topic" value="1" checked class="rounded text-[#4B6A95]">
+                            <span>Affecter ce thème à tous les candidats du fichier</span>
+                        </label>
                     </div>
 
                     <div>

@@ -79,6 +79,21 @@ Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->g
     
     Route::resource('topics', \App\Http\Controllers\Admin\TopicController::class);
     Route::resource('departments', \App\Http\Controllers\Admin\DepartmentController::class);
+    Route::post('/classrooms', [\App\Http\Controllers\Admin\DepartmentController::class, 'storeClassroom'])->name('classrooms.store');
+    Route::delete('/classrooms/{classroom}', [\App\Http\Controllers\Admin\DepartmentController::class, 'destroyClassroom'])->name('classrooms.destroy');
+
+    // EMPLOIS DU TEMPS (ÉTUDIANTS, FORMATEURS & SALLES PAR DÉPARTEMENT)
+    Route::get('/timetables', [\App\Http\Controllers\Admin\TimetableController::class, 'index'])->name('timetables.index');
+    Route::post('/timetables', [\App\Http\Controllers\Admin\TimetableController::class, 'store'])->name('timetables.store');
+    Route::delete('/timetables/{timetable}', [\App\Http\Controllers\Admin\TimetableController::class, 'destroy'])->name('timetables.destroy');
+
+    // ÉVALUATIONS, NOTES & RESTITUTION (BULLETINS PDF)
+    Route::get('/evaluations', [\App\Http\Controllers\Admin\EvaluationController::class, 'index'])->name('evaluations.index');
+    Route::post('/evaluations', [\App\Http\Controllers\Admin\EvaluationController::class, 'store'])->name('evaluations.store');
+    Route::post('/evaluations/{evaluation}/grades', [\App\Http\Controllers\Admin\EvaluationController::class, 'storeGrades'])->name('evaluations.grades.store');
+    Route::patch('/evaluations/{evaluation}/toggle-publish', [\App\Http\Controllers\Admin\EvaluationController::class, 'togglePublish'])->name('evaluations.toggle-publish');
+    Route::delete('/evaluations/{evaluation}', [\App\Http\Controllers\Admin\EvaluationController::class, 'destroy'])->name('evaluations.destroy');
+    Route::get('/evaluations/report-card/{registration}/pdf', [\App\Http\Controllers\Admin\EvaluationController::class, 'exportReportCardPdf'])->name('evaluations.report-card.pdf');
 
     // MODULE 4 : CANDIDATURES, PROFILS & INSTRUCTIONS
     Route::get('/candidates', [\App\Http\Controllers\Admin\CandidateController::class, 'index'])->name('candidates');
@@ -154,9 +169,10 @@ Route::prefix('portal')->name('portal.')->group(function () {
         return redirect()->route('login');
     })->name('welcome');
 
-    // MODULE 4 : ESPACE PERSONNEL CANDIDAT / STAGIAIRE
+    // MODULE 4 : ESPACE PERSONNEL ÉTUDIANT
     Route::middleware('portal.auth:candidate')->prefix('candidat')->name('candidate.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Portal\CandidateController::class, 'dashboard'])->name('dashboard');
+        Route::get('/report-card/pdf', [\App\Http\Controllers\Portal\CandidateController::class, 'downloadReportCard'])->name('report-card.pdf');
         Route::get('/profile/edit', [\App\Http\Controllers\Portal\CandidateController::class, 'editProfile'])->name('profile.edit');
         Route::post('/messages/{message}/read', [\App\Http\Controllers\Portal\CandidateController::class, 'markMessageAsRead'])->name('messages.read');
         Route::post('/profile/update-request', [\App\Http\Controllers\Portal\CandidateController::class, 'requestProfileUpdate'])->name('profile.update-request');
@@ -169,6 +185,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::post('/messages', [\App\Http\Controllers\Portal\TrainerController::class, 'sendMessage'])->name('messages.send');
         Route::get('/attendances', [\App\Http\Controllers\Portal\TrainerController::class, 'attendances'])->name('attendances');
         Route::post('/attendances', [\App\Http\Controllers\Portal\TrainerController::class, 'storeAttendances'])->name('attendances.store');
+        Route::get('/evaluations', [\App\Http\Controllers\Portal\TrainerController::class, 'evaluations'])->name('evaluations');
+        Route::post('/evaluations', [\App\Http\Controllers\Portal\TrainerController::class, 'storeEvaluation'])->name('evaluations.store');
+        Route::post('/evaluations/{evaluation}/grades', [\App\Http\Controllers\Portal\TrainerController::class, 'storeGrades'])->name('evaluations.grades.store');
         
         // GED Pédagogique Formateur
         Route::post('/resources', [\App\Http\Controllers\Portal\TrainerController::class, 'storeResource'])->name('resources.store');

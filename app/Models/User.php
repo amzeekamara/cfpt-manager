@@ -23,8 +23,12 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'department_id',
         'must_change_password',
         'avatar',
+        'specialty',
+        'position',
+        'supervisor',
     ];
 
     /**
@@ -55,9 +59,33 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function managedDepartment()
+    {
+        return $this->hasOne(Department::class, 'head_user_id');
+    }
+
     public function isAdmin()
     {
-        return $this->role && in_array($this->role->name, ['Administrateur', 'Coordinateur', 'Admin', 'Agent JICA']);
+        return $this->role && in_array($this->role->name, ['Administrateur', 'Coordinateur', 'Admin', 'Chef de Département', 'Directeur des Études']);
+    }
+
+    public function isDepartmentHead(): bool
+    {
+        return $this->role && $this->role->name === 'Chef de Département';
+    }
+
+    public function getEffectiveDepartmentId(): ?int
+    {
+        if ($this->department_id) {
+            return (int) $this->department_id;
+        }
+        $managed = $this->managedDepartment()->first();
+        return $managed ? (int) $managed->id : null;
     }
 
     public function hasRole(string $roleName): bool

@@ -15,21 +15,22 @@ class UserController extends Controller
 {
     public function index()
     {
-        $allUsers = User::with(['role', 'trainer.sessions.seminar', 'trainer.sessions.topic', 'trainer.seminars'])->get();
+        $allUsers = User::with(['role', 'department', 'managedDepartment', 'trainer.sessions.seminar', 'trainer.sessions.topic', 'trainer.seminars'])->get();
 
-        $staffUsers = $allUsers->filter(fn($u) => !$u->role || !in_array($u->role->name, ['Candidat', 'Formateur', 'Agent JICA']));
+        $staffUsers = $allUsers->filter(fn($u) => !$u->role || !in_array($u->role->name, ['Candidat', 'Formateur', 'Agent JICA', 'Chef de Département']));
+        $departmentHeads = $allUsers->filter(fn($u) => $u->role?->name === 'Chef de Département');
         $candidates = $allUsers->filter(fn($u) => $u->role?->name === 'Candidat');
         $trainers   = $allUsers->filter(fn($u) => $u->role?->name === 'Formateur');
-        $jicaAgents = $allUsers->filter(fn($u) => $u->role?->name === 'Agent JICA');
 
-        return view('admin.users.index', compact('staffUsers', 'candidates', 'trainers', 'jicaAgents'));
+        return view('admin.users.index', compact('staffUsers', 'departmentHeads', 'candidates', 'trainers'));
     }
 
     public function create()
     {
-        $roles = Role::all();
+        $roles = Role::where('name', '!=', 'Agent JICA')->get();
         $seminars = \App\Models\Seminar::all();
-        return view('admin.users.create', compact('roles', 'seminars'));
+        $departments = \App\Models\Department::where('is_active', true)->orderBy('name')->get();
+        return view('admin.users.create', compact('roles', 'seminars', 'departments'));
     }
 
     public function store(Request $request)
@@ -44,6 +45,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'role_id' => 'required|exists:roles,id',
+            'department_id' => 'nullable|exists:departments,id',
             'password' => $isCandidate ? 'nullable' : 'required|string|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'specialty' => 'nullable|string|max:255',
@@ -64,12 +66,18 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($assignedPassword),
             'role_id' => $request->role_id,
+            'department_id' => $request->department_id,
             'must_change_password' => true,
             'avatar' => $avatarPath,
             'specialty' => $request->specialty,
             'position' => $request->position,
             'supervisor' => $request->supervisor,
         ]);
+
+        $role = Role::find($request->role_id);
+        if ($role && $role->name === 'Chef de Département' && $request->filled('department_id')) {
+            \App\Models\Department::where('id', $request->department_id)->update(['head_user_id' => $user->id]);
+        }
 
         try {
             Mail::to($user->email)->send(new UserCreatedMail($user, $assignedPassword));
@@ -109,13 +117,14 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::all();
+        $roles = Role::where('name', '!=', 'Agent JICA')->get();
         $seminars = \App\Models\Seminar::where('status', 'active')->get();
+        $departments = \App\Models\Department::where('is_active', true)->orderBy('name')->get();
         
         $trainer = \App\Models\Trainer::with(['seminars', 'sessions.seminar', 'sessions.topic'])->where('email', $user->email)->first();
         $assignedSeminars = $trainer ? $trainer->seminars->pluck('id')->toArray() : [];
 
-        return view('admin.users.edit', compact('user', 'roles', 'seminars', 'assignedSeminars', 'trainer'));
+        return view('admin.users.edit', compact('user', 'roles', 'seminars', 'departments', 'assignedSeminars', 'trainer'));
     }
 
     public function update(Request $request, User $user)
@@ -124,6 +133,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'role_id' => 'required|exists:roles,id',
+            'department_id' => 'nullable|exists:departments,id',
             'seminars' => 'nullable|array',
             'password' => 'nullable|string|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -136,6 +146,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
+            'department_id' => $request->department_id,
             'specialty' => $request->specialty,
             'position' => $request->position,
             'supervisor' => $request->supervisor,
@@ -156,6 +167,9 @@ class UserController extends Controller
         $user->update($dataToUpdate);
 
         $role = Role::find($request->role_id);
+        if ($role && $role->name === 'Chef de Département' && $request->filled('department_id')) {
+            \App\Models\Department::where('id', $request->department_id)->update(['head_user_id' => $user->id]);
+        }
         if ($role && $role->name === 'Formateur') {
             $trainer = \App\Models\Trainer::firstOrCreate(
                 ['email' => $user->email],

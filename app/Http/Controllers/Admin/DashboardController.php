@@ -26,11 +26,17 @@ class DashboardController extends Controller
                 ?? \App\Models\Cohort::latest()->first();
         }
 
+        $user = auth()->user();
+        $deptId = ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : null;
+
         // Optimisation: Récupération des comptages groupés par statut pour éviter 3 requêtes distinctes
         $registrationCounts = Registration::when($selectedCohort, function($q) use ($selectedCohort) {
                 return $q->whereHas('seminar', function($sq) use ($selectedCohort) {
                     $sq->where('cohort_id', $selectedCohort->id);
                 });
+            })
+            ->when($deptId, function($q) use ($deptId) {
+                return $q->whereHas('seminar.departments', fn($dq) => $dq->where('departments.id', $deptId));
             })
             ->selectRaw('status, count(*) as count')
             ->groupBy('status')
@@ -41,7 +47,7 @@ class DashboardController extends Controller
             'users_count' => User::count(),
             'active_seminars_count' => Seminar::when($selectedCohort, function($q) use ($selectedCohort) {
                 return $q->where('cohort_id', $selectedCohort->id);
-            })->where('status', 'active')->count(),
+            })->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))->where('status', 'active')->count(),
             'pending_registrations_count' => ($registrationCounts['pending'] ?? 0) + ($registrationCounts['waiting_list'] ?? 0),
             'approved_registrations_count' => $registrationCounts['approved'] ?? 0,
             'rejected_registrations_count' => $registrationCounts['rejected'] ?? 0,
@@ -57,6 +63,9 @@ class DashboardController extends Controller
                     $sq->where('cohort_id', $selectedCohort->id);
                 });
             })
+            ->when($deptId, function($q) use ($deptId) {
+                return $q->whereHas('seminar.departments', fn($dq) => $dq->where('departments.id', $deptId));
+            })
             ->orderBy('created_at', 'desc')
             ->take(12)
             ->get();
@@ -65,6 +74,7 @@ class DashboardController extends Controller
             ->when($selectedCohort, function($q) use ($selectedCohort) {
                 return $q->where('cohort_id', $selectedCohort->id);
             })
+            ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
             ->where('end_date', '>=', now())
             ->withCount(['registrations as approved_registrations_count' => function ($q) {
                 $q->where('status', 'approved');
@@ -74,7 +84,7 @@ class DashboardController extends Controller
 
         $allSeminars = Seminar::when($selectedCohort, function($q) use ($selectedCohort) {
             return $q->where('cohort_id', $selectedCohort->id);
-        })->orderBy('title')->get();
+        })->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))->orderBy('title')->get();
 
         $allTopics = \App\Models\Topic::whereHas('seminar', function($q) use ($selectedCohort) {
             if ($selectedCohort) {

@@ -58,9 +58,9 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
         <form method="GET" action="{{ route('admin.attendances.index') }}" class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Séminaire</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Filière / Formation</label>
                 <select name="seminar_id" class="w-full rounded-md border-slate-200 focus:ring-primary focus:border-primary">
-                    <option value="">Tous les séminaires</option>
+                    <option value="">Toutes les filières</option>
                     @foreach($seminars as $seminar)
                         <option value="{{ $seminar->id }}" {{ $seminarId == $seminar->id ? 'selected' : '' }}>
                             {{ $seminar->title }}
@@ -94,10 +94,10 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 text-slate-500 uppercase text-xs font-bold tracking-wider border-b border-slate-200">
-                        <th class="py-4 px-6 rounded-tl-xl">Date</th>
-                        <th class="py-4 px-6">Candidat</th>
-                        <th class="py-4 px-6">Séminaire & Thème</th>
-                        <th class="py-4 px-6">Enregistré par</th>
+                        <th class="py-4 px-6 rounded-tl-xl">Date de séance</th>
+                        <th class="py-4 px-6">Étudiant</th>
+                        <th class="py-4 px-6">Filière & Matière</th>
+                        <th class="py-4 px-6">Formateur</th>
                         <th class="py-4 px-6 text-center rounded-tr-xl">Statut</th>
                     </tr>
                 </thead>

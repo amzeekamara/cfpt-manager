@@ -14,9 +14,23 @@ class SeminarController extends Controller
 {
     public function index()
     {
-        $activeSeminars = Seminar::where('status', 'active')->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])->orderBy('start_date', 'asc')->get();
-        $draftSeminars = Seminar::where('status', 'draft')->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])->get();
-        $pastSeminars = Seminar::where('status', 'completed')->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])->orderBy('end_date', 'desc')->get();
+        $user = auth()->user();
+        $deptId = ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : null;
+
+        $activeSeminars = Seminar::where('status', 'active')
+            ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
+            ->orderBy('start_date', 'asc')
+            ->get();
+        $draftSeminars = Seminar::where('status', 'draft')
+            ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
+            ->get();
+        $pastSeminars = Seminar::where('status', 'completed')
+            ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
+            ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
+            ->orderBy('end_date', 'desc')
+            ->get();
 
         return view('admin.seminars', compact('activeSeminars', 'draftSeminars', 'pastSeminars'));
     }

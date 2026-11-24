@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Gestion des Thèmes')
+@section('header_title', 'Gestion des Matières & Modules')
 
 @section('content')
 <div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800">
@@ -10,8 +10,8 @@
                 <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
             </a>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Thèmes de formation</h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Associez des thématiques spécialisées aux séminaires.</p>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Matières & Modules d'Enseignement</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Associez les matières et modules pédagogiques aux filières de formation du CFPT.</p>
             </div>
         </div>
 
@@ -20,17 +20,17 @@
         <form action="{{ route('admin.topics.store') }}" method="POST" class="flex flex-wrap items-end gap-4">
             @csrf
             <div class="flex-1 min-w-[200px] space-y-1.5">
-                <label for="seminar_id" class="text-xs font-bold text-slate-700">Séminaire lié</label>
+                <label for="seminar_id" class="text-xs font-bold text-slate-700">Filière / Formation liée</label>
                 <select name="seminar_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition cursor-pointer">
-                    <option value="" disabled selected>Sélectionner un séminaire...</option>
+                    <option value="" disabled selected>Sélectionner une filière...</option>
                     @foreach($seminars as $seminar)
                         <option value="{{ $seminar->id }}">{{ $seminar->title }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="flex-1 min-w-[200px] space-y-1.5">
-                <label for="name" class="text-xs font-bold text-slate-700">Nouveau thème</label>
-                <input type="text" name="name" required placeholder="Ex: Informatique, Management..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition">
+                <label for="name" class="text-xs font-bold text-slate-700">Nouvelle matière / module</label>
+                <input type="text" name="name" required placeholder="Ex: Automates Programmables, Architecture Réseaux..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition">
             </div>
             <button type="submit" class="px-6 py-2.5 rounded-full bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold transition shadow-sm">Ajouter</button>
         </form>
@@ -41,8 +41,8 @@
         <table class="w-full text-left text-sm">
             <thead class="bg-slate-50/80 text-slate-600 font-bold text-xs uppercase tracking-wider border-b border-slate-200">
                 <tr>
-                    <th class="px-6 py-3.5">Nom du thème</th>
-                    <th class="px-6 py-3.5">Séminaire</th>
+                    <th class="px-6 py-3.5">Intitulé de la matière / module</th>
+                    <th class="px-6 py-3.5">Filière / Formation</th>
                     <th class="px-6 py-3.5">Statut</th>
                     <th class="px-6 py-3.5 text-right">Actions</th>
                 </tr>

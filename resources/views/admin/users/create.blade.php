@@ -17,8 +17,8 @@
         role: '{{ old('role_id') }}', 
         trainerRoleId: '{{ $roles->where('name', 'Formateur')->first()->id ?? '' }}',
         adminRoleId: '{{ $roles->where('name', 'Administrateur')->first()->id ?? '' }}',
+        deptHeadRoleId: '{{ $roles->where('name', 'Chef de Département')->first()->id ?? '' }}',
         coordinatorRoleId: '{{ $roles->where('name', 'Coordinateur')->first()->id ?? '' }}',
-        jicaRoleId: '{{ $roles->where('name', 'Agent JICA')->first()->id ?? '' }}',
         candidateRoleId: '{{ $roles->where('name', 'Candidat')->first()->id ?? '' }}'
     }">
         <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -103,9 +103,14 @@
                     <input type="text" name="supervisor" id="supervisor" :disabled="role != coordinatorRoleId" value="{{ old('supervisor') }}" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-primary focus:border-primary block p-3 transition-colors" placeholder="Ex: Directeur Général, Responsable RH...">
                 </div>
 
-                <div class="space-y-2" x-show="role == jicaRoleId" style="display: none;">
-                    <label for="position_jica" class="block text-sm font-bold text-slate-700">Fonction au niveau de la JICA</label>
-                    <input type="text" name="position" id="position_jica" :disabled="role != jicaRoleId" value="{{ old('position') }}" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-primary focus:border-primary block p-3 transition-colors" placeholder="Ex: Représentant Résident...">
+                <div class="space-y-2" x-show="role == deptHeadRoleId || role == trainerRoleId" style="display: none;">
+                    <label for="department_id" class="block text-sm font-bold text-slate-700">Département d'affectation</label>
+                    <select name="department_id" id="department_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-primary focus:border-primary block p-3 transition-colors">
+                        <option value="">-- Sélectionner un département --</option>
+                        @foreach($departments ?? [] as $dept)
+                            <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="space-y-2" id="password_container">

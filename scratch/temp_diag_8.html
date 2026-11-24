@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Diagramme Global Intégré des Cas d'Utilisation - PFPT Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 24px;
+      color: #0f172a;
+    }
+    .diagram-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+    }
+    .header {
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 9999px;
+      border: 1px solid #bfdbfe;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .footer-stamp {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-align: right;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fafcff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-card">
+    <div class="header">
+      <div>
+        <span class="badge">UML 2.5 • Spécification PFPT Manager</span>
+        <h1 class="title">Diagramme Global Intégré des Cas d'Utilisation - PFPT Manager</h1>
+        <p class="subtitle">Vue d'ensemble transverse des interactions entre les 6 Acteurs et les Modules Métier</p>
+      </div>
+      <div class="footer-stamp">
+        <div>CFPT S-J & JICA</div>
+        <div style="color: #3b82f6;">ISI DAKAR - LICENCE 3 GL</div>
+      </div>
+    </div>
+    <div class="mermaid">
+flowchart TB
+    Visiteur((Visiteur / Candidat))
+    Candidat((Candidat Admis))
+    Formateur((Formateur))
+    Admin((Administrateur))
+    Coordinateur((Coordinateur))
+    JICA((Agent JICA))
+
+    subgraph PFPT_System["PLATEFORME PFPT MANAGER (CFPT Sénégal-Japon & JICA)"]
+        direction TB
+
+        subgraph Securite["Sécurité & Authentification"]
+            UC_Auth["S'authentifier"]
+            UC_Logout["Se déconnecter"]
+        end
+
+        subgraph Mod_Candidature["Module Candidatures & Admissions"]
+            UC_ConsulterSem["Consulter espace public & séminaires"]
+            UC_Postuler["Déposer candidature JICA"]
+            UC_Pieces["Téléverser pièces jointes"]
+            UC_Select["Instruire & Valider dossiers"]
+            UC_Filter["Filtrer candidats par thème"]
+        end
+
+        subgraph Mod_Pedagogie["Module Pédagogie & Émargement"]
+            UC_Planning["Consulter planning & calendrier"]
+            UC_Presence["Faire l'émargement des séances"]
+            UC_Heures["Déclarer les heures dispensées"]
+            UC_GED["Gérer / Télécharger ressources"]
+        end
+
+        subgraph Mod_Finance["Module Finances & Budgets JICA"]
+            UC_Budget["Suivre cockpit budgétaire"]
+            UC_Depenses["Saisir dépenses & factures"]
+            UC_Honoraires["Payer honoraires formateurs"]
+            UC_ExportPDF["Exporter rapport financier A4"]
+        end
+
+        subgraph Mod_Evaluation["Module Formulaires & Évaluations"]
+            UC_CreateForm["Créer formulaires dynamiques"]
+            UC_AnswerForm["Répondre aux évaluations"]
+            UC_StatsForm["Analyser résultats enquêtes"]
+        end
+
+        subgraph Mod_Admin["Module Administration & Traçabilité"]
+            UC_Users["Gérer utilisateurs & rôles"]
+            UC_Cohortes["Gérer éditions & cycles"]
+            UC_Audit["Consulter journal d'audit"]
+            UC_Messages["Diffuser alertes & messages"]
+        end
+    end
+
+    Visiteur --> UC_ConsulterSem
+    Visiteur --> UC_Postuler
+    UC_Postuler -.->|<<include>>| UC_Pieces
+
+    Candidat --> UC_Auth
+    Candidat --> UC_Planning
+    Candidat --> UC_GED
+    Candidat --> UC_AnswerForm
+    Candidat --> UC_Logout
+
+    Formateur --> UC_Auth
+    Formateur --> UC_Presence
+    Formateur --> UC_GED
+    Formateur --> UC_Filter
+    Formateur --> UC_Messages
+    Formateur --> UC_Logout
+
+    UC_Presence -.->|<<include>>| UC_Heures
+
+    Admin --> UC_Auth
+    Admin --> UC_Users
+    Admin --> UC_Cohortes
+    Admin --> UC_Select
+    Admin --> UC_Audit
+    Admin --> UC_Logout
+
+    Coordinateur --> UC_Auth
+    Coordinateur --> UC_Budget
+    Coordinateur --> UC_Depenses
+    Coordinateur --> UC_Honoraires
+    Coordinateur --> UC_CreateForm
+    Coordinateur --> UC_Messages
+    Coordinateur --> UC_Logout
+
+    JICA --> UC_Auth
+    JICA --> UC_Budget
+    JICA --> UC_ExportPDF
+    JICA --> UC_Logout
+
+    UC_Budget -.->|<<extend>>| UC_ExportPDF
+    UC_CreateForm -.->|<<extend>>| UC_StatsForm
+    </div>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      themeVariables: {
+        primaryColor: '#e0e7ff',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#6366f1',
+        lineColor: '#475569',
+        secondaryColor: '#f1f5f9',
+        tertiaryColor: '#ffffff',
+        fontFamily: 'Plus Jakarta Sans'
+      }
+    });
+  </script>
+</body>
+</html>

@@ -36,7 +36,13 @@ class CandidateController extends Controller
             $cohortId = $selectedCohort ? $selectedCohort->id : null;
         }
 
-        $query = Registration::with(['user.candidateProfile', 'user.candidateResources', 'seminar.cohort', 'topic']);
+        $user = auth()->user();
+        $deptId = ($user && $user->isDepartmentHead()) ? $user->getEffectiveDepartmentId() : null;
+
+        $query = Registration::with(['user.candidateProfile', 'user.candidateResources', 'seminar.cohort', 'topic'])
+            ->when($deptId, function ($q) use ($deptId) {
+                $q->whereHas('seminar.departments', fn($dq) => $dq->where('departments.id', $deptId));
+            });
 
         // Cohort Filtering
         if ($cohortId) {
@@ -69,7 +75,10 @@ class CandidateController extends Controller
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         // Stats filtered by cohort if provided
-        $statsQuery = Registration::query();
+        $statsQuery = Registration::query()
+            ->when($deptId, function ($q) use ($deptId) {
+                $q->whereHas('seminar.departments', fn($dq) => $dq->where('departments.id', $deptId));
+            });
         if ($cohortId) {
             $statsQuery->whereHas('seminar', function($q) use ($cohortId) {
                 $q->where('cohort_id', $cohortId);
@@ -137,7 +146,8 @@ class CandidateController extends Controller
         $import = new CandidatesImport(
             (int) $validated['seminar_id'],
             !empty($validated['topic_id']) ? (int) $validated['topic_id'] : null,
-            $validated['status']
+            $validated['status'],
+            $request->boolean('force_topic')
         );
 
         try {

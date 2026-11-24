@@ -54,8 +54,12 @@ class TrainerController extends Controller
         $todayPresentCount = $recentCandidates->filter(fn($r) => $r->attendances->first()?->status === 'present')->count();
         $todayAbsentCount = $recentCandidates->filter(fn($r) => $r->attendances->first()?->status === 'absent')->count();
 
-        $trainerSessions = $trainer->sessions()->with(['seminar', 'topic'])->get();
+        $trainerSessions = $trainer->sessions()->with(['seminar', 'topic', 'timetable.classroom'])->get();
         $totalHoursTaught = $trainerSessions->sum('hours_taught');
+        $trainerTimetables = \App\Models\Timetable::with(['seminar', 'topic', 'classroom', 'department'])
+            ->where('trainer_id', $trainerId)
+            ->orderBy('start_time')
+            ->get();
 
         return view('portal.trainer.dashboard', compact(
             'trainer', 
@@ -71,7 +75,8 @@ class TrainerController extends Controller
             'todayPresentCount',
             'todayAbsentCount',
             'trainerSessions',
-            'totalHoursTaught'
+            'totalHoursTaught',
+            'trainerTimetables'
         ));
     }
 
@@ -220,10 +225,37 @@ class TrainerController extends Controller
             }
             $existingSession = \App\Models\TrainerSession::where('trainer_id', $trainerId)
                 ->where('seminar_id', $seminarId)
+                ->when($topicId, fn($q) => $q->where('topic_id', $topicId))
                 ->whereDate('session_date', $date)
                 ->first();
-            $hoursTaught = $existingSession ? $existingSession->hours_taught : 4;
+
+            // Chercher le créneau d'emploi du temps correspondant au jour de la semaine
+            $dayMap = [
+                1 => 'Lundi',
+                2 => 'Mardi',
+                3 => 'Mercredi',
+                4 => 'Jeudi',
+                5 => 'Vendredi',
+                6 => 'Samedi',
+                0 => 'Dimanche',
+            ];
+            $dayOfWeekName = $dayMap[\Carbon\Carbon::parse($date)->dayOfWeek] ?? 'Lundi';
+
+            $scheduledSlots = \App\Models\Timetable::with(['classroom', 'topic'])
+                ->where('trainer_id', $trainerId)
+                ->where('seminar_id', $seminarId)
+                ->when($topicId, fn($q) => $q->where('topic_id', $topicId))
+                ->get();
+
+            $matchingTimetable = $scheduledSlots->firstWhere('day_of_week', $dayOfWeekName)
+                ?? $scheduledSlots->first();
+
+            $plannedHours = $matchingTimetable ? $matchingTimetable->planned_hours : null;
+            $hoursTaught = $existingSession ? $existingSession->hours_taught : ($plannedHours ?? 4);
         } else {
+            $scheduledSlots = collect();
+            $matchingTimetable = null;
+            $plannedHours = null;
             $hoursTaught = 4;
         }
 
@@ -240,7 +272,10 @@ class TrainerController extends Controller
             'absentCount', 
             'unmarkedCount', 
             'totalCandidatesCount',
-            'hoursTaught'
+            'hoursTaught',
+            'plannedHours',
+            'matchingTimetable',
+            'scheduledSlots'
         ));
     }
 
@@ -250,6 +285,8 @@ class TrainerController extends Controller
             'date' => 'required|date',
             'seminar_id' => 'required|exists:seminars,id',
             'topic_id' => 'nullable|exists:topics,id',
+            'timetable_id' => 'nullable|exists:timetables,id',
+            'hours_taught' => 'required|numeric|min:0.5|max:24',
             'attendances' => 'required|array',
             'attendances.*' => 'in:present,absent',
         ]);
@@ -284,20 +321,44 @@ class TrainerController extends Controller
             }
         }
 
-        // Enregistrer les heures effectuées par le formateur pour cette session
-        if ($request->filled('hours_taught') && $request->input('hours_taught') > 0) {
-            \App\Models\TrainerSession::updateOrCreate(
-                [
-                    'trainer_id' => $trainerId,
-                    'seminar_id' => $request->seminar_id,
-                    'session_date' => $date,
-                    'topic_id' => $topicId
-                ],
-                [
-                    'hours_taught' => $request->input('hours_taught')
-                ]
-            );
+        // Vérification de la conformité du nombre d'heures effectuées avec l'emploi du temps attribué
+        $hoursTaughtInput = (float) $request->input('hours_taught');
+        $timetable = null;
+        if ($request->filled('timetable_id')) {
+            $timetable = \App\Models\Timetable::where('id', $request->timetable_id)
+                ->where('trainer_id', $trainerId)
+                ->first();
         }
+        if (!$timetable) {
+            $dayMap = [1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 0 => 'Dimanche'];
+            $dayOfWeekName = $dayMap[\Carbon\Carbon::parse($date)->dayOfWeek] ?? 'Lundi';
+            $timetable = \App\Models\Timetable::where('trainer_id', $trainerId)
+                ->where('seminar_id', $request->seminar_id)
+                ->when($topicId, fn($q) => $q->where('topic_id', $topicId))
+                ->where('day_of_week', $dayOfWeekName)
+                ->first();
+        }
+
+        $plannedHours = $timetable ? (float) $timetable->planned_hours : null;
+        if ($plannedHours !== null && abs($hoursTaughtInput - $plannedHours) > 0.01) {
+            return back()->withInput()->with('error', "Non-conformité emploi du temps : Le nombre d'heures renseigné ({$hoursTaughtInput}h) doit être conforme au volume horaire prévu dans votre emploi du temps ({$plannedHours}h).");
+        }
+
+        // Enregistrer les heures effectuées par le formateur pour cette session
+        \App\Models\TrainerSession::updateOrCreate(
+            [
+                'trainer_id' => $trainerId,
+                'seminar_id' => $request->seminar_id,
+                'session_date' => $date,
+                'topic_id' => $topicId
+            ],
+            [
+                'timetable_id' => $timetable?->id,
+                'hours_taught' => $hoursTaughtInput,
+                'planned_hours' => $plannedHours ?? $hoursTaughtInput,
+                'is_compliant' => true,
+            ]
+        );
 
         // Notification aux administrateurs
         $admins = User::whereHas('role', fn($q) => $q->whereIn('name', ['Administrateur', 'Coordinateur', 'Admin']))->get();
@@ -393,7 +454,7 @@ class TrainerController extends Controller
             ->where('status', 'approved')
             ->get();
 
-        $csvFileName = 'candidats_theme_' . str_replace(' ', '_', $topic->name) . '.csv';
+        $csvFileName = 'etudiants_module_' . str_replace(' ', '_', $topic->name) . '.csv';
 
         return response()->streamDownload(function() use ($registrations) {
             $handle = fopen('php://output', 'w');
@@ -415,5 +476,124 @@ class TrainerController extends Controller
             "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$csvFileName",
         ]);
+    }
+
+    public function evaluations(Request $request)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with('seminars.topics')->findOrFail($trainerId);
+        $seminarIds = $trainer->seminars->pluck('id');
+
+        $selectedSeminarId = $request->get('seminar_id', $trainer->seminars->first()?->id);
+
+        $evaluations = \App\Models\Evaluation::with(['seminar', 'topic', 'grades'])
+            ->whereIn('seminar_id', $seminarIds)
+            ->when($selectedSeminarId, fn($q) => $q->where('seminar_id', $selectedSeminarId))
+            ->orderByDesc('evaluation_date')
+            ->get();
+
+        $activeEvaluationId = $request->get('evaluation_id', $evaluations->first()?->id);
+        $activeEvaluation = $evaluations->firstWhere('id', $activeEvaluationId) ?? $evaluations->first();
+
+        $registrations = collect();
+        if ($selectedSeminarId && $trainer->seminars->contains('id', $selectedSeminarId)) {
+            $registrations = \App\Models\Registration::with(['user.candidateProfile', 'topic', 'grades'])
+                ->where('seminar_id', $selectedSeminarId)
+                ->when($activeEvaluation && $activeEvaluation->topic_id, fn($q) => $q->where('topic_id', $activeEvaluation->topic_id))
+                ->where('status', 'approved')
+                ->get();
+        }
+
+        return view('portal.trainer.evaluations', compact(
+            'trainer',
+            'evaluations',
+            'activeEvaluation',
+            'registrations',
+            'selectedSeminarId'
+        ));
+    }
+
+    public function storeEvaluation(Request $request)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with('seminars')->findOrFail($trainerId);
+
+        $request->validate([
+            'seminar_id' => 'required|exists:seminars,id',
+            'topic_id' => 'nullable|exists:topics,id',
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:devoir,tp,examen',
+            'coefficient' => 'required|numeric|min:0.5|max:20',
+            'max_score' => 'required|numeric|min:5|max:100',
+            'evaluation_date' => 'required|date',
+        ]);
+
+        if (!$trainer->seminars->contains('id', $request->seminar_id)) {
+            abort(403, 'Accès non autorisé à ce cours.');
+        }
+
+        $eval = \App\Models\Evaluation::create([
+            'seminar_id' => $request->seminar_id,
+            'topic_id' => $request->topic_id,
+            'trainer_id' => $trainerId,
+            'title' => $request->title,
+            'type' => $request->type,
+            'coefficient' => $request->coefficient,
+            'max_score' => $request->max_score,
+            'evaluation_date' => $request->evaluation_date,
+            'is_published' => true,
+        ]);
+
+        return redirect()->route('portal.trainer.evaluations', [
+            'seminar_id' => $eval->seminar_id,
+            'evaluation_id' => $eval->id,
+        ])->with('success', "Évaluation « {$eval->title} » créée. Vous pouvez saisir les notes des étudiants.");
+    }
+
+    public function storeGrades(Request $request, \App\Models\Evaluation $evaluation)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with('seminars')->findOrFail($trainerId);
+
+        if (!$trainer->seminars->contains('id', $evaluation->seminar_id)) {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'scores' => 'required|array',
+            'scores.*' => 'nullable|numeric|min:0|max:' . $evaluation->max_score,
+            'appreciations' => 'nullable|array',
+            'appreciations.*' => 'nullable|string|max:255',
+        ]);
+
+        foreach ($request->input('scores', []) as $registrationId => $score) {
+            if ($score === null || $score === '') {
+                continue;
+            }
+            $appreciation = $request->input("appreciations.{$registrationId}");
+            if (!$appreciation) {
+                $norm = ($score / max(1, $evaluation->max_score)) * 20;
+                $appreciation = match (true) {
+                    $norm >= 16 => 'Très Bien',
+                    $norm >= 14 => 'Bien',
+                    $norm >= 12 => 'Assez Bien',
+                    $norm >= 10 => 'Passable',
+                    default => 'Insuffisant',
+                };
+            }
+
+            \App\Models\Grade::updateOrCreate(
+                [
+                    'evaluation_id' => $evaluation->id,
+                    'registration_id' => $registrationId,
+                ],
+                [
+                    'score' => $score,
+                    'appreciation' => $appreciation,
+                ]
+            );
+        }
+
+        return back()->with('success', "Les notes ont été enregistrées et restituées pour « {$evaluation->title} ».");
     }
 }

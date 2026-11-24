@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Catalogue des Séminaires')
+@section('header_title', 'Filières & Cours')
 
 @section('content')
 <div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800">
@@ -13,18 +13,16 @@
                     <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
                 </a>
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Séminaires</h1>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Créez et planifiez les sessions de formation continue.</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Filières & Cours</h1>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Créez et gérez les filières d'enseignement (BTS, BT) et les matières associées par département.</p>
                 </div>
             </div>
-            @if(auth()->user()->role->name !== 'Agent JICA')
             <div class="flex items-center gap-3">
                 <a href="{{ route('admin.seminars.create') }}" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold rounded-full flex items-center gap-2 transition shadow-sm">
                     <span class="material-symbols-outlined text-[18px] leading-none">add_task</span>
-                    Créer un Séminaire
+                    Créer une Filière / Cours
                 </a>
             </div>
-            @endif
         </header>
 
         <!-- Navigation Tabs -->
@@ -53,8 +51,8 @@
                 <div class="w-16 h-16 rounded-full bg-white border border-gray-200 group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary flex items-center justify-center mb-4 transition-colors shadow-sm">
                     <span class="material-symbols-outlined text-[32px] text-gray-400 group-hover:text-white">add</span>
                 </div>
-                <h3 class="font-headline font-bold text-lg text-gray-900 mb-1">Nouveau Séminaire</h3>
-                <p class="text-sm text-gray-500 max-w-[200px]">Commencez à planifier la prochaine session de formation.</p>
+                <h3 class="font-headline font-bold text-lg text-gray-900 mb-1">Nouvelle Filière / Cours</h3>
+                <p class="text-sm text-gray-500 max-w-[200px]">Ajoutez une nouvelle filière de formation ou classe au département.</p>
             </a>
             @endif
             @endif

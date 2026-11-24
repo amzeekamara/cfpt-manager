@@ -218,6 +218,58 @@
                     <p class="text-[11px] text-slate-400 mt-0.5">Carte, badge ou attestation (.pdf)</p>
                 </label>
 
+                <!-- Réglages Format & Orientation de sortie -->
+                <div x-show="hasPdf" class="pt-2.5 border-t border-slate-100 space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold text-slate-700">Format & Orientation de sortie</span>
+                        <span class="text-[10px] font-bold text-[#4B6A95]" x-text="effectiveOutputSize.wMm + ' × ' + effectiveOutputSize.hMm + ' mm'"></span>
+                    </div>
+
+                    <select x-model="outputPreset" @change="applyOutputPreset()"
+                            class="w-full rounded-xl border border-slate-200 px-2.5 py-1.5 bg-white text-slate-700 font-semibold text-xs focus:border-[#4B6A95] focus:outline-none">
+                        <option value="original">Taille d'origine du PDF (1:1)</option>
+                        <option value="cr80">Carte CR80 (85,6 × 54 mm)</option>
+                        <option value="badge70">Badge standard (70 × 100 mm)</option>
+                        <option value="badge90">Grand Badge (90 × 125 mm)</option>
+                        <option value="a5">Format A5 (148 × 210 mm)</option>
+                        <option value="a4">Attestation A4 (210 × 297 mm)</option>
+                        <option value="custom">Personnalisé (Largeur × Hauteur mm)</option>
+                    </select>
+
+                    <!-- Sélecteur Portrait / Paysage -->
+                    <div class="grid grid-cols-3 gap-1">
+                        <button type="button" @click="setOutputOrientation('auto')"
+                                class="py-1.5 px-2 rounded-lg border text-[11px] font-bold transition cursor-pointer"
+                                :class="outputOrientation === 'auto' ? 'bg-[#4B6A95] text-white border-[#4B6A95]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'">
+                            Auto
+                        </button>
+                        <button type="button" @click="setOutputOrientation('portrait')"
+                                class="py-1.5 px-2 rounded-lg border text-[11px] font-bold transition cursor-pointer"
+                                :class="outputOrientation === 'portrait' ? 'bg-[#4B6A95] text-white border-[#4B6A95]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'">
+                            Portrait
+                        </button>
+                        <button type="button" @click="setOutputOrientation('landscape')"
+                                class="py-1.5 px-2 rounded-lg border text-[11px] font-bold transition cursor-pointer"
+                                :class="outputOrientation === 'landscape' ? 'bg-[#4B6A95] text-white border-[#4B6A95]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'">
+                            Paysage
+                        </button>
+                    </div>
+
+                    <!-- Dimensions manuelles en mm -->
+                    <div x-show="outputPreset !== 'original'" class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400">Largeur (mm)</label>
+                            <input type="number" step="0.5" min="20" max="600" x-model.number="outputWidthMm" @input="outputPreset = 'custom'"
+                                   class="w-full rounded-lg border border-slate-200 px-2 py-1 font-mono text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400">Hauteur (mm)</label>
+                            <input type="number" step="0.5" min="20" max="600" x-model.number="outputHeightMm" @input="outputPreset = 'custom'"
+                                   class="w-full rounded-lg border border-slate-200 px-2 py-1 font-mono text-xs font-bold">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Gabarits enregistrés -->
                 <template x-if="presets.length > 0">
                     <div class="pt-2 border-t border-slate-100 space-y-1.5">
@@ -784,6 +836,10 @@ function cardStudio() {
         pdfSourceUrl: null,
         pdfFileName: '',
         pdfMeta: { widthPt: 0, heightPt: 0, widthMm: 0, heightMm: 0 },
+        outputPreset: 'original',
+        outputOrientation: 'auto',
+        outputWidthMm: 70,
+        outputHeightMm: 100,
         canvasCssWidth: 420,
         canvasCssHeight: 600,
         zoom: 1.0,
@@ -1050,6 +1106,10 @@ function cardStudio() {
                 widthMm: +(vp1.width * 25.4 / 72).toFixed(1),
                 heightMm: +(vp1.height * 25.4 / 72).toFixed(1),
             };
+            if (this.outputPreset === 'original') {
+                this.outputWidthMm = this.pdfMeta.widthMm;
+                this.outputHeightMm = this.pdfMeta.heightMm;
+            }
             this.hasPdf = true;
             await this.$nextTick();
             await this.renderPdfCanvas();
@@ -1494,6 +1554,67 @@ function cardStudio() {
             return SF.Helvetica;
         },
 
+        get effectiveOutputSize() {
+            let wMm = this.outputPreset === 'original' ? (this.pdfMeta.widthMm || 70) : (Number(this.outputWidthMm) || 70);
+            let hMm = this.outputPreset === 'original' ? (this.pdfMeta.heightMm || 100) : (Number(this.outputHeightMm) || 100);
+
+            if (this.outputOrientation === 'portrait' && wMm > hMm) {
+                [wMm, hMm] = [hMm, wMm];
+            } else if (this.outputOrientation === 'landscape' && hMm > wMm) {
+                [wMm, hMm] = [hMm, wMm];
+            }
+
+            return {
+                wMm: +wMm.toFixed(1),
+                hMm: +hMm.toFixed(1),
+                wPt: +(wMm * 72 / 25.4).toFixed(2),
+                hPt: +(hMm * 72 / 25.4).toFixed(2),
+            };
+        },
+
+        applyOutputPreset() {
+            const map = {
+                original: [this.pdfMeta.widthMm || 70, this.pdfMeta.heightMm || 100],
+                cr80: [85.6, 54],
+                badge70: [70, 100],
+                badge90: [90, 125],
+                a5: [148, 210],
+                a4: [210, 297],
+            };
+            if (map[this.outputPreset]) {
+                let [w, h] = map[this.outputPreset];
+                if (this.outputOrientation === 'portrait' && w > h) [w, h] = [h, w];
+                if (this.outputOrientation === 'landscape' && h > w) [w, h] = [h, w];
+                this.outputWidthMm = w;
+                this.outputHeightMm = h;
+            }
+        },
+
+        setOutputOrientation(orient) {
+            this.outputOrientation = orient;
+            if (this.outputPreset !== 'original') {
+                if (orient === 'portrait' && this.outputWidthMm > this.outputHeightMm) {
+                    [this.outputWidthMm, this.outputHeightMm] = [this.outputHeightMm, this.outputWidthMm];
+                } else if (orient === 'landscape' && this.outputHeightMm > this.outputWidthMm) {
+                    [this.outputWidthMm, this.outputHeightMm] = [this.outputHeightMm, this.outputWidthMm];
+                }
+            }
+        },
+
+        async createOutputPageFromTemplate(targetDoc, templateDoc) {
+            const target = this.effectiveOutputSize;
+            const isNative = this.outputPreset === 'original' && this.outputOrientation === 'auto';
+            if (isNative) {
+                const [copiedPage] = await targetDoc.copyPages(templateDoc, [0]);
+                targetDoc.addPage(copiedPage);
+                return copiedPage;
+            }
+            const page = targetDoc.addPage([target.wPt, target.hPt]);
+            const embedded = await targetDoc.embedPage(templateDoc.getPage(0));
+            page.drawPage(embedded, { x: 0, y: 0, width: target.wPt, height: target.hPt });
+            return page;
+        },
+
         async generateBatch(mode) {
             const targetRows = mode === 'single' ? [this.currentRow] : this.selectedFilteredRows;
             if (!studioRaw.pdfBytes || targetRows.length === 0) {
@@ -1510,15 +1631,15 @@ function cardStudio() {
 
             try {
                 const templateDoc = await PDFLib.PDFDocument.load(studioRaw.pdfBytes);
+                const outSize = this.effectiveOutputSize;
 
                 if (mode === 'multipage' || mode === 'single') {
                     const outDoc = await PDFLib.PDFDocument.create();
                     const fontsCache = {};
 
                     for (let i = 0; i < targetRows.length; i++) {
-                        const [copiedPage] = await outDoc.copyPages(templateDoc, [0]);
-                        outDoc.addPage(copiedPage);
-                        await this.drawFieldsOnPage(outDoc, copiedPage, targetRows[i], fontsCache);
+                        const page = await this.createOutputPageFromTemplate(outDoc, templateDoc);
+                        await this.drawFieldsOnPage(outDoc, page, targetRows[i], fontsCache);
                         this.progressCurrent = i + 1;
                     }
 
@@ -1532,24 +1653,25 @@ function cardStudio() {
                     this.downloadBlob(new Blob([outBytes], { type: 'application/pdf' }), filename);
                 }
                 else if (mode === 'a4sheet') {
-                    // Générer d'abord chaque carte en mémoire, puis imposer sur feuilles A4 (595.28 x 841.89 pt)
                     const singleDoc = await PDFLib.PDFDocument.create();
                     const fontsCache = {};
                     for (let i = 0; i < targetRows.length; i++) {
-                        const [copiedPage] = await singleDoc.copyPages(templateDoc, [0]);
-                        singleDoc.addPage(copiedPage);
-                        await this.drawFieldsOnPage(singleDoc, copiedPage, targetRows[i], fontsCache);
+                        const page = await this.createOutputPageFromTemplate(singleDoc, templateDoc);
+                        await this.drawFieldsOnPage(singleDoc, page, targetRows[i], fontsCache);
                         this.progressCurrent = i + 1;
                     }
                     const singleBytes = await singleDoc.save();
                     const finishedDoc = await PDFLib.PDFDocument.load(singleBytes);
 
                     const sheetDoc = await PDFLib.PDFDocument.create();
-                    const A4_W = 595.28, A4_H = 841.89;
-                    const cardW = this.pdfMeta.widthPt;
-                    const cardH = this.pdfMeta.heightPt;
-                    const margin = 20;
-                    const gap = 12;
+                    // Choisir automatiquement A4 Paysage ou Portrait selon le meilleur rendement
+                    const isLandscapeSheet = outSize.wPt > outSize.hPt;
+                    const A4_W = isLandscapeSheet ? 841.89 : 595.28;
+                    const A4_H = isLandscapeSheet ? 595.28 : 841.89;
+                    const cardW = outSize.wPt;
+                    const cardH = outSize.hPt;
+                    const margin = 18;
+                    const gap = 10;
 
                     const cols = Math.max(1, Math.floor((A4_W - margin * 2 + gap) / (cardW + gap)));
                     const rowsPerPage = Math.max(1, Math.floor((A4_H - margin * 2 + gap) / (cardH + gap)));
@@ -1557,8 +1679,8 @@ function cardStudio() {
 
                     const totalGridW = cols * cardW + (cols - 1) * gap;
                     const totalGridH = rowsPerPage * cardH + (rowsPerPage - 1) * gap;
-                    const offsetX = (A4_W - totalGridW) / 2;
-                    const offsetY = (A4_H - totalGridH) / 2;
+                    const offsetX = Math.max(0, (A4_W - totalGridW) / 2);
+                    const offsetY = Math.max(0, (A4_H - totalGridH) / 2);
 
                     const embeddedPages = await sheetDoc.embedPdf(finishedDoc, finishedDoc.getPageIndices());
 
@@ -1573,7 +1695,6 @@ function cardStudio() {
                         const y = A4_H - offsetY - (rowIdx + 1) * cardH - rowIdx * gap;
 
                         sheetPage.drawPage(embeddedPages[i], { x, y, width: cardW, height: cardH });
-                        // Fines bordures / repères de coupe
                         sheetPage.drawRectangle({
                             x, y, width: cardW, height: cardH,
                             borderColor: PDFLib.rgb(0.75, 0.78, 0.82),
@@ -1588,9 +1709,8 @@ function cardStudio() {
                     const zip = new JSZip();
                     for (let i = 0; i < targetRows.length; i++) {
                         const oneDoc = await PDFLib.PDFDocument.create();
-                        const [copiedPage] = await oneDoc.copyPages(templateDoc, [0]);
-                        oneDoc.addPage(copiedPage);
-                        await this.drawFieldsOnPage(oneDoc, copiedPage, targetRows[i], {});
+                        const page = await this.createOutputPageFromTemplate(oneDoc, templateDoc);
+                        await this.drawFieldsOnPage(oneDoc, page, targetRows[i], {});
                         const bytes = await oneDoc.save();
 
                         const rawName = targetRows[i]['Nom et prénom'] || Object.values(targetRows[i])[0] || ('Document_' + (i + 1));

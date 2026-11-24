@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Nouveau Séminaire')
+@section('header_title', 'Nouvelle Filière / Cours')
 
 @section('content')
 <div class="p-8 max-w-4xl mx-auto">
@@ -9,8 +9,8 @@
             <span class="material-symbols-outlined">arrow_back</span>
         </a>
         <div>
-            <h1 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Créer un Séminaire</h1>
-            <p class="text-on-surface-variant font-body">Remplissez les informations pour planifier une nouvelle session.</p>
+            <h1 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Créer une Filière / Cours</h1>
+            <p class="text-on-surface-variant font-body">Configurez la filière, son département de rattachement et ses matières.</p>
         </div>
     </div>
 
@@ -26,9 +26,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="lg:col-span-2 space-y-2">
                         <label for="title" class="text-sm font-bold text-on-surface-variant">
-                            Titre du séminaire <span class="text-red-500">*</span>
+                            Intitulé de la Filière / Classe <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="title" id="title" required value="{{ old('title') }}" placeholder="Ex: Leadership Éducatif & Management de la Formation" 
+                        <input type="text" name="title" id="title" required value="{{ old('title') }}" placeholder="Ex: BTS Informatique Industrielle & Réseaux (1ère Année)" 
                             class="w-full bg-surface-container-low border @error('title') border-red-500 @else border-outline-variant @enderror rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         @error('title')
                             <p class="text-xs text-red-600 font-bold mt-1">{{ $message }}</p>
@@ -97,10 +97,10 @@
             <div class="pt-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-primary flex items-center gap-2">
-                        <span class="material-symbols-outlined">category</span> Thèmes du Séminaire (Optionnel)
+                        <span class="material-symbols-outlined">category</span> Matières / Modules de la Filière
                     </h2>
                     <button type="button" onclick="addTopic()" class="text-sm px-4 py-2 bg-primary/10 text-primary rounded-lg font-bold hover:bg-primary/20 transition-all flex items-center gap-1 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">add</span> Ajouter un thème
+                        <span class="material-symbols-outlined text-sm">add</span> Ajouter une matière
                     </button>
                 </div>
                 <div id="topics-container" class="space-y-3">

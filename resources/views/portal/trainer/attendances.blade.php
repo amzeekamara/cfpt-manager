@@ -8,10 +8,33 @@
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
             <span>Retour au tableau de bord</span>
         </a>
-        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Liste des Candidats & Suivi des Présences</h1>
-        <p class="text-xs text-slate-500 mt-1">Consultez et filtrez en temps réel les présences et absences de vos candidats par date.</p>
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Liste des Étudiants & Émargement des Cours</h1>
+        <p class="text-xs text-slate-500 mt-1">Marquez les présences/absences des étudiants inscrits et renseignez le volume horaire conforme à votre emploi du temps.</p>
     </div>
 </div>
+
+@if(isset($matchingTimetable) && $matchingTimetable)
+<!-- Bandeau de Conformité Emploi du Temps -->
+<div class="bg-blue-50/90 border border-blue-200 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#4B6A95] text-white flex items-center justify-center shrink-0">
+            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+        </div>
+        <div class="text-xs">
+            <span class="text-[10px] font-black uppercase tracking-wider text-[#4B6A95] block">Créneau Emploi du Temps détecté ({{ $matchingTimetable->day_of_week }})</span>
+            <p class="font-bold text-slate-900">
+                Horaire prévu : {{ \Carbon\Carbon::parse($matchingTimetable->start_time)->format('H:i') }} à {{ \Carbon\Carbon::parse($matchingTimetable->end_time)->format('H:i') }}
+                — Salle : <span class="text-[#4B6A95]">{{ $matchingTimetable->classroom?->name ?? 'Salle assignée' }}</span>
+            </p>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+        <span class="px-3.5 py-1.5 rounded-full bg-[#4B6A95] text-white text-xs font-black">
+            Volume conforme requis : {{ $matchingTimetable->planned_hours }} h
+        </span>
+    </div>
+</div>
+@endif
 
 <!-- Barre de Filtres Complète (Date, Séminaire, Thème, Recherche) -->
 <div class="bg-white rounded-[24px] p-6 border border-slate-200/90 shadow-sm mb-6">
@@ -143,6 +166,9 @@
             <input type="hidden" name="date" value="{{ $date }}">
             <input type="hidden" name="seminar_id" value="{{ $seminarId }}">
             <input type="hidden" name="topic_id" value="{{ $topicId }}">
+            @if(isset($matchingTimetable) && $matchingTimetable)
+                <input type="hidden" name="timetable_id" value="{{ $matchingTimetable->id }}">
+            @endif
             
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs whitespace-nowrap">
@@ -239,13 +265,20 @@
             </div>
 
             <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6">
-                <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                    <label class="text-xs font-black text-slate-700">Volume d'heures dispensées :</label>
-                    <input type="number" name="hours_taught" min="1" max="24" class="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-xl focus:border-[#4B6A95] text-xs font-black text-center outline-none" placeholder="Ex: 4" value="{{ $hoursTaught ?? 4 }}" required>
+                <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                    <div>
+                        <label class="text-xs font-black text-slate-800 block">Nombre d'heures effectuées dans ce cours <span class="text-rose-500">*</span> :</label>
+                        @if(isset($plannedHours) && $plannedHours)
+                            <span class="text-[11px] font-bold text-emerald-700">Doit être conforme à l'emploi du temps ({{ $plannedHours }}h prévues)</span>
+                        @else
+                            <span class="text-[11px] text-slate-500">Renseignez les heures conformément à votre emploi du temps</span>
+                        @endif
+                    </div>
+                    <input type="number" step="0.5" name="hours_taught" min="0.5" max="24" class="w-24 px-3 py-2 bg-white border border-slate-300 rounded-xl focus:border-[#4B6A95] text-xs font-black text-center outline-none" placeholder="Ex: 4" value="{{ $hoursTaught ?? 4 }}" required>
                 </div>
                 <button type="submit" class="px-8 py-3 bg-[#4B6A95] text-white rounded-full text-xs font-bold shadow-xs hover:bg-[#354e70] transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <i data-lucide="save" class="w-4 h-4"></i>
-                    <span>Enregistrer la feuille de présence</span>
+                    <span>Valider les présences & heures effectuées</span>
                 </button>
             </div>
         </form>

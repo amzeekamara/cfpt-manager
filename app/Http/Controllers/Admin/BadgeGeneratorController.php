@@ -50,7 +50,7 @@ class BadgeGeneratorController extends Controller
             return [
                 'Nom et prénom' => mb_strtoupper($fullName, 'UTF-8'),
                 'Pays' => $profile?->residence_country ?: ($profile?->nationality ?: ''),
-                'Thème' => $reg->topic?->title ?: $seminar->title,
+                'Thème' => $reg->topic?->name ?: $seminar->title,
                 'Établissement / structure' => $profile?->current_employer ?: '',
                 'Matricule' => $profile?->matricule ?: ('PFPT-' . str_pad($reg->id, 4, '0', STR_PAD_LEFT)),
                 'Fonction' => $profile?->job_function ?: ($profile?->current_profession ?: ''),

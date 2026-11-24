@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Définition du Mot de Passe — PFPT CFPT Sénégal-Japon & JICA</title>
+  <title>Définition du Mot de Passe — CFPT Manager - CFPT Sénégal-Japon</title>
   <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
   
   <!-- Polices Google : Plus Jakarta Sans & Inter -->
@@ -457,14 +457,14 @@
     <!-- COLONNE GAUCHE (SIDEBAR CFPT SÉNÉGAL-JAPON) -->
     <aside class="sidebar-pane">
       
-      <!-- LOGO OFFICIEL PFPT -->
+      <!-- LOGO OFFICIEL CFPT -->
       <a href="{{ route('welcome') }}" class="brand-logo-wrap" title="Retour au portail d'accueil">
         <img src="{{ file_exists(public_path('images/favicon2.png')) ? asset('images/favicon2.png') : (file_exists(public_path('images/favicon 2.png')) ? asset('images/favicon 2.png') : asset('images/favicon.png')) }}" 
-             alt="Logo PFPT" 
+             alt="Logo CFPT Manager" 
              class="brand-logo-img">
         <div class="brand-logo-text">
-          <span class="brand-logo-title">CFPT SÉNÉGAL-JAPON</span>
-          <span class="brand-logo-sub">Programme PFPT — JICA</span>
+          <span class="brand-logo-title">CFPT MANAGER</span>
+          <span class="brand-logo-sub">CFPT Sénégal-Japon</span>
         </div>
       </a>
 

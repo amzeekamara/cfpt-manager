@@ -266,10 +266,10 @@
 
     <!-- Onglets -->
     <div class="tabs-container">
-        <div class="custom-tab active" onclick="switchTab('staff', this)">Membres du Personnel</div>
-        <div class="custom-tab" onclick="switchTab('trainers', this)">Formateurs</div>
-        <div class="custom-tab" onclick="switchTab('candidates', this)">Candidats</div>
-        <div class="custom-tab" onclick="switchTab('jica', this)">Agents JICA</div>
+        <div class="custom-tab active" onclick="switchTab('staff', this)">Direction & Administration</div>
+        <div class="custom-tab" onclick="switchTab('dept-heads', this)">Chefs de Département ({{ $departmentHeads->count() }})</div>
+        <div class="custom-tab" onclick="switchTab('trainers', this)">Formateurs ({{ $trainers->count() }})</div>
+        <div class="custom-tab" onclick="switchTab('candidates', this)">Étudiants ({{ $candidates->count() }})</div>
     </div>
 
     <!-- Panneau Principal -->
@@ -698,25 +698,26 @@
             </div>
         </div>
 
-        <!-- Tab Content: Agents JICA -->
-        <div id="tab-jica" class="tab-content">
+        <!-- Tab Content: Chefs de Département -->
+        <div id="tab-dept-heads" class="tab-content">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Nom complet</th>
+                        <th>Chef de Département</th>
                         <th>Email</th>
+                        <th>Département géré</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($jicaAgents as $user)
+                    @forelse($departmentHeads as $user)
                     <tr>
                         <td>
                             <div class="flex items-center gap-3">
                                 @if($user->avatar)
                                     <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
                                 @else
-                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-bold text-xs shadow-sm">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs shadow-sm">
                                         {{ substr($user->name, 0, 2) }}
                                     </div>
                                 @endif
@@ -725,41 +726,24 @@
                         </td>
                         <td>{{ $user->email }}</td>
                         <td>
-                            <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
-                                <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
-                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                                </button>
-                                
-                                <div x-show="open" 
-                                     x-transition:enter="transition ease-out duration-100" 
-                                     x-transition:enter-start="transform opacity-0 scale-95" 
-                                     x-transition:enter-end="transform opacity-100 scale-100" 
-                                     x-transition:leave="transition ease-in duration-75" 
-                                     x-transition:leave-start="transform opacity-100 scale-100" 
-                                     x-transition:leave-end="transform opacity-0 scale-95"
-                                     class="absolute right-0 z-50 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
-                                     style="display: none;">
-                                    <div class="py-1">
-                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-slate-50 hover:text-primary">
-                                            <span class="material-symbols-outlined mr-3 text-[18px] text-gray-400 group-hover:text-primary">edit</span>
-                                            Éditer
-                                        </a>
-                                        <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet agent ?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                                                <span class="material-symbols-outlined mr-3 text-[18px] text-red-500">delete</span>
-                                                Supprimer
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
+                            <span class="px-2.5 py-1 rounded-full bg-blue-50 text-[#4B6A95] text-xs font-bold">
+                                {{ $user->department?->name ?? $user->managedDepartment?->name ?? 'Non assigné' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('admin.users.edit', $user->id) }}" class="btn-action">Éditer</a>
+                                <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce chef de département ?');" class="m-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-action btn-action-danger">Supprimer</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="3" class="text-center py-8 text-slate-500 italic">Aucun Agent JICA trouvé.</td>
+                        <td colspan="4" class="text-center py-8 text-slate-500 italic">Aucun Chef de Département enregistré.</td>
                     </tr>
                     @endforelse
                 </tbody>
