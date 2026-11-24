@@ -18,12 +18,12 @@ class TrainerController extends Controller
     {
         $trainerId = $request->session()->get('portal_trainer_id');
         $trainer = Trainer::with('seminars')->findOrFail($trainerId);
-        
+
         $messages = Message::where('trainer_id', $trainerId)->latest()->get();
-        
+
         $cohorts = Cohort::all();
         $departments = Department::all();
-        
+
         $seminarIds = $trainer->seminars->pluck('id');
         $resources = Resource::whereIn('seminar_id', $seminarIds)->latest()->get();
         $topicsBySeminar = \App\Models\Topic::whereIn('seminar_id', $seminarIds)->get()->groupBy('seminar_id');
@@ -62,13 +62,13 @@ class TrainerController extends Controller
             ->get();
 
         return view('portal.trainer.dashboard', compact(
-            'trainer', 
-            'messages', 
-            'cohorts', 
-            'departments', 
-            'resources', 
-            'topicsBySeminar', 
-            'topicsWithCounts', 
+            'trainer',
+            'messages',
+            'cohorts',
+            'departments',
+            'resources',
+            'topicsBySeminar',
+            'topicsWithCounts',
             'totalCandidates',
             'recentCandidates',
             'todayDate',
@@ -162,7 +162,7 @@ class TrainerController extends Controller
         $statusFilter = $request->input('status', 'all'); // 'all', 'present', 'absent', 'unmarked'
         $topicId = $request->input('topic_id');
         $search = $request->input('search');
-        
+
         $registrations = collect();
         $allRegistrations = collect();
         $topics = collect();
@@ -175,7 +175,7 @@ class TrainerController extends Controller
             $topics = \App\Models\Topic::where('seminar_id', $seminarId)->where('is_active', true)->get();
 
             $baseQuery = \App\Models\Registration::with([
-                'user.candidateProfile', 
+                'user.candidateProfile',
                 'topic',
                 'attendances' => function($q) use ($date) {
                     $q->whereDate('session_date', $date);
@@ -260,17 +260,17 @@ class TrainerController extends Controller
         }
 
         return view('portal.trainer.attendances', compact(
-            'trainer', 
-            'registrations', 
-            'date', 
-            'seminarId', 
-            'topics', 
-            'statusFilter', 
-            'topicId', 
+            'trainer',
+            'registrations',
+            'date',
+            'seminarId',
+            'topics',
+            'statusFilter',
+            'topicId',
             'search',
-            'presentCount', 
-            'absentCount', 
-            'unmarkedCount', 
+            'presentCount',
+            'absentCount',
+            'unmarkedCount',
             'totalCandidatesCount',
             'hoursTaught',
             'plannedHours',
@@ -293,7 +293,7 @@ class TrainerController extends Controller
 
         $trainerId = $request->session()->get('portal_trainer_id');
         $trainer = Trainer::findOrFail($trainerId);
-        
+
         if (!$trainer->seminars->contains('id', $request->seminar_id)) {
             abort(403, 'Accès non autorisé à ce séminaire.');
         }
@@ -309,7 +309,7 @@ class TrainerController extends Controller
             if ($registration) {
                 \App\Models\Attendance::updateOrCreate(
                     [
-                        'registration_id' => $registrationId, 
+                        'registration_id' => $registrationId,
                         'session_date' => $date,
                         'topic_id' => $topicId // Treat different topics on same day as different sessions
                     ],
@@ -426,7 +426,7 @@ class TrainerController extends Controller
     {
         $trainerId = $request->session()->get('portal_trainer_id');
         $trainer = Trainer::findOrFail($trainerId);
-        
+
         if (!$trainer->seminars->contains('id', $resource->seminar_id)) {
             abort(403, 'Accès non autorisé.');
         }
@@ -460,7 +460,7 @@ class TrainerController extends Controller
             $handle = fopen('php://output', 'w');
             fputs($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM for UTF-8 Excel
             fputcsv($handle, ['Nom Complet', 'Email', 'Téléphone', 'Profession'], ';');
-            
+
             foreach ($registrations as $reg) {
                 $user = $reg->user;
                 $profile = $user->candidateProfile;

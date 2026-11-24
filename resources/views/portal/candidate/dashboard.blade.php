@@ -22,7 +22,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-            @if($registration)
+            @if($registration && $registration->seminar?->training_type === 'continue')
+                <a href="{{ route('portal.candidate.continuing-certificate.pdf') }}" data-no-loader class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-full shadow-2xs flex items-center gap-2 transition-all">
+                    <i data-lucide="award" class="w-4 h-4"></i>
+                    <span>Télécharger mon Attestation PDF</span>
+                </a>
+            @elseif($registration)
                 <a href="{{ route('portal.candidate.report-card.pdf') }}" data-no-loader class="px-4 py-2.5 bg-white hover:bg-slate-50 text-[#4B6A95] border border-slate-200 text-xs font-bold rounded-full shadow-2xs flex items-center gap-2 transition-all">
                     <i data-lucide="file-Spreadsheet" class="w-4 h-4"></i>
                     <span>Télécharger mon Bulletin PDF</span>
@@ -104,7 +109,7 @@
             <div class="md:w-2/3 p-6 sm:p-8 flex flex-col justify-between bg-white">
                 <div>
                     <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                        <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Fiche Candidat & Coordonnées</span>
+                        <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Fiche Étudiant / Stagiaire & Coordonnées</span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-4 text-xs">
@@ -134,14 +139,14 @@
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Nationalité</span>
-                            <strong class="text-slate-800 font-bold text-sm">{{ $profile->nationality ?? 'Ivoirienne' }}</strong>
+                            <strong class="text-slate-800 font-bold text-sm">{{ $profile->nationality ?? 'Sénégalaise' }}</strong>
                         </div>
                         <div>
-                            <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Édition</span>
-                            <strong class="text-[#4B6A95] font-bold text-sm">{{ $registration->seminar->cohort->title ?? 'Édition 2026 – 2027' }}</strong>
+                            <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Année Académique</span>
+                            <strong class="text-[#4B6A95] font-bold text-sm">{{ $registration->seminar->cohort->title ?? 'Année Académique 2026 - 2027' }}</strong>
                         </div>
                         <div>
-                            <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Date Dépôt</span>
+                            <span class="text-slate-400 font-semibold block mb-0.5 text-[11px]">Date d'Inscription</span>
                             <strong class="text-slate-800 font-bold text-sm">{{ $registration ? $registration->created_at->format('d M Y') : 'N/A' }}</strong>
                         </div>
                     </div>

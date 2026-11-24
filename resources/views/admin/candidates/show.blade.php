@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Dossier Candidat — ' . $registration->user->name)
+@section('header_title', 'Dossier Étudiant — ' . $registration->user->name)
 
 @section('content')
 <style>
@@ -78,13 +78,24 @@
                 <span>Retour</span>
             </a>
             <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                <a href="{{ route('admin.candidates') }}" class="hover:text-slate-600">Liste des Candidats</a>
+                <a href="{{ route('admin.candidates') }}" class="hover:text-slate-600">Liste des Étudiants</a>
                 <span>&rsaquo;</span>
                 <span class="text-slate-800 font-bold">{{ $user->name }}</span>
             </div>
         </div>
         
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2.5">
+            @if(($registration->seminar->training_type ?? 'initiale') === 'continue')
+                <a href="{{ route('admin.continuing-education.certificate.pdf', $registration->id) }}" data-no-loader class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-2xs transition">
+                    <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+                    <span>Attestation Formation Continue (PDF)</span>
+                </a>
+            @else
+                <a href="{{ route('admin.evaluations.report-card.pdf', $registration->id) }}" data-no-loader class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-2xs transition">
+                    <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                    <span>Bulletin de Notes (PDF)</span>
+                </a>
+            @endif
             <button onclick="window.print()" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold border border-slate-200 rounded-xl text-xs flex items-center gap-2 shadow-2xs transition">
                 <span class="material-symbols-outlined text-[18px] text-slate-500">print</span>
                 <span>Imprimer la Fiche</span>
@@ -100,8 +111,8 @@
     <div class="hidden print-header mb-6 pb-4 border-b-2 border-slate-800">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black text-slate-900 uppercase">CFPT Sénégal-Japon & JICA</h1>
-                <p class="text-xs font-bold text-slate-600">Programme de Formation en Pays Tiers (PFPT) — Fiche Individuelle de Candidature</p>
+                <h1 class="text-xl font-black text-slate-900 uppercase">CFPT Manager — CFPT Sénégal-Japon</h1>
+                <p class="text-xs font-bold text-slate-600">Centre de Formation Professionnelle et Technique Sénégal-Japon — Fiche Individuelle d'Inscription</p>
             </div>
             <div class="text-right text-xs">
                 <span class="font-bold text-slate-800">Dossier #{{ str_pad($registration->id, 5, '0', STR_PAD_LEFT) }}</span><br>
@@ -175,15 +186,15 @@
                 </div>
             </div>
 
-            <!-- Seminar & Training Details Card -->
+            <!-- Filière & Formation Details Card -->
             <div class="info-card p-5 space-y-4">
                 <div class="info-section-title">
-                    Séminaire & Formation
+                    Filière & Formation
                 </div>
 
                 <div class="space-y-3 text-xs">
                     <div>
-                        <span class="info-label">Séminaire Cible</span>
+                        <span class="info-label">Filière / Formation</span>
                         <div class="font-bold text-slate-800 text-sm">
                             {{ $registration->seminar->title }}
                         </div>
@@ -191,7 +202,7 @@
 
                     @if($registration->topic)
                         <div class="pt-2 border-t border-slate-100">
-                            <span class="info-label">Thème d'Atelier / Projet Pratique</span>
+                            <span class="info-label">Matière / Spécialité</span>
                             <div class="font-bold text-slate-800 text-xs">
                                 {{ $registration->topic->name }}
                             </div>
@@ -200,11 +211,11 @@
 
                     <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
                         <div>
-                            <span class="info-label">Édition / Cohorte</span>
+                            <span class="info-label">Année Académique</span>
                             <strong class="info-value text-xs">{{ $registration->seminar->cohort->title ?? 'N/A' }}</strong>
                         </div>
                         <div>
-                            <span class="info-label">Date Candidature</span>
+                            <span class="info-label">Date d'Inscription</span>
                             <strong class="info-value text-xs">{{ $registration->created_at->format('d/m/Y') }}</strong>
                         </div>
                     </div>
@@ -221,10 +232,7 @@
                     <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-100 text-xs text-slate-600 leading-relaxed mb-3">
                         <ul class="space-y-1.5 list-disc list-inside">
                             <li>Dossier enregistré le {{ $registration->created_at->format('d/m/Y à H:i') }}.</li>
-                            @if($profile && !empty($health))
-                                <li>Questionnaire de santé : renseigné.</li>
-                            @endif
-                            <li>Séminaire : {{ $registration->seminar->title }}.</li>
+                            <li>Filière : {{ $registration->seminar->title }}.</li>
                         </ul>
                     </div>
 

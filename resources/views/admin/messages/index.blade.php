@@ -1,122 +1,116 @@
 @extends('layouts.admin')
 
-@section('content')
-<div class="mb-6 flex justify-between items-center">
-    <div>
-        <h1 class="text-3xl font-bold text-gray-900">Messages & Alertes</h1>
-        <p class="text-sm text-gray-600 mt-1">Gérez les annonces envoyées aux candidats.</p>
-    </div>
-    <a href="{{ route('admin.messages.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:brightness-90 transition-colors inline-flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Nouvelle Alerte
-    </a>
-</div>
+@section('header_title', 'Messages & Annonces Pédagogiques')
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
-    <div class="overflow-visible">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                    <th class="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Sujet</th>
-                    <th class="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Cible (Cohorte)</th>
-                    <th class="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Auteur</th>
-                    <th class="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($messages as $message)
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-6 text-sm text-gray-500 whitespace-nowrap">
-                        {{ $message->created_at->format('d/m/Y H:i') }}
-                    </td>
-                    <td class="py-3 px-6 text-sm font-medium text-gray-900">
-                        {{ $message->subject }}
-                    </td>
-                    <td class="py-3 px-6 text-sm text-gray-500">
-                        @if($message->cohort_id)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                {{ $message->cohort->title }}
-                            </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                Tous les candidats
-                            </span>
-                        @endif
-                    </td>
-                    <td class="py-3 px-6 text-sm text-gray-500">
-                        {{ $message->user ? $message->user->name : 'Système' }}
-                    </td>
-                    <td class="py-3 px-6 text-sm text-right">
-                        <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
-                            <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
-                                <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                            </button>
-                            <div x-show="open" x-transition class="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-100 shadow-lg rounded-md py-1 z-50">
-                                <button type="button" onclick="openMessageModal({{ $message->id }})" class="w-full text-left px-4 py-2 text-sm text-primary hover:bg-blue-50 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[16px]">visibility</span>
-                                    Voir
-                                </button>
-                                <form action="{{ route('admin.messages.destroy', $message) }}" method="POST" class="m-0 border-t border-slate-100" onsubmit="return confirm('Supprimer ce message ?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-[16px]">delete</span>
-                                        Supprimer
+@section('content')
+<div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800">
+    <div class="w-full max-w-[1600px] mx-auto">
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.dashboard') }}" class="p-2.5 border border-slate-200 rounded-full hover:bg-slate-50 cursor-pointer transition shadow-2xs bg-white text-slate-700">
+                    <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
+                </a>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Messages & Annonces</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Gérez les annonces pédagogiques envoyées aux étudiants, formateurs et départements.</p>
+                </div>
+            </div>
+            <a href="{{ route('admin.messages.create') }}" class="bg-[#4B6A95] hover:bg-[#3c5678] text-white px-5 py-2.5 rounded-full text-xs font-bold transition inline-flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                Nouvelle Annonce
+            </a>
+        </div>
+
+        <div class="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-visible">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Date</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Sujet</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Destinataires (Année Académique)</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider">Auteur</th>
+                            <th class="py-3.5 px-6 text-xs font-bold uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($messages as $message)
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <td class="py-3.5 px-6 text-xs text-slate-500 whitespace-nowrap font-semibold">
+                                {{ $message->created_at->format('d/m/Y H:i') }}
+                            </td>
+                            <td class="py-3.5 px-6 text-sm font-bold text-slate-900">
+                                {{ $message->subject }}
+                            </td>
+                            <td class="py-3.5 px-6 text-xs text-slate-600">
+                                @if($message->cohort_id)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#4B6A95] border border-blue-200">
+                                        {{ $message->cohort->title }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                        Tous les étudiants & formateurs
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="py-3.5 px-6 text-xs font-semibold text-slate-600">
+                                {{ $message->user ? $message->user->name : 'Administration CFPT' }}
+                            </td>
+                            <td class="py-3.5 px-6 text-sm text-right">
+                                <div class="inline-flex items-center gap-2">
+                                    <button type="button" onclick="openMessageModal({{ $message->id }})" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#4B6A95] text-slate-700 hover:text-white text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                        Lire
                                     </button>
-                                </form>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                
-                <!-- Modal for viewing message content -->
-                <div id="messageModal-{{ $message->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeMessageModal({{ $message->id }})"></div>
-                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <div class="sm:flex sm:items-start">
-                                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                                        <h3 class="text-xl leading-6 font-medium text-gray-900 mb-2" id="modal-title">
-                                            {{ $message->subject }}
-                                        </h3>
-                                        <div class="mb-4 text-sm text-gray-500 flex gap-4 border-b pb-3">
-                                            <span><strong>De :</strong> {{ $message->user ? $message->user->name : 'Système' }}</span>
-                                            <span><strong>Date :</strong> {{ $message->created_at->format('d/m/Y H:i') }}</span>
-                                            <span><strong>Cible :</strong> {{ $message->cohort_id ? $message->cohort->title : 'Tous les candidats' }}</span>
-                                        </div>
-                                        <div class="mt-2 text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-100 min-h-[100px]">
-                                            {{ $message->body }}
-                                        </div>
+                                    <form action="{{ route('admin.messages.destroy', $message) }}" method="POST" class="m-0 inline" onsubmit="return confirm('Supprimer ce message ?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white transition cursor-pointer">
+                                            <span class="material-symbols-outlined text-[16px]">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Modal for viewing message content -->
+                        <div id="messageModal-{{ $message->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+                            <div class="flex items-center justify-center min-h-screen p-4">
+                                <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs" onclick="closeMessageModal({{ $message->id }})"></div>
+                                <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 z-10">
+                                    <h3 class="text-lg font-extrabold text-slate-900 mb-2">{{ $message->subject }}</h3>
+                                    <div class="mb-4 text-xs text-slate-500 flex flex-wrap gap-4 border-b border-slate-100 pb-3">
+                                        <span><strong>De :</strong> {{ $message->user ? $message->user->name : 'Administration CFPT' }}</span>
+                                        <span><strong>Date :</strong> {{ $message->created_at->format('d/m/Y H:i') }}</span>
+                                        <span><strong>Destinataires :</strong> {{ $message->cohort_id ? $message->cohort->title : 'Tous les étudiants & formateurs' }}</span>
+                                    </div>
+                                    <div class="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 p-4 rounded-2xl border border-slate-200/80 min-h-[100px]">{{ $message->body }}</div>
+                                    <div class="mt-5 flex justify-end">
+                                        <button type="button" onclick="closeMessageModal({{ $message->id }})" class="px-5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold cursor-pointer">
+                                            Fermer
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                <button type="button" onclick="closeMessageModal({{ $message->id }})" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                                    Fermer
-                                </button>
-                            </div>
                         </div>
-                    </div>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-slate-500 bg-slate-50/50 text-xs">
+                                <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2">campaign</span>
+                                Aucune annonce pédagogique n'a encore été envoyée.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($messages->hasPages())
+                <div class="px-6 py-4 border-t border-slate-100">
+                    {{ $messages->links() }}
                 </div>
-                @empty
-                <tr>
-                    <td colspan="5" class="py-8 text-center text-gray-500 bg-gray-50">
-                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                        Aucun message n'a encore été envoyé.
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    @if($messages->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200">
-            {{ $messages->links() }}
+            @endif
         </div>
-    @endif
+    </div>
 </div>
 
 <script>

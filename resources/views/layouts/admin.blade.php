@@ -200,8 +200,8 @@
         <!-- 2. Pédagogie, Cours & Emplois du Temps (Liste déroulante) -->
         <div class="relative">
             <button @click="activeFlyout = activeFlyout === 'catalogue' ? null : 'catalogue'" 
-                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.seminars*') || request()->routeIs('admin.cohorts.*') || request()->routeIs('admin.topics.*') || request()->routeIs('admin.departments.*') || request()->routeIs('admin.timetables.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
-                    title="Pédagogie, Départements & Emplois du Temps">
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition {{ (request()->routeIs('admin.seminars*') || request()->routeIs('admin.continuing-education.*') || request()->routeIs('admin.cohorts.*') || request()->routeIs('admin.topics.*') || request()->routeIs('admin.departments.*') || request()->routeIs('admin.timetables.*')) ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' }}"
+                    title="Pédagogie, Départements, Filières & Formations Continues">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
             </button>
 
@@ -214,17 +214,21 @@
                     <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Pédagogie & Planning</p>
                 </div>
                 <div class="space-y-0.5 text-xs">
-                    <a href="{{ route('admin.timetables.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.timetables.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
-                        <i data-lucide="calendar-clock" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Emplois du Temps & Salles</span>
-                    </a>
                     <a href="{{ route('admin.departments.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.departments.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="building" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Départements & Salles</span>
+                        <span>Les 3 Départements & Salles</span>
                     </a>
                     <a href="{{ route('admin.seminars') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.seminars') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="book-open" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Filières & Cours</span>
+                        <span>Filières & Cours (Formation Initiale)</span>
+                    </a>
+                    <a href="{{ route('admin.continuing-education.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.continuing-education.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="award" class="w-4 h-4 text-amber-600"></i>
+                        <span>Formations Continues (Entreprises)</span>
+                    </a>
+                    <a href="{{ route('admin.timetables.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.timetables.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
+                        <i data-lucide="calendar-clock" class="w-4 h-4 text-[#4B6A95]"></i>
+                        <span>Emplois du Temps & Salles</span>
                     </a>
                     <a href="{{ route('admin.topics.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.topics.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="tag" class="w-4 h-4 text-[#4B6A95]"></i>
@@ -232,7 +236,7 @@
                     </a>
                     <a href="{{ route('admin.cohorts.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#4B6A95] hover:bg-blue-50/50 font-semibold transition {{ request()->routeIs('admin.cohorts.*') ? 'bg-slate-100 font-bold text-[#4B6A95]' : '' }}">
                         <i data-lucide="layers" class="w-4 h-4 text-[#4B6A95]"></i>
-                        <span>Années Académiques / Promotions</span>
+                        <span>Années Académiques</span>
                     </a>
                 </div>
             </div>
@@ -421,8 +425,13 @@
             </a>
 
             <a href="{{ route('admin.seminars') }}" 
-               class="px-4 py-2 rounded-full transition {{ request()->routeIs('admin.seminars*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                Filières & Cours
+               class="px-3.5 py-2 rounded-full transition {{ request()->routeIs('admin.seminars*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Filières
+            </a>
+
+            <a href="{{ route('admin.continuing-education.index') }}" 
+               class="px-3.5 py-2 rounded-full transition {{ request()->routeIs('admin.continuing-education.*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                Formations Continues
             </a>
             
             <a href="{{ route('admin.candidates') }}" 

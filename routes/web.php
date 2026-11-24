@@ -55,7 +55,7 @@ Route::post('/setup-password', [\App\Http\Controllers\Auth\PasswordSetupControll
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->group(function () {
-    
+
     // Tableau de bord global
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
@@ -76,7 +76,7 @@ Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->g
     Route::put('/seminars/{seminar}', [\App\Http\Controllers\Admin\SeminarController::class, 'update'])->name('seminars.update');
     Route::delete('/seminars/{seminar}', [\App\Http\Controllers\Admin\SeminarController::class, 'destroy'])->name('seminars.destroy');
     Route::patch('/seminars/{seminar}/toggle', [\App\Http\Controllers\Admin\SeminarController::class, 'toggleStatus'])->name('seminars.toggle');
-    
+
     Route::resource('topics', \App\Http\Controllers\Admin\TopicController::class);
     Route::resource('departments', \App\Http\Controllers\Admin\DepartmentController::class);
     Route::post('/classrooms', [\App\Http\Controllers\Admin\DepartmentController::class, 'storeClassroom'])->name('classrooms.store');
@@ -86,6 +86,13 @@ Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->g
     Route::get('/timetables', [\App\Http\Controllers\Admin\TimetableController::class, 'index'])->name('timetables.index');
     Route::post('/timetables', [\App\Http\Controllers\Admin\TimetableController::class, 'store'])->name('timetables.store');
     Route::delete('/timetables/{timetable}', [\App\Http\Controllers\Admin\TimetableController::class, 'destroy'])->name('timetables.destroy');
+
+    // FORMATIONS CONTINUES PROFESSIONNELLES (COURTE DURÉE, ENTREPRISES & ATTESTATIONS PDF)
+    Route::get('/formations-continues', [\App\Http\Controllers\Admin\ContinuingEducationController::class, 'index'])->name('continuing-education.index');
+    Route::post('/formations-continues', [\App\Http\Controllers\Admin\ContinuingEducationController::class, 'store'])->name('continuing-education.store');
+    Route::post('/formations-continues/{training}/enroll', [\App\Http\Controllers\Admin\ContinuingEducationController::class, 'enrollTrainee'])->name('continuing-education.enroll');
+    Route::get('/formations-continues/attestation/{registration}/pdf', [\App\Http\Controllers\Admin\ContinuingEducationController::class, 'downloadCertificatePdf'])->name('continuing-education.certificate.pdf');
+    Route::delete('/formations-continues/{training}', [\App\Http\Controllers\Admin\ContinuingEducationController::class, 'destroy'])->name('continuing-education.destroy');
 
     // ÉVALUATIONS, NOTES & RESTITUTION (BULLETINS PDF)
     Route::get('/evaluations', [\App\Http\Controllers\Admin\EvaluationController::class, 'index'])->name('evaluations.index');
@@ -164,7 +171,7 @@ Route::middleware(['auth', 'admin', 'jica'])->prefix('admin')->name('admin.')->g
 |--------------------------------------------------------------------------
 */
 Route::prefix('portal')->name('portal.')->group(function () {
-    
+
     Route::get('/', function () {
         return redirect()->route('login');
     })->name('welcome');
@@ -173,6 +180,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::middleware('portal.auth:candidate')->prefix('candidat')->name('candidate.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Portal\CandidateController::class, 'dashboard'])->name('dashboard');
         Route::get('/report-card/pdf', [\App\Http\Controllers\Portal\CandidateController::class, 'downloadReportCard'])->name('report-card.pdf');
+        Route::get('/continuing-certificate/pdf', [\App\Http\Controllers\Portal\CandidateController::class, 'downloadContinuingCertificate'])->name('continuing-certificate.pdf');
         Route::get('/profile/edit', [\App\Http\Controllers\Portal\CandidateController::class, 'editProfile'])->name('profile.edit');
         Route::post('/messages/{message}/read', [\App\Http\Controllers\Portal\CandidateController::class, 'markMessageAsRead'])->name('messages.read');
         Route::post('/profile/update-request', [\App\Http\Controllers\Portal\CandidateController::class, 'requestProfileUpdate'])->name('profile.update-request');
@@ -188,11 +196,11 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/evaluations', [\App\Http\Controllers\Portal\TrainerController::class, 'evaluations'])->name('evaluations');
         Route::post('/evaluations', [\App\Http\Controllers\Portal\TrainerController::class, 'storeEvaluation'])->name('evaluations.store');
         Route::post('/evaluations/{evaluation}/grades', [\App\Http\Controllers\Portal\TrainerController::class, 'storeGrades'])->name('evaluations.grades.store');
-        
+
         // GED Pédagogique Formateur
         Route::post('/resources', [\App\Http\Controllers\Portal\TrainerController::class, 'storeResource'])->name('resources.store');
         Route::delete('/resources/{resource}', [\App\Http\Controllers\Portal\TrainerController::class, 'destroyResource'])->name('resources.destroy');
-        
+
         // Export Stagiaires par Thématique
         Route::get('/topics/{topic}/export', [\App\Http\Controllers\Portal\TrainerController::class, 'exportTopicCandidates'])->name('topics.export');
     });

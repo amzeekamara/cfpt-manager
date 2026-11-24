@@ -358,5 +358,99 @@ class RealDataSeeder extends Seeder
         foreach ($slots as $slot) {
             Timetable::create($slot + ['is_active' => true]);
         }
+
+        // 8. Formations Continues (Courte durée : 1, 2 ou 3 mois — Payantes — Entreprises partenaires & Attestations PDF)
+        $fc1 = Seminar::create([
+            'title' => 'Perfectionnement Automates Programmables Siemens S7-1500 & Supervision SCADA',
+            'training_type' => 'continue',
+            'partner_company' => 'SENELEC (Société Nationale d\'Électricité du Sénégal)',
+            'duration_label' => '2 mois',
+            'fee_amount' => 650000,
+            'specific_theme' => 'Automatisme Industriel, API Siemens TIA Portal & Télégestion',
+            'description' => 'Formation continue intensive à la demande de la SENELEC pour ses techniciens et ingénieurs de maintenance des centrales et postes.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-11-02',
+            'end_date' => '2026-12-30',
+            'max_participants' => 15,
+            'status' => 'active',
+        ]);
+        $fc1->departments()->attach([$deptElec->id]);
+        $fc1Topic = Topic::create(['seminar_id' => $fc1->id, 'name' => 'Programmation TIA Portal & Réseaux Profinet', 'is_active' => true]);
+
+        $fc2 = Seminar::create([
+            'title' => 'Diagnostic Électronique Moteur & Maintenance Hydraulique Engins Lourds',
+            'training_type' => 'continue',
+            'partner_company' => 'Eiffage Sénégal & DP World Dakar',
+            'duration_label' => '3 mois',
+            'fee_amount' => 850000,
+            'specific_theme' => 'Diagnostic Électronique Embarqué, Injection Common Rail & Hydraulique',
+            'description' => 'Formation continue sur mesure pour les équipes de maintenance des grues portuaires et engins de chantier.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-10-15',
+            'end_date' => '2027-01-15',
+            'max_participants' => 12,
+            'status' => 'active',
+        ]);
+        $fc2->departments()->attach([$deptMeca->id]);
+        $fc2Topic = Topic::create(['seminar_id' => $fc2->id, 'name' => 'Valise de Diagnostic & Systèmes Hydrauliques Proportionnels', 'is_active' => true]);
+
+        $fc3 = Seminar::create([
+            'title' => 'Cybersécurité des Réseaux Industriels (OT/IT) & Virtualisation',
+            'training_type' => 'continue',
+            'partner_company' => 'SONATEL / Orange Sénégal',
+            'duration_label' => '1 mois',
+            'fee_amount' => 500000,
+            'specific_theme' => 'Sécurité des Infrastructures Critiques, Pare-feu & Haute Disponibilité',
+            'description' => 'Session courte de spécialisation pour les administrateurs systèmes et réseaux d\'entreprise.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-11-15',
+            'end_date' => '2026-12-15',
+            'max_participants' => 20,
+            'status' => 'active',
+        ]);
+        $fc3->departments()->attach([$deptInfo->id]);
+        $fc3Topic = Topic::create(['seminar_id' => $fc3->id, 'name' => 'Sécurisation Réseaux & Supervision SOC', 'is_active' => true]);
+
+        // Inscription de stagiaires professionnels avec numéro d'attestation pour les Formations Continues
+        $continuingTrainees = [
+            ['name' => 'Moustapha Dieng', 'email' => 'moustapha.dieng@senelec.sn', 'phone' => '+221 77 810 11 22', 'company' => 'SENELEC', 'function' => 'Technicien Supérieur Automatisme', 'fc' => $fc1, 'topic' => $fc1Topic, 'cert' => 'ATT-CFPT-2026-0001'],
+            ['name' => 'Ndèye Astou Cissé', 'email' => 'astou.cisse@senelec.sn', 'phone' => '+221 77 810 33 44', 'company' => 'SENELEC', 'function' => 'Ingénieure Contrôle-Commande', 'fc' => $fc1, 'topic' => $fc1Topic, 'cert' => 'ATT-CFPT-2026-0002'],
+            ['name' => 'Pape Gorgui Faye', 'email' => 'pape.faye@dpworld.sn', 'phone' => '+221 77 920 55 66', 'company' => 'DP World Dakar', 'function' => 'Chef d\'Équipe Maintenance Engins', 'fc' => $fc2, 'topic' => $fc2Topic, 'cert' => 'ATT-CFPT-2026-0003'],
+            ['name' => 'Seynabou Ndiaye', 'email' => 'seynabou.ndiaye@sonatel.sn', 'phone' => '+221 77 500 77 88', 'company' => 'SONATEL', 'function' => 'Ingénieure Sécurité Réseaux', 'fc' => $fc3, 'topic' => $fc3Topic, 'cert' => 'ATT-CFPT-2026-0004'],
+        ];
+
+        foreach ($continuingTrainees as $ct) {
+            $ctUser = User::firstOrCreate(
+                ['email' => $ct['email']],
+                [
+                    'name' => $ct['name'],
+                    'password' => Hash::make('password'),
+                    'role_id' => $studentRole->id,
+                ]
+            );
+            $parts = explode(' ', $ct['name'], 2);
+            CandidateProfile::updateOrCreate(
+                ['user_id' => $ctUser->id],
+                [
+                    'first_names' => $parts[0] ?? $ct['name'],
+                    'last_name' => $parts[1] ?? '',
+                    'matricule' => $ct['cert'],
+                    'phone' => $ct['phone'],
+                    'nationality' => 'Sénégalaise',
+                    'current_profession' => $ct['function'],
+                    'job_function' => $ct['function'],
+                    'current_employer' => $ct['company'],
+                ]
+            );
+            Registration::create([
+                'user_id' => $ctUser->id,
+                'seminar_id' => $ct['fc']->id,
+                'topic_id' => $ct['topic']->id,
+                'company_name' => $ct['company'],
+                'status' => 'approved',
+                'certificate_number' => $ct['cert'],
+                'certificate_issued_at' => now(),
+            ]);
+        }
     }
 }

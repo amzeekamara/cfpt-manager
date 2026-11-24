@@ -22,8 +22,8 @@
                 <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
             </a>
             <div>
-                <h1 class="text-3xl font-headline font-black text-primary tracking-tighter uppercase">Édition du Dossier</h1>
-                <p class="text-slate-500 font-medium">Candidat : <span class="font-bold text-primary">{{ $registration->user->name }}</span></p>
+                <h1 class="text-3xl font-headline font-black text-primary tracking-tighter uppercase">Modification du Dossier</h1>
+                <p class="text-slate-500 font-medium">Étudiant : <span class="font-bold text-primary">{{ $registration->user->name }}</span></p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
@@ -54,7 +54,7 @@
 
     <!-- Stepper cliquable -->
     @php
-        $stepLabels = [1 => 'Identité', 2 => 'Profil', 3 => 'Parcours', 4 => 'Documents', 5 => 'Séminaire'];
+        $stepLabels = [1 => 'Identité', 2 => 'Profil', 3 => 'Parcours', 4 => 'Documents', 5 => 'Filière'];
     @endphp
     <div class="flex justify-between items-center mb-12 max-w-2xl mx-auto relative z-10">
         @for($i=1; $i<=5; $i++)
@@ -306,42 +306,42 @@
             <div class="form-step" id="step-content-5">
                 <h2 class="text-2xl font-headline font-black text-slate-800 mb-8 flex items-center gap-3">
                     <span class="material-symbols-outlined text-slate-500">assignment_turned_in</span>
-                    5. Sélection & Affectation
+                    5. Affectation à la Filière
                 </h2>
                 
-                <!-- Sélection Séminaire, Thème et Statut (Cadre Bleu) -->
+                <!-- Sélection Filière, Matière et Statut (Cadre Bleu) -->
                 <div class="bg-[#00355f] p-6 sm:p-8 rounded-2xl space-y-6 text-white shadow-md relative">
                     <div class="space-y-6">
-                        <!-- Séminaire -->
+                        <!-- Filière -->
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Séminaire de Formation *</label>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Filière / Formation *</label>
                             <select id="seminar_select" name="seminar_id" required 
                                     class="w-full bg-white/10 hover:bg-white/15 border border-white/25 focus:border-white focus:bg-white/20 text-white rounded-xl px-4 py-3 font-semibold text-sm transition outline-none">
                                 @foreach($seminars as $seminar)
                                     <option value="{{ $seminar->id }}" class="text-slate-900" {{ $registration->seminar_id == $seminar->id ? 'selected' : '' }}>
-                                        {{ $seminar->title }} (Édition: {{ $seminar->cohort?->title }})
+                                        {{ $seminar->title }} (Année Académique : {{ $seminar->cohort?->title }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Thème affecté -->
+                            <!-- Matière affectée -->
                             <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Thème d'Atelier / Spécialité</label>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Matière / Spécialité</label>
                                 <select id="topic_select" name="topic_id" 
                                         class="w-full bg-white/10 hover:bg-white/15 border border-white/25 focus:border-white focus:bg-white/20 text-white rounded-xl px-4 py-3 font-semibold text-sm transition outline-none">
-                                    <option value="" class="text-slate-900">-- Choisir d'abord un séminaire --</option>
+                                    <option value="" class="text-slate-900">-- Choisir d'abord une filière --</option>
                                 </select>
                             </div>
 
                             <!-- Statut du dossier -->
                             <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Statut du Dossier *</label>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-blue-200 block">Statut d'Inscription *</label>
                                 <select name="status" required 
                                         class="w-full bg-white/10 hover:bg-white/15 border border-white/25 focus:border-white focus:bg-white/20 text-white rounded-xl px-4 py-3 font-semibold text-sm transition outline-none">
                                     <option value="pending" class="text-slate-900" {{ $registration->status == 'pending' ? 'selected' : '' }}>En attente / À examiner</option>
-                                    <option value="approved" class="text-slate-900" {{ $registration->status == 'approved' ? 'selected' : '' }}>Sélectionné / Admis</option>
+                                    <option value="approved" class="text-slate-900" {{ $registration->status == 'approved' ? 'selected' : '' }}>Inscrit / Admis</option>
                                     <option value="waiting_list" class="text-slate-900" {{ $registration->status == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
                                     <option value="rejected" class="text-slate-900" {{ $registration->status == 'rejected' ? 'selected' : '' }}>Refusé</option>
                                 </select>

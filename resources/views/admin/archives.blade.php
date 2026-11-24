@@ -12,7 +12,7 @@
                 </a>
                 <div>
                     <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Archivage & Historique</h1>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Consultez l'historique des séminaires passés et l'activité du système.</p>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Consultez l'historique des années académiques et des filières clôturées.</p>
                 </div>
             </div>
             <button class="bg-white border border-slate-200 text-slate-700 py-2.5 px-4 rounded-full shadow-2xs hover:bg-slate-50 transition font-bold text-xs flex items-center gap-2">
@@ -32,11 +32,11 @@
             <div class="flex gap-8">
                 <div class="text-right">
                     <div class="text-2xl font-black text-slate-900">{{ $archivedCohorts->count() }}</div>
-                    <div class="text-xs font-semibold text-slate-400">Cycles archivés</div>
+                    <div class="text-xs font-semibold text-slate-400">Années archivées</div>
                 </div>
                 <div class="text-right">
                     <div class="text-2xl font-black text-slate-900">{{ $pastSeminars->count() }}</div>
-                    <div class="text-xs font-semibold text-slate-400">Séminaires terminés</div>
+                    <div class="text-xs font-semibold text-slate-400">Filières clôturées</div>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
     <div class="mb-10">
         <div class="flex items-center gap-2 mb-6">
             <span class="material-symbols-outlined text-amber-600">history_edu</span>
-            <h2 class="text-xl font-headline font-bold text-on-surface tracking-tight">Cycles de Formation Historiques</h2>
+            <h2 class="text-xl font-headline font-bold text-on-surface tracking-tight">Années Académiques Archivées</h2>
         </div>
         
         <style>
@@ -284,7 +284,7 @@
     <!-- Archives Data Table -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-md overflow-hidden shadow-sm">
         <div class="p-4 border-b border-outline-variant flex justify-between bg-surface-container-low/30">
-            <h2 class="font-bold text-lg text-on-surface">Séminaires Clôturés</h2>
+            <h2 class="font-bold text-lg text-on-surface">Filières & Formations Clôturées</h2>
             <div class="flex gap-2">
                 <select class="bg-surface-container-lowest border border-outline-variant rounded-md text-sm px-3 py-1.5 focus:ring-primary focus:border-primary">
                     <option>Toutes les années</option>
@@ -298,9 +298,9 @@
             <thead>
                 <tr class="bg-surface-container-lowest">
                     <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant">Référence</th>
-                    <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant">Titre du Séminaire</th>
+                    <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant">Intitulé de la Filière</th>
                     <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant">Date Fin</th>
-                    <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant text-right">Participants</th>
+                    <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant text-right">Étudiants</th>
                     <th class="py-3 px-6 text-xs text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant text-right">Actions</th>
                 </tr>
             </thead>

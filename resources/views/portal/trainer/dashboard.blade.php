@@ -236,16 +236,16 @@
         <div class="kpi-grid p-5">
 
 
-    {{-- KPI 1 : Séminaires — dark --}}
+    {{-- KPI 1 : Filières — dark --}}
     <div class="kpi-card kpi-dark">
         <div class="kpi-bw-icon">
             <span class="material-symbols-outlined text-[20px]">school</span>
         </div>
         <div class="kpi-body">
-            <div class="kpi-lbl">Séminaires</div>
+            <div class="kpi-lbl">Filières & Cours</div>
             <div class="kpi-val">{{ $trainer->seminars->count() }}</div>
             <span class="kpi-badge">
-                <span class="material-symbols-outlined text-[11px]">trending_up</span> Actif ce cycle
+                <span class="material-symbols-outlined text-[11px]">trending_up</span> Actif cette année
             </span>
         </div>
         <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
@@ -254,16 +254,16 @@
         </svg>
     </div>
 
-    {{-- KPI 2 : Candidats --}}
+    {{-- KPI 2 : Étudiants --}}
     <div class="kpi-card">
         <div class="kpi-bw-icon">
             <span class="material-symbols-outlined text-[20px]">group</span>
         </div>
         <div class="kpi-body">
-            <div class="kpi-lbl">Candidats</div>
+            <div class="kpi-lbl">Étudiants</div>
             <div class="kpi-val">{{ $totalCandidates }}</div>
             <span class="kpi-badge">
-                <span class="material-symbols-outlined text-[11px]">verified</span> Approuvés
+                <span class="material-symbols-outlined text-[11px]">verified</span> Inscrits
             </span>
         </div>
         <svg class="kpi-spark" width="52" height="28" viewBox="0 0 52 28" fill="none">
@@ -317,12 +317,12 @@
      ========================================= --}}
 <div class="main-grid">
 
-    {{-- COLONNE GAUCHE : Tableau candidats & Suivi des Présences --}}
+    {{-- COLONNE GAUCHE : Tableau étudiants & Suivi des Présences --}}
     <div class="dash-card">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
                 <p class="section-label">Suivi Pédagogique</p>
-                <h2 class="section-title">Liste des Candidats & Présences</h2>
+                <h2 class="section-title">Liste des Étudiants, Emploi du Temps & Heures</h2>
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('portal.trainer.attendances') }}"
@@ -576,10 +576,10 @@
             @csrf
 
             <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Séminaire concerné</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Filière / Classe concernée</label>
                 <select id="seminar_select" name="seminar_id"
                         class="w-full text-sm py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/30 transition-all" required>
-                    <option value="">-- Sélectionnez un séminaire --</option>
+                    <option value="">-- Sélectionnez une filière --</option>
                     @foreach($trainer->seminars as $seminar)
                         <option value="{{ $seminar->id }}">{{ $seminar->title }}</option>
                     @endforeach
@@ -587,7 +587,7 @@
             </div>
 
             <div id="topics_container" class="hidden">
-                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Thèmes ciblés <span class="font-normal normal-case text-gray-400">(optionnel)</span></label>
+                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Matières ciblées <span class="font-normal normal-case text-gray-400">(optionnel)</span></label>
                 <div id="topics_list" class="flex flex-col gap-1.5 max-h-28 overflow-y-auto p-2 bg-gray-50 rounded-lg border border-gray-200"></div>
             </div>
 
@@ -670,11 +670,11 @@
         </div>
     </div>
 
-    {{-- Séminaires assignés + infos --}}
+    {{-- Filières assignées + infos --}}
     <div class="dash-card">
         <div class="mb-5">
             <p class="section-label">Programme</p>
-            <h2 class="section-title">Séminaires Assignés</h2>
+            <h2 class="section-title">Filières Assignées</h2>
         </div>
 
         <div class="flex flex-col gap-3 mb-5">
@@ -691,13 +691,13 @@
                                 </p>
                             @endif
                         </div>
-                        <span class="pill pill-blue">{{ $seminar->registrations()->where('status','approved')->count() }} candidats</span>
+                        <span class="pill pill-blue">{{ $seminar->registrations()->where('status','approved')->count() }} étudiants</span>
                     </div>
                 </div>
             @empty
                 <div class="flex flex-col items-center justify-center py-8 text-gray-400">
                     <span class="material-symbols-outlined text-[36px] mb-2">school</span>
-                    <p class="text-sm">Aucun séminaire assigné.</p>
+                    <p class="text-sm">Aucune filière assignée.</p>
                 </div>
             @endforelse
         </div>

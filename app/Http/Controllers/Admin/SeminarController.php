@@ -24,18 +24,18 @@ class SeminarController extends Controller
             ->orderBy('id')
             ->get();
 
-        $activeSeminars = Seminar::where('status', 'active')
+        $activeSeminars = Seminar::initiale()->where('status', 'active')
             ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
             ->when($cohortId, fn($q) => $q->where('cohort_id', $cohortId))
             ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
             ->orderBy('start_date', 'asc')
             ->get();
-        $draftSeminars = Seminar::where('status', 'draft')
+        $draftSeminars = Seminar::initiale()->where('status', 'draft')
             ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
             ->when($cohortId, fn($q) => $q->where('cohort_id', $cohortId))
             ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])
             ->get();
-        $pastSeminars = Seminar::where('status', 'completed')
+        $pastSeminars = Seminar::initiale()->where('status', 'completed')
             ->when($deptId, fn($q) => $q->whereHas('departments', fn($dq) => $dq->where('departments.id', $deptId)))
             ->when($cohortId, fn($q) => $q->where('cohort_id', $cohortId))
             ->with(['cohort', 'departments', 'topics', 'trainers', 'registrations' => function($q) { $q->where('status', 'approved'); }])

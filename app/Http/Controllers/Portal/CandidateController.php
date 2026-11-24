@@ -87,7 +87,7 @@ class CandidateController extends Controller
                 $studentAverage = round($weightedSum / $totalCoef, 2);
             }
         }
-        
+
         $messagesQuery = Message::with(['trainer', 'user', 'seminar', 'cohort']);
 
         if ($registration) {
@@ -223,6 +223,28 @@ class CandidateController extends Controller
         return $pdf->download($filename);
     }
 
+    public function downloadContinuingCertificate()
+    {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $registration = \App\Models\Registration::with(['user.candidateProfile', 'seminar.departments', 'seminar.cohort', 'topic'])
+            ->where('user_id', $userId)
+            ->latest()
+            ->firstOrFail();
+
+        if (!$registration->certificate_number) {
+            $registration->update([
+                'certificate_number' => 'ATT-CFPT-' . date('Y') . '-' . str_pad((string) $registration->id, 4, '0', STR_PAD_LEFT),
+                'certificate_issued_at' => now(),
+            ]);
+        }
+
+        $pdf = Pdf::loadView('exports.pdf.continuing_certificate', compact('registration'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'Attestation_Formation_Continue_CFPT_' . str_replace(' ', '_', $registration->user->name) . '.pdf';
+        return $pdf->download($filename);
+    }
+
     public function markMessageAsRead(Message $message)
     {
         $user = \Illuminate\Support\Facades\Auth::user();
@@ -236,7 +258,7 @@ class CandidateController extends Controller
     {
         $user = \Illuminate\Support\Facades\Auth::user();
         $profile = CandidateProfile::with('academicHistories')->where('user_id', $user->id)->first();
-        
+
         if (!$profile) {
             $profile = new CandidateProfile();
             $profile->first_names = $user->name;
@@ -245,7 +267,7 @@ class CandidateController extends Controller
             $profile->birth_date = now();
             $profile->setRelation('user', $user);
         }
-        
+
         return view('portal.candidate.profile_edit', compact('profile'));
     }
 
@@ -259,7 +281,7 @@ class CandidateController extends Controller
         }
 
         $changes = $request->except(['_token', 'photo']);
-        
+
         // Si une nouvelle photo est uploadée, on peut la stocker temporairement ou la mettre dans le JSON
         // Pour simplifier on ignore la photo dans la modification pour l'instant ou on la gère séparément.
 

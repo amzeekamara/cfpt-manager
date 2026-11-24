@@ -34,15 +34,15 @@
                 <label for="role_visibility" class="text-xs font-bold text-slate-700">Visibilité</label>
                 <select name="role_visibility" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition cursor-pointer">
                     <option value="all">Tous les profils</option>
-                    <option value="candidat">Candidats uniquement</option>
+                    <option value="candidat">Étudiants uniquement</option>
                     <option value="formateur">Formateurs uniquement</option>
-                    <option value="coordinateur">Coordinateurs uniquement</option>
+                    <option value="coordinateur">Chefs de Département uniquement</option>
                 </select>
             </div>
             <div class="space-y-1.5 md:col-span-1">
-                <label for="seminar_id" class="text-xs font-bold text-slate-700">Séminaire (Optionnel)</label>
+                <label for="seminar_id" class="text-xs font-bold text-slate-700">Filière (Optionnel)</label>
                 <select name="seminar_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition cursor-pointer">
-                    <option value="">Tous les séminaires (Général)</option>
+                    <option value="">Toutes les filières (Général)</option>
                     @foreach($seminars as $sem)
                         <option value="{{ $sem->id }}">{{ $sem->title }}</option>
                     @endforeach
@@ -83,9 +83,9 @@
                 </div>
 
                 <div class="space-y-2 md:col-span-1">
-                    <label for="cohort_id" class="text-sm font-bold text-on-surface-variant">Édition</label>
+                    <label for="cohort_id" class="text-sm font-bold text-on-surface-variant">Année Académique</label>
                     <select name="cohort_id" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-3">
-                        <option value="">Toutes les éditions</option>
+                        <option value="">Toutes les années académiques</option>
                         @foreach($cohorts as $cohort)
                             <option value="{{ $cohort->id }}">{{ $cohort->title }}</option>
                         @endforeach
@@ -93,9 +93,9 @@
                 </div>
 
                 <div class="space-y-2 md:col-span-1">
-                    <label for="seminar_id" class="text-sm font-bold text-on-surface-variant">Séminaire</label>
+                    <label for="seminar_id" class="text-sm font-bold text-on-surface-variant">Filière</label>
                     <select name="seminar_id" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-3">
-                        <option value="">Tous les séminaires</option>
+                        <option value="">Toutes les filières</option>
                         @foreach($seminars as $seminar)
                             <option value="{{ $seminar->id }}">{{ $seminar->title }}</option>
                         @endforeach
@@ -103,9 +103,9 @@
                 </div>
 
                 <div class="space-y-2 md:col-span-1">
-                    <label for="topic_id" class="text-sm font-bold text-on-surface-variant">Thème</label>
+                    <label for="topic_id" class="text-sm font-bold text-on-surface-variant">Matière / Module</label>
                     <select name="topic_id" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-3">
-                        <option value="">Tous les thèmes</option>
+                        <option value="">Toutes les matières</option>
                         @foreach($topics as $topic)
                             <option value="{{ $topic->id }}">{{ $topic->name }}</option>
                         @endforeach

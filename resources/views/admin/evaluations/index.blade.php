@@ -1,10 +1,11 @@
 @extends('layouts.admin')
 
-@section('header_title', 'Évaluations, Notes & Restitution')
+@section('header_title', 'Évaluations, Notes & Bulletins')
 
 @section('content')
 <div class="w-full min-h-screen bg-[#e9ebf0] p-4 lg:p-7 text-slate-800" x-data="{
     createModalOpen: false,
+    activeTab: 'saisie',
     selectedSeminarId: '{{ $selectedSeminarId }}',
     seminarsTopicsMap: {
         @foreach($seminars as $sem)
@@ -19,190 +20,255 @@
         return this.seminarsTopicsMap[this.selectedSeminarId] || [];
     }
 }">
-    <div class="w-full max-w-[1600px] mx-auto">
-        <!-- Header -->
-        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('admin.dashboard') }}" class="p-2.5 border border-slate-200 rounded-full hover:bg-slate-50 cursor-pointer transition shadow-2xs bg-white text-slate-700" title="Retour au tableau de bord">
-                    <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
-                </a>
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Évaluations, Notes & Restitution</h1>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">
-                        Saisissez les notes (Devoirs, TP, Examens), calculez les moyennes pondérées et générez les bulletins officiels PDF.
-                    </p>
+    <div class="w-full max-w-[1600px] mx-auto space-y-6">
+
+        <!-- HERO BANNER : ÉVALUATIONS, NOTES & BULLETINS -->
+        <div class="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-[#162536] via-[#2b425e] to-[#4B6A95] p-6 sm:p-8 text-white shadow-lg">
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="flex items-start gap-4">
+                    <a href="{{ route('admin.dashboard') }}" class="p-2.5 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full transition text-white shrink-0 mt-1">
+                        <span class="material-symbols-outlined text-[20px] leading-none">arrow_back</span>
+                    </a>
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-[11px] font-extrabold uppercase tracking-wider text-blue-100 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>Gestion Pédagogique & Restitution • CFPT Sénégal-Japon</span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Évaluations, Saisie des Notes & Bulletins PDF</h1>
+                        <p class="text-blue-100/85 text-xs sm:text-sm mt-1 max-w-2xl">
+                            Gérez les devoirs, travaux pratiques (TP) et examens finaux par filière et matière, avec calcul automatique des moyennes pondérées (/20) et édition des bulletins.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 shrink-0">
+                    <!-- Switch Onglets Pleine Largeur -->
+                    <div class="bg-slate-900/40 backdrop-blur-xs p-1 rounded-full border border-white/15 flex items-center text-xs font-bold">
+                        <button type="button" @click="activeTab = 'saisie'" :class="activeTab === 'saisie' ? 'bg-white text-slate-900 shadow-xs' : 'text-white/80 hover:text-white'" class="px-4 py-1.5 rounded-full transition flex items-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">edit_note</span>
+                            <span>1. Saisie des Notes</span>
+                        </button>
+                        <button type="button" @click="activeTab = 'bulletins'" :class="activeTab === 'bulletins' ? 'bg-white text-slate-900 shadow-xs' : 'text-white/80 hover:text-white'" class="px-4 py-1.5 rounded-full transition flex items-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                            <span>2. Classement & Bulletins ({{ $registrations->count() }})</span>
+                        </button>
+                    </div>
+
+                    <button type="button" @click="createModalOpen = true" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-extrabold flex items-center gap-2 shadow-md transition cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                        <span>+ Nouvelle Évaluation</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2.5">
-                <button type="button" @click="createModalOpen = true" class="px-5 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white rounded-full text-xs font-bold flex items-center gap-2 shadow-sm transition cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">add_chart</span>
-                    + Créer une Évaluation (Devoir / TP / Examen)
-                </button>
+            @php
+                $totalGradesCount = $evaluations->sum(fn($ev) => $ev->grades->whereNotNull('score')->count());
+            @endphp
+            <!-- KPIs Strip -->
+            <div class="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/15">
+                <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">Évaluations de la Filière</span>
+                    <span class="text-xl font-black">{{ $evaluations->count() }} épreuve(s)</span>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">Étudiants Inscrits</span>
+                    <span class="text-xl font-black">{{ $registrations->count() }} étudiant(s)</span>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">Total Coefficients</span>
+                    <span class="text-xl font-black">{{ $evaluations->sum('coefficient') }}</span>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">Notes Saisies</span>
+                    <span class="text-xl font-black text-emerald-300">{{ $totalGradesCount }} note(s)</span>
+                </div>
             </div>
         </div>
 
-        <!-- Seminar & Module Selector Bar -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6">
-            <form action="{{ route('admin.evaluations.index') }}" method="GET" id="evalFilterForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end text-xs">
-                <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Filière / Formation</label>
-                    <select name="seminar_id" onchange="document.getElementById('evalFilterForm').submit()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 outline-none focus:border-[#4B6A95]">
+        <!-- BARRE DE SÉLECTION DE LA FILIÈRE & DES ÉPREUVES -->
+        <div class="bg-white p-5 rounded-[24px] border border-slate-200 shadow-sm space-y-4">
+            <form action="{{ route('admin.evaluations.index') }}" method="GET" id="evalFilterForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end text-xs">
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">1. Choisir la Filière</label>
+                    <select name="seminar_id" onchange="document.getElementById('evalFilterForm').submit()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 outline-none focus:bg-white focus:border-[#4B6A95] transition">
                         @foreach($seminars as $sem)
                             <option value="{{ $sem->id }}" {{ $selectedSeminarId == $sem->id ? 'selected' : '' }}>
-                                {{ $sem->title }}
+                                {{ $sem->title }} ({{ $sem->departments->pluck('name')->join(', ') }})
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Évaluation active pour saisie des notes</label>
-                    <select name="evaluation_id" onchange="document.getElementById('evalFilterForm').submit()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 outline-none focus:border-[#4B6A95]">
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">2. Choisir l'Évaluation à noter ({{ $evaluations->count() }} disponibles)</label>
+                    <div class="flex flex-wrap items-center gap-2">
                         @forelse($evaluations as $ev)
-                            <option value="{{ $ev->id }}" {{ ($activeEvaluation && $activeEvaluation->id == $ev->id) ? 'selected' : '' }}>
-                                [{{ strtoupper($ev->type) }} - Coef {{ $ev->coefficient }}] {{ $ev->title }} ({{ $ev->evaluation_date->format('d/m/Y') }})
-                            </option>
+                            <a href="{{ route('admin.evaluations.index', ['seminar_id' => $selectedSeminarId, 'evaluation_id' => $ev->id]) }}"
+                               class="px-3.5 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 {{ ($activeEvaluation && $activeEvaluation->id == $ev->id) ? 'bg-[#4B6A95] text-white border-[#4B6A95] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100' }}">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase {{ ($activeEvaluation && $activeEvaluation->id == $ev->id) ? 'bg-white/20 text-white' : 'bg-blue-100 text-[#4B6A95]' }}">
+                                    {{ $ev->type }} (Coef {{ $ev->coefficient }})
+                                </span>
+                                <span>{{ $ev->title }}</span>
+                            </a>
                         @empty
-                            <option value="">-- Aucune évaluation créée pour cette filière --</option>
+                            <span class="text-xs text-slate-400 italic py-2">Aucune évaluation créée pour cette filière.</span>
                         @endforelse
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition cursor-pointer">
-                        Actualiser
-                    </button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <!-- Left 7 Cols: Grade Entry for Active Evaluation -->
-            <div class="xl:col-span-7">
-                <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6">
-                    @if($activeEvaluation)
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 mb-5">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#4B6A95]">
-                                        {{ strtoupper($activeEvaluation->type) }} • Coef. {{ $activeEvaluation->coefficient }}
-                                    </span>
-                                    <span class="text-xs font-bold {{ $activeEvaluation->is_published ? 'text-emerald-600' : 'text-amber-600' }}">
-                                        {{ $activeEvaluation->is_published ? '● Notes restituées aux étudiants' : '● Brouillon (masqué)' }}
-                                    </span>
-                                </div>
-                                <h2 class="text-lg font-black text-slate-900 mt-1">{{ $activeEvaluation->title }}</h2>
-                                <p class="text-xs text-slate-500">
-                                    Matière : <strong>{{ $activeEvaluation->topic?->name ?? 'Tronc commun' }}</strong> • Barème sur <strong>{{ number_format($activeEvaluation->max_score, 0) }} pts</strong>
-                                </p>
-                            </div>
+        <!-- ============================================================== -->
+        <!-- ONGLET 1 : GRILLE PLEINE LARGEUR DE SAISIE DES NOTES -->
+        <!-- ============================================================== -->
+        <div x-show="activeTab === 'saisie'" class="bg-white rounded-[26px] border border-slate-200 shadow-sm p-6 sm:p-8">
+            @if($activeEvaluation)
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 mb-6">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-50 text-[#4B6A95] border border-blue-200">
+                                {{ strtoupper($activeEvaluation->type) }} • Coefficient {{ $activeEvaluation->coefficient }} • Barème / {{ number_format($activeEvaluation->max_score, 0) }}
+                            </span>
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold {{ $activeEvaluation->is_published ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                                {{ $activeEvaluation->is_published ? '● Notes restituées aux étudiants' : '● Brouillon (masqué aux étudiants)' }}
+                            </span>
+                        </div>
+                        <h2 class="text-xl font-black text-slate-900">{{ $activeEvaluation->title }}</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Matière : <strong class="text-[#4B6A95]">{{ $activeEvaluation->topic?->name ?? 'Tronc commun' }}</strong> • Date de l'épreuve : <strong>{{ $activeEvaluation->evaluation_date->format('d/m/Y') }}</strong>
+                        </p>
+                    </div>
 
-                            <div class="flex items-center gap-2">
-                                <form action="{{ route('admin.evaluations.toggle-publish', $activeEvaluation->id) }}" method="POST" class="m-0">
-                                    @csrf @method('PATCH')
-                                    <button type="submit" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold hover:bg-slate-50 transition cursor-pointer">
-                                        {{ $activeEvaluation->is_published ? 'Masquer notes' : 'Publier / Restituer' }}
-                                    </button>
-                                </form>
-                                <form action="{{ route('admin.evaluations.destroy', $activeEvaluation->id) }}" method="POST" onsubmit="return confirm('Supprimer cette évaluation et ses notes ?');" class="m-0">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition cursor-pointer" title="Supprimer">
-                                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                                    </button>
-                                </form>
-                            </div>
+                    <div class="flex items-center gap-2.5 shrink-0">
+                        <form action="{{ route('admin.evaluations.toggle-publish', $activeEvaluation->id) }}" method="POST" class="m-0">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold hover:bg-slate-50 transition cursor-pointer">
+                                {{ $activeEvaluation->is_published ? 'Masquer aux étudiants' : 'Publier / Restituer' }}
+                            </button>
+                        </form>
+                        <form action="{{ route('admin.evaluations.destroy', $activeEvaluation->id) }}" method="POST" onsubmit="return confirm('Supprimer cette évaluation et ses notes ?');" class="m-0">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition cursor-pointer" title="Supprimer l'évaluation">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                @if($registrations->count() > 0)
+                    <form action="{{ route('admin.evaluations.grades.store', $activeEvaluation->id) }}" method="POST">
+                        @csrf
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-white uppercase text-[10px] font-black tracking-wider">
+                                    <tr>
+                                        <th class="py-3.5 px-5 w-14">#</th>
+                                        <th class="py-3.5 px-5">Étudiant & Matricule</th>
+                                        <th class="py-3.5 px-5">Matière / Module inscrit</th>
+                                        <th class="py-3.5 px-5 w-44 text-center">Note / {{ number_format($activeEvaluation->max_score, 0) }}</th>
+                                        <th class="py-3.5 px-5">Appréciation Pédagogique</th>
+                                        <th class="py-3.5 px-5 text-right">Bulletin Individuel</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach($registrations as $idx => $reg)
+                                        @php
+                                            $existingGrade = $activeEvaluation->grades->firstWhere('registration_id', $reg->id);
+                                        @endphp
+                                        <tr class="hover:bg-slate-50/90 transition">
+                                            <td class="py-3.5 px-5 font-black text-slate-400">{{ $idx + 1 }}</td>
+                                            <td class="py-3.5 px-5">
+                                                <div class="font-bold text-slate-900 text-sm">{{ $reg->user->name }}</div>
+                                                <div class="text-[11px] text-slate-400">
+                                                    {{ $reg->user->candidateProfile?->matricule ?? 'ETU-' . $reg->id }} • {{ $reg->user->email }}
+                                                </div>
+                                            </td>
+                                            <td class="py-3.5 px-5 font-semibold text-slate-700">
+                                                {{ $reg->topic?->name ?? 'Tronc commun' }}
+                                            </td>
+                                            <td class="py-3.5 px-5 text-center">
+                                                <input type="number" step="0.25" min="0" max="{{ $activeEvaluation->max_score }}"
+                                                       name="scores[{{ $reg->id }}]"
+                                                       value="{{ $existingGrade?->score }}"
+                                                       placeholder="0 - {{ number_format($activeEvaluation->max_score, 0) }}"
+                                                       class="w-28 px-3 py-2 bg-slate-50 border-2 border-slate-300 rounded-xl text-center font-black text-sm text-slate-900 focus:bg-white focus:border-[#4B6A95] outline-none">
+                                            </td>
+                                            <td class="py-3.5 px-5">
+                                                <input type="text"
+                                                       name="appreciations[{{ $reg->id }}]"
+                                                       value="{{ $existingGrade?->appreciation }}"
+                                                       placeholder="Calcul automatique (Très Bien, Bien, Passable...)"
+                                                       class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:bg-white focus:border-[#4B6A95] outline-none">
+                                            </td>
+                                            <td class="py-3.5 px-5 text-right">
+                                                <a href="{{ route('admin.evaluations.report-card.pdf', $reg->id) }}" data-no-loader
+                                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#4B6A95] text-slate-700 hover:text-white text-xs font-bold transition">
+                                                    <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
+                                                    <span>Bulletin</span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
 
-                        @if($registrations->count() > 0)
-                            <form action="{{ route('admin.evaluations.grades.store', $activeEvaluation->id) }}" method="POST">
-                                @csrf
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left text-xs">
-                                        <thead>
-                                            <tr class="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400">
-                                                <th class="py-3 px-3">Étudiant</th>
-                                                <th class="py-3 px-3">Spécialité / Module</th>
-                                                <th class="py-3 px-3 w-32 text-center">Note / {{ number_format($activeEvaluation->max_score, 0) }}</th>
-                                                <th class="py-3 px-3">Appréciation pédagogique</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100">
-                                            @foreach($registrations as $reg)
-                                                @php
-                                                    $existingGrade = $activeEvaluation->grades->firstWhere('registration_id', $reg->id);
-                                                @endphp
-                                                <tr class="hover:bg-slate-50/80">
-                                                    <td class="py-3 px-3">
-                                                        <div class="font-bold text-slate-900">{{ $reg->user->name }}</div>
-                                                        <div class="text-[10px] text-slate-400">{{ $reg->user->email }}</div>
-                                                    </td>
-                                                    <td class="py-3 px-3 text-slate-600 font-medium">
-                                                        {{ $reg->topic?->name ?? 'Tronc commun' }}
-                                                    </td>
-                                                    <td class="py-3 px-3 text-center">
-                                                        <input type="number" step="0.25" min="0" max="{{ $activeEvaluation->max_score }}"
-                                                               name="scores[{{ $reg->id }}]"
-                                                               value="{{ $existingGrade?->score }}"
-                                                               placeholder="0 - {{ number_format($activeEvaluation->max_score, 0) }}"
-                                                               class="w-24 px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-center font-black text-slate-900 focus:bg-white focus:border-[#4B6A95] outline-none">
-                                                    </td>
-                                                    <td class="py-3 px-3">
-                                                        <input type="text"
-                                                               name="appreciations[{{ $reg->id }}]"
-                                                               value="{{ $existingGrade?->appreciation }}"
-                                                               placeholder="Auto (Très bien, Bien, Passable...)"
-                                                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white focus:border-[#4B6A95] outline-none">
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                                        <input type="checkbox" name="is_published" value="1" {{ $activeEvaluation->is_published ? 'checked' : '' }} class="rounded text-[#4B6A95]">
-                                        <span>Restituer immédiatement ces notes dans l'espace étudiant</span>
-                                    </label>
-                                    <button type="submit" class="px-6 py-2.5 bg-[#4B6A95] hover:bg-[#3c5678] text-white font-bold text-xs rounded-full shadow-sm transition cursor-pointer flex items-center gap-1.5">
-                                        <span class="material-symbols-outlined text-[16px]">save</span>
-                                        Enregistrer les notes
-                                    </button>
-                                </div>
-                            </form>
-                        @else
-                            <div class="py-10 text-center text-slate-400 text-xs">
-                                Aucun étudiant inscrit dans cette filière.
-                            </div>
-                        @endif
-                    @else
-                        <div class="py-14 text-center text-slate-400">
-                            <span class="material-symbols-outlined text-4xl opacity-40 mb-2">grading</span>
-                            <p class="text-sm font-bold text-slate-700">Aucune évaluation sélectionnée.</p>
-                            <p class="text-xs mt-1">Créez un devoir, un TP ou un examen pour saisir et restituer les notes des étudiants.</p>
-                            <button type="button" @click="createModalOpen = true" class="mt-4 px-5 py-2.5 bg-[#4B6A95] text-white rounded-full text-xs font-bold cursor-pointer">
-                                + Créer une première évaluation
+                        <div class="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <label class="flex items-center gap-2.5 text-xs font-bold text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="is_published" value="1" {{ $activeEvaluation->is_published ? 'checked' : '' }} class="w-4 h-4 rounded text-[#4B6A95]">
+                                <span>Restituer immédiatement ces notes dans le portail personnel des étudiants</span>
+                            </label>
+                            <button type="submit" class="px-8 py-3 bg-[#4B6A95] hover:bg-[#3c5678] text-white font-black text-xs rounded-full shadow-md transition cursor-pointer flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">save</span>
+                                <span>Enregistrer toutes les notes de l'évaluation</span>
                             </button>
                         </div>
-                    @endif
+                    </form>
+                @else
+                    <div class="py-12 text-center text-slate-400 text-xs">
+                        Aucun étudiant inscrit dans cette filière.
+                    </div>
+                @endif
+            @else
+                <div class="py-16 text-center text-slate-400">
+                    <span class="material-symbols-outlined text-5xl opacity-30 mb-2">grading</span>
+                    <p class="text-base font-bold text-slate-700">Aucune évaluation créée pour cette filière.</p>
+                    <p class="text-xs mt-1">Créez un devoir, un TP ou un examen pour saisir et restituer les notes des étudiants.</p>
+                    <button type="button" @click="createModalOpen = true" class="mt-4 px-6 py-2.5 bg-[#4B6A95] text-white rounded-full text-xs font-bold cursor-pointer">
+                        + Créer une première évaluation
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- ONGLET 2 : TABLEAU RÉCAPITULATIF DES MOYENNES & BULLETINS PDF -->
+        <!-- ============================================================== -->
+        <div x-show="activeTab === 'bulletins'" style="display: none;" class="bg-white rounded-[26px] border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="pb-5 border-b border-slate-100 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">Procès-Verbal des Moyennes & Restitution des Bulletins</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Synthèse complète de toutes les évaluations de la filière avec moyenne générale pondérée (/20) et mention.</p>
                 </div>
             </div>
 
-            <!-- Right 5 Cols: Synthèse des Moyennes & Restitution des Bulletins PDF -->
-            <div class="xl:col-span-5">
-                <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6">
-                    <div class="pb-4 border-b border-slate-100 mb-4 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-base font-black text-slate-900">Restitution & Bulletins de Notes</h3>
-                            <p class="text-xs text-slate-500">Moyenne générale pondérée (/20) et export PDF officiel.</p>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
-                            {{ $evaluations->count() }} éval.
-                        </span>
-                    </div>
-
-                    <div class="space-y-2.5 max-h-[540px] overflow-y-auto pr-1">
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900 text-white uppercase text-[10px] font-black tracking-wider">
+                        <tr>
+                            <th class="py-3.5 px-4">Étudiant</th>
+                            @foreach($evaluations as $ev)
+                                <th class="py-3.5 px-4 text-center">
+                                    {{ Str::limit($ev->title, 18) }}<br>
+                                    <span class="text-[9px] text-blue-200">({{ strtoupper($ev->type) }} - Coef {{ $ev->coefficient }})</span>
+                                </th>
+                            @endforeach
+                            <th class="py-3.5 px-4 text-center">Moyenne Générale / 20</th>
+                            <th class="py-3.5 px-4 text-center">Mention</th>
+                            <th class="py-3.5 px-4 text-right">Bulletin Officiel PDF</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
                         @forelse($registrations as $reg)
                             @php
                                 $weightedSum = 0;
@@ -216,40 +282,58 @@
                                     }
                                 }
                                 $avg = $coefSum > 0 ? round($weightedSum / $coefSum, 2) : null;
+                                $mention = match (true) {
+                                    $avg === null => '-',
+                                    $avg >= 16 => 'Très Bien',
+                                    $avg >= 14 => 'Bien',
+                                    $avg >= 12 => 'Assez Bien',
+                                    $avg >= 10 => 'Passable',
+                                    default => 'Insuffisant',
+                                };
                             @endphp
-                            <div class="p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/60 hover:bg-white transition flex items-center justify-between gap-3">
-                                <div class="min-w-0">
-                                    <div class="font-bold text-xs text-slate-900 truncate">{{ $reg->user->name }}</div>
-                                    <div class="text-[11px] text-slate-500 truncate">{{ $reg->topic?->name ?? 'Tronc commun' }}</div>
-                                </div>
-
-                                <div class="flex items-center gap-3 shrink-0">
-                                    <div class="text-right">
-                                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Moyenne</span>
-                                        @if($avg !== null)
-                                            <span class="text-sm font-black {{ $avg >= 10 ? 'text-emerald-600' : 'text-rose-600' }}">
-                                                {{ number_format($avg, 2) }} / 20
-                                            </span>
+                            <tr class="hover:bg-slate-50/90 transition">
+                                <td class="py-3.5 px-4">
+                                    <div class="font-bold text-slate-900">{{ $reg->user->name }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $reg->topic?->name ?? 'Tronc commun' }}</div>
+                                </td>
+                                @foreach($evaluations as $ev)
+                                    @php
+                                        $g = $reg->grades->firstWhere('evaluation_id', $ev->id);
+                                    @endphp
+                                    <td class="py-3.5 px-4 text-center font-bold">
+                                        @if($g && $g->score !== null)
+                                            <span class="text-slate-900">{{ number_format($g->score, 2) }}</span>
+                                            <span class="text-[10px] text-slate-400">/{{ number_format($ev->max_score, 0) }}</span>
                                         @else
-                                            <span class="text-xs font-semibold text-slate-400">N/A</span>
+                                            <span class="text-slate-300">-</span>
                                         @endif
-                                    </div>
-
+                                    </td>
+                                @endforeach
+                                <td class="py-3.5 px-4 text-center">
+                                    @if($avg !== null)
+                                        <span class="px-3 py-1 rounded-full font-black text-xs {{ $avg >= 10 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+                                            {{ number_format($avg, 2) }} / 20
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400">Non noté</span>
+                                    @endif
+                                </td>
+                                <td class="py-3.5 px-4 text-center font-extrabold text-slate-700">{{ $mention }}</td>
+                                <td class="py-3.5 px-4 text-right">
                                     <a href="{{ route('admin.evaluations.report-card.pdf', $reg->id) }}" data-no-loader
-                                       class="px-3 py-2 rounded-xl bg-white hover:bg-[#4B6A95] text-[#4B6A95] hover:text-white border border-slate-200 text-xs font-bold transition flex items-center gap-1 shadow-2xs"
-                                       title="Télécharger le bulletin de notes PDF">
+                                       class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold transition shadow-2xs">
                                         <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                                        <span>Bulletin</span>
+                                        <span>Télécharger Bulletin</span>
                                     </a>
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
                         @empty
-                            <div class="py-8 text-center text-xs text-slate-400">
-                                Aucun étudiant inscrit.
-                            </div>
+                            <tr>
+                                <td colspan="{{ 4 + $evaluations->count() }}" class="py-10 text-center text-slate-400">Aucun étudiant inscrit dans cette filière.</td>
+                            </tr>
                         @endforelse
-                    </div>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -259,7 +343,7 @@
         <div @click.outside="createModalOpen = false" class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                 <h3 class="text-base font-extrabold text-slate-900">Nouvelle Évaluation Pédagogique</h3>
-                <button type="button" @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700">
+                <button type="button" @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -288,7 +372,7 @@
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Formateur évaluateur</label>
                         <select name="trainer_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
-                            <option value="">-- Administration / Jury --</option>
+                            <option value="">-- Direction des Études / Jury --</option>
                             @foreach($trainers as $tr)
                                 <option value="{{ $tr->id }}">{{ $tr->name }}</option>
                             @endforeach
@@ -327,7 +411,7 @@
                 <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
                     <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold cursor-pointer">Annuler</button>
                     <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#4B6A95] hover:bg-[#3c5678] text-white font-bold shadow-sm cursor-pointer">
-                        Créer et passer à la saisie des notes
+                        Créer et saisir les notes
                     </button>
                 </div>
             </form>

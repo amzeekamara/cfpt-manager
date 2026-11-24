@@ -194,7 +194,8 @@
                         class="h-8 w-8 object-contain rounded-full">
                     <div class="hidden sm:flex flex-col">
                         <span
-                            class="text-xs font-black text-slate-900 leading-none tracking-tight group-hover:text-[#4B6A95] transition">CFPT MANAGER</span>
+                            class="text-xs font-black text-slate-900 leading-none tracking-tight group-hover:text-[#4B6A95] transition">CFPT
+                            MANAGER</span>
                         <span
                             class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mt-0.5">{{ $portalRoleTitle }}</span>
                     </div>

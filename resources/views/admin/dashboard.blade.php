@@ -128,7 +128,7 @@
                 <div class="flex items-center gap-2">
                     <form action="{{ route('admin.dashboard') }}" method="GET" id="cohortSelectForm"
                         class="m-0 flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
-                        <span class="text-xs font-bold text-slate-700 hidden sm:inline">Édition :</span>
+                        <span class="text-xs font-bold text-slate-700 hidden sm:inline">Année Académique :</span>
                         <select name="cohort_id" onchange="document.getElementById('cohortSelectForm').submit()"
                             class="text-xs font-bold bg-transparent text-slate-800 outline-none border-none py-0.5 pr-6 cursor-pointer focus:ring-0">
                             @foreach ($cohorts as $cohort)
@@ -156,7 +156,7 @@
                 <!-- ============================================================== -->
                 <div class="xl:col-span-4 flex flex-col gap-3.5">
 
-                    <!-- Édition en cours, Budget & Séminaires Card -->
+                    <!-- Année Académique en cours, Budget & Séminaires Card -->
                     <div
                         class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4 relative overflow-hidden">
                         <div class="flex items-start justify-between">
@@ -185,11 +185,11 @@
                         <div class="grid grid-cols-2 gap-2.5">
                             <a href="{{ route('admin.cohorts.index') }}"
                                 class="bg-[#4B6A95] hover:bg-[#3c5678] text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition">
-                                <span>Gérer Édition</span>
+                                <span>Années Académiques</span>
                             </a>
                             <a href="{{ route('admin.seminars.create') }}"
                                 class="bg-[#f4f5f7] hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
-                                <span>+ Séminaire</span>
+                                <span>+ Filière</span>
                             </a>
                         </div>
 
@@ -197,7 +197,7 @@
                         <div>
                             <div class="text-xs font-bold text-slate-800 mb-2.5 flex items-center justify-between">
                                 <div class="flex items-center gap-1.5">
-                                    <span>Séminaires</span>
+                                    <span>Filières</span>
                                     <span class="text-slate-300 font-light">|</span>
                                     <span class="text-slate-400 font-semibold">Total {{ $allSeminars->count() }}
                                         séminaires</span>
@@ -250,7 +250,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                                 <i data-lucide="hourglass" class="w-4 h-4 text-[#4B6A95]"></i>
-                                Compte à Rebours de l'Édition
+                                Progression de l'Année Académique
                             </span>
                             <span class="text-[11px] font-extrabold text-[#4B6A95]"
                                 x-text="daysLeft + ' jours ' + hoursLeft + 'h restants'"></span>
@@ -392,8 +392,8 @@
                             class="lg:col-span-6 bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
                             <div class="flex items-center justify-between mb-2">
                                 <div>
-                                    <h3 class="text-xs font-extrabold text-slate-900">Répartition par Séminaire</h3>
-                                    <p class="text-[10px] text-slate-400 font-medium">Nombre de candidatures enregistrées
+                                    <h3 class="text-xs font-extrabold text-slate-900">Effectifs par Filière</h3>
+                                    <p class="text-[10px] text-slate-400 font-medium">Nombre d'étudiants inscrits par filière
                                     </p>
                                 </div>
                                 <div class="flex items-center gap-3 text-[10px] font-bold text-slate-600">
@@ -503,7 +503,7 @@
                             <div class="shrink-0">
                                 <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
                                     <i data-lucide="user-check" class="w-4.5 h-4.5 text-[#4B6A95]"></i>
-                                    <span>Candidats Récents & Décisions</span>
+                                    <span>Étudiants Inscrits & Suivi Académique</span>
                                 </h3>
                                 <p class="text-xs text-slate-500 mt-0.5">Filtrage direct par séminaire, thème et statut
                                     d'admission.</p>
@@ -560,10 +560,10 @@
                                         <!-- Filter Séminaire -->
                                         <div>
                                             <label
-                                                class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Séminaire</label>
+                                                class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Filière</label>
                                             <select x-model="filterSeminar" @change="onSeminarChange()"
                                                 class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-[#4B6A95]">
-                                                <option value="">Tous les séminaires</option>
+                                                <option value="">Toutes les filières</option>
                                                 @foreach ($allSeminars as $seminar)
                                                     <option value="{{ $seminar->title }}">{{ $seminar->title }}</option>
                                                 @endforeach
@@ -635,8 +635,8 @@
                                     <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                                         <th class="py-3 px-3.5 w-10 text-center"><input type="checkbox"
                                                 class="rounded border-slate-300"></th>
-                                        <th class="py-3 px-3.5 font-semibold">Candidat</th>
-                                        <th class="py-3 px-3.5 font-semibold">Séminaire / Thème</th>
+                                        <th class="py-3 px-3.5 font-semibold">Étudiant / Stagiaire</th>
+                                        <th class="py-3 px-3.5 font-semibold">Filière / Matière</th>
                                         <th class="py-3 px-3.5 font-semibold">Nationalité</th>
                                         <th class="py-3 px-3.5 font-semibold">Statut</th>
                                         <th class="py-3 px-3.5 font-semibold">Date Demande</th>

@@ -129,11 +129,11 @@
                             <div class="space-y-2 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                 <x-multi-select-dropdown 
                                     name="seminars[]" 
-                                    label="Séminaires assignés à ce formateur" 
+                                    label="Filières assignées à ce formateur" 
                                     :options="$seminars" 
                                     :selected="old('seminars', $assignedSeminars)" 
-                                    placeholder="Sélectionner les séminaires..." 
-                                    helpText="Cochez les séminaires que ce formateur est habilité à animer et émarger." />
+                                    placeholder="Sélectionner les filières..." 
+                                    helpText="Cochez les filières que ce formateur est habilité à enseigner et émarger." />
                             </div>
                         </div>
 

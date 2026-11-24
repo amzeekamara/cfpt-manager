@@ -76,11 +76,11 @@
         <!-- Stats summary -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             <x-stat-card 
-                title="Total Demandes" icon="folder" :showProgress="false"
+                title="Total Inscriptions" icon="folder" :showProgress="false"
                 value="{{ $stats['total'] }}" 
                 total="{{ $stats['total'] }}" 
                 unit=""
-                description="Dossiers de candidatures enregistrés."
+                description="Dossiers d'étudiants enregistrés."
                 color="blue">
                 <x-slot name="decoration">
                     <div class="absolute -bottom-4 -right-4 opacity-40"><span class="material-symbols-outlined text-8xl text-gray-300" style="font-variation-settings: 'FILL' 1;">folder_open</span></div>
@@ -92,7 +92,7 @@
                 value="{{ $stats['pending'] }}" 
                 total="{{ $stats['total'] }}" 
                 unit=""
-                description="Dossiers nécessitant une décision."
+                description="Dossiers en attente de validation."
                 color="yellow">
                 <x-slot name="decoration">
                     <div class="absolute -bottom-4 -right-4 opacity-30"><span class="material-symbols-outlined text-8xl text-yellow-300" style="font-variation-settings: 'FILL' 1;">hourglass_empty</span></div>
@@ -100,11 +100,11 @@
             </x-stat-card>
 
             <x-stat-card 
-                title="Approuvées" icon="check_circle" :showProgress="true"
+                title="Inscrits / Admis" icon="check_circle" :showProgress="true"
                 value="{{ $stats['approved'] }}" 
                 total="{{ $stats['total'] }}" 
                 unit=""
-                description="Candidats retenus pour la formation."
+                description="Étudiants inscrits dans une filière."
                 color="green">
                 <x-slot name="decoration">
                     <div class="absolute -bottom-4 -right-4 opacity-30"><span class="material-symbols-outlined text-8xl text-green-300" style="font-variation-settings: 'FILL' 1;">check_circle</span></div>
@@ -112,11 +112,11 @@
             </x-stat-card>
 
             <x-stat-card 
-                title="Refusées" icon="cancel" :showProgress="true"
+                title="Non Retenus" icon="cancel" :showProgress="true"
                 value="{{ $stats['rejected'] }}" 
                 total="{{ $stats['total'] }}" 
                 unit=""
-                description="Dossiers non retenus pour cette session."
+                description="Dossiers non retenus pour cette année."
                 color="red">
                 <x-slot name="decoration">
                     <div class="absolute -bottom-4 -right-4 opacity-30"><span class="material-symbols-outlined text-8xl text-red-300" style="font-variation-settings: 'FILL' 1;">cancel</span></div>
@@ -132,7 +132,7 @@
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center">
                         <span class="material-symbols-outlined text-[18px]">search</span>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher candidat / email..." 
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher étudiant / email..." 
                            class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-brand-primary focus:bg-white focus:ring-2 focus:ring-brand-light transition">
                 </div>
 
@@ -159,19 +159,19 @@
                         <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                             <span class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-brand-primary text-[16px]">filter_alt</span>
-                                Filtres des candidatures
+                                Filtres des inscriptions
                             </span>
                             <button type="button" @click="openFilters = false" class="text-gray-400 hover:text-gray-600">
                                 <span class="material-symbols-outlined text-[18px]">close</span>
                             </button>
                         </div>
 
-                        <!-- Cohorte -->
+                        <!-- Année Académique -->
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Cohorte / Édition</label>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Année Académique</label>
                             <select name="cohort_id" 
                                     class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
-                                <option value="">Toutes les cohortes</option>
+                                <option value="">Toutes les années académiques</option>
                                 @foreach($cohorts as $cohort)
                                     <option value="{{ $cohort->id }}" {{ ($selectedCohort && $selectedCohort->id == $cohort->id) ? 'selected' : '' }}>
                                         {{ $cohort->title }} {{ $cohort->status == 'active' ? '(Active)' : '' }}
@@ -182,23 +182,23 @@
 
                         <!-- Statut -->
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Statut d'admission</label>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Statut d'inscription</label>
                             <select name="status" 
                                     class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
                                 <option value="">Tous les statuts</option>
                                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>À Examiner</option>
-                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approuvé</option>
+                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Inscrit / Admis</option>
                                 <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Refusé</option>
                                 <option value="waiting_list" {{ request('status') == 'waiting_list' ? 'selected' : '' }}>Liste d'attente</option>
                             </select>
                         </div>
 
-                        <!-- Séminaire -->
+                        <!-- Filière -->
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Séminaire</label>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Filière</label>
                             <select name="seminar_id" 
                                     class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
-                                <option value="">Tous les séminaires</option>
+                                <option value="">Toutes les filières</option>
                                 @foreach($seminars as $seminar)
                                     <option value="{{ $seminar->id }}" {{ request('seminar_id') == $seminar->id ? 'selected' : '' }}>
                                         {{ $seminar->title }}
@@ -207,12 +207,12 @@
                             </select>
                         </div>
 
-                        <!-- Thème -->
+                        <!-- Matière -->
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Thème spécialisé</label>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Matière / Spécialité</label>
                             <select name="topic_id" 
                                     class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-slate-50 outline-none text-gray-700 focus:border-brand-primary">
-                                <option value="">Tous les thèmes</option>
+                                <option value="">Toutes les matières</option>
                                 @foreach($topics as $topic)
                                     <option value="{{ $topic->id }}" {{ request('topic_id') == $topic->id ? 'selected' : '' }}>
                                         {{ $topic->name }}
@@ -312,10 +312,10 @@
                                 </div>
                             </td>
 
-                            <!-- Seminar & Cohort -->
+                            <!-- Filière & Année Académique -->
                             <td class="py-4 px-6">
-                                <div class="text-xs font-semibold text-gray-800 line-clamp-1">{{ $registration->seminar->title ?? 'Séminaire' }}</div>
-                                <div class="text-[11px] font-bold text-brand-primary mt-0.5">{{ $registration->seminar->cohort?->title ?? 'Session' }}</div>
+                                <div class="text-xs font-semibold text-gray-800 line-clamp-1">{{ $registration->seminar->title ?? 'Filière' }}</div>
+                                <div class="text-[11px] font-bold text-brand-primary mt-0.5">{{ $registration->seminar->cohort?->title ?? 'Année Académique' }}</div>
                             </td>
 
                             <!-- Date & Country -->
@@ -328,7 +328,7 @@
                             <td class="py-4 px-6">
                                 @if($registration->status === 'approved')
                                     <span class="text-xs font-bold text-emerald-600">
-                                        Sélectionné
+                                        Inscrit / Admis
                                     </span>
                                 @elseif($registration->status === 'rejected')
                                     <span class="text-xs font-bold text-rose-600">
@@ -348,6 +348,15 @@
                             <!-- Quick Action Buttons -->
                             <td class="py-4 px-6 text-right">
                                 <div class="flex items-center justify-end gap-2">
+                                    @if($registration->status === 'approved')
+                                        <a href="{{ route('admin.evaluations.report-card.pdf', $registration->id) }}" data-no-loader
+                                           class="px-2.5 py-1.5 bg-blue-50 hover:bg-[#4B6A95] text-[#4B6A95] hover:text-white text-xs font-bold rounded-lg transition inline-flex items-center gap-1 border border-blue-200"
+                                           title="Télécharger le Bulletin de Notes PDF">
+                                            <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
+                                            <span>Bulletin</span>
+                                        </a>
+                                    @endif
+
                                     <!-- Express Quick Preview Drawer Button -->
                                     <button type="button" @click="openDrawer(@js($candidateData))" 
                                             class="px-3 py-1.5 bg-slate-100 hover:bg-brand-primary hover:text-white text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shadow-sm"
@@ -357,13 +366,13 @@
                                     </button>
 
                                     <!-- Direct Approve Button (if pending) -->
-                                    @if($registration->status === 'pending' && auth()->user()->role->name !== 'Agent JICA')
+                                    @if($registration->status === 'pending')
                                         <form action="{{ route('admin.candidates.update-status', $registration->id) }}" method="POST" class="m-0 inline-block">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" name="status" value="approved" 
                                                     class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg transition" 
-                                                    title="Approuver immédiatement">
+                                                    title="Valider l'inscription">
                                                 <span class="material-symbols-outlined text-[18px]">check_circle</span>
                                             </button>
                                         </form>
@@ -374,7 +383,7 @@
                         @empty
                         <tr>
                             <td colspan="5" class="py-12 text-center text-gray-500 text-sm">
-                                Aucun dossier de candidature ne correspond à vos filtres.
+                                Aucun étudiant ne correspond à vos filtres.
                             </td>
                         </tr>
                         @endforelse
@@ -563,8 +572,8 @@
              class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-5">
             <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
-                    <h3 class="text-lg font-extrabold text-slate-900">Importer des candidats via Excel</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Téléchargez le modèle, remplissez vos candidats puis importez le fichier.</p>
+                    <h3 class="text-lg font-extrabold text-slate-900">Importer des étudiants via Excel</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Téléchargez le modèle, remplissez la liste des étudiants puis importez le fichier.</p>
                 </div>
                 <button type="button" @click="importModalOpen = false" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer">
                     <span class="material-symbols-outlined text-[20px] leading-none">close</span>
@@ -575,9 +584,9 @@
             <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="text-xs">
                     <p class="font-extrabold text-emerald-900">1. Télécharger le fichier Excel modèle</p>
-                    <p class="text-emerald-700 mt-0.5">Contient toutes les colonnes officielles + un onglet « Instructions & Thèmes ».</p>
+                    <p class="text-emerald-700 mt-0.5">Contient toutes les colonnes officielles + un onglet « Instructions & Matières ».</p>
                 </div>
-                <a href="{{ route('admin.candidates.import-template') }}" download="modele_import_candidats_pfpt.xlsx" data-no-loader
+                <a href="{{ route('admin.candidates.import-template') }}" download="modele_import_etudiants_cfpt.xlsx" data-no-loader
                    class="shrink-0 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition">
                     <span class="material-symbols-outlined text-[16px] leading-none">download</span>
                     Modèle (.xlsx)
@@ -590,7 +599,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">2. Séminaire cible <span class="text-rose-500">*</span></label>
+                        <label class="block font-bold text-slate-700 mb-1">2. Filière cible <span class="text-rose-500">*</span></label>
                         <select name="seminar_id" x-model="importSeminarId" @change="importTopicId = ''" required
                                 class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-800 font-semibold focus:border-[#4B6A95] focus:outline-none">
                             @foreach($importSeminars as $sem)
@@ -600,17 +609,17 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Thème du séminaire</label>
+                        <label class="block font-bold text-slate-700 mb-1">Matière / Spécialité de la filière</label>
                         <select name="topic_id" x-model="importTopicId"
                                 class="w-full rounded-xl border border-slate-200 px-3 py-2.5 bg-white text-slate-700 font-semibold focus:border-[#4B6A95] focus:outline-none">
-                            <option value="">-- Détection auto via colonne « Thème » --</option>
+                            <option value="">-- Détection auto via colonne « Matière » --</option>
                             <template x-for="t in availableImportTopics" :key="t.id">
                                 <option :value="t.id" x-text="t.name"></option>
                             </template>
                         </select>
                         <label x-show="importTopicId !== ''" class="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
                             <input type="checkbox" name="force_topic" value="1" checked class="rounded text-[#4B6A95]">
-                            <span>Affecter ce thème à tous les candidats du fichier</span>
+                            <span>Affecter cette matière à tous les étudiants du fichier</span>
                         </label>
                     </div>
 

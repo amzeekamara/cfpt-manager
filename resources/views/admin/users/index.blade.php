@@ -404,7 +404,7 @@
                             </div>
                         </td>
                         <td>{{ $user->email }}</td>
-                        <td><span class="text-orange-500 text-xs font-extrabold uppercase tracking-wider">Candidat</span></td>
+                        <td><span class="text-orange-500 text-xs font-extrabold uppercase tracking-wider">Étudiant</span></td>
                         <td>
                             <div x-data="{ open: false }" :style="open ? 'z-index: 50;' : 'z-index: 0;'" class="relative inline-block text-left">
                                 <button @click="open = !open" @click.outside="open = false" class="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500">
@@ -459,7 +459,7 @@
                     <tr>
                         <th>Formateur</th>
                         <th>Email</th>
-                        <th>Séminaire(s) & Spécialité</th>
+                        <th>Filière(s) & Spécialité</th>
                         <th>Volume Horaire Dispensé</th>
                         <th>Rémunération</th>
                         <th>Actions</th>
@@ -478,8 +478,8 @@
                             return [
                                 'id' => $s->id,
                                 'date' => \Carbon\Carbon::parse($s->session_date)->format('d/m/Y'),
-                                'seminar' => $s->seminar->title ?? 'Séminaire',
-                                'topic' => $s->topic->name ?? 'Général / Atelier',
+                                'seminar' => $s->seminar->title ?? 'Filière',
+                                'topic' => $s->topic->name ?? 'Matière générale',
                                 'hours' => $s->hours_taught
                             ];
                         })->values() : collect();
@@ -523,7 +523,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <span class="text-slate-400 italic text-xs">Aucun séminaire assigné</span>
+                                <span class="text-slate-400 italic text-xs">Aucune filière assignée</span>
                             @endif
                         </td>
                         <td>
@@ -658,7 +658,7 @@
                                             <thead class="bg-slate-50 border-b border-slate-100 sticky top-0">
                                                 <tr>
                                                     <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px]">Date</th>
-                                                    <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px]">Séminaire & Thème</th>
+                                                    <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px]">Filière & Matière</th>
                                                     <th class="px-4 py-2.5 font-bold text-slate-500 uppercase text-[10px] text-right">Heures</th>
                                                 </tr>
                                             </thead>

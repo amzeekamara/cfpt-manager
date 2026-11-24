@@ -18,12 +18,30 @@ class Seminar extends Model
         'end_date',
         'max_participants',
         'status',
+        'training_type',
+        'partner_company',
+        'duration_label',
+        'fee_amount',
+        'specific_theme',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'fee_amount' => 'float',
     ];
+
+    public function scopeInitiale($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('training_type', 'initiale')->orWhereNull('training_type');
+        });
+    }
+
+    public function scopeContinue($query)
+    {
+        return $query->where('training_type', 'continue');
+    }
 
     public function cohort()
     {

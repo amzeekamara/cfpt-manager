@@ -1758,9 +1758,9 @@
             <!-- Menu Liens Essentiels -->
             <ul class="nav-links">
                 <li><a href="#accueil">Accueil</a></li>
-                <li><a href="#acteurs">Les Acteurs</a></li>
-                <li><a href="#departements">Départements & Pôles</a></li>
-                <li><a href="#actualites">Actualités</a></li>
+                <li><a href="#acteurs">Gouvernance</a></li>
+                <li><a href="#departements">Les 3 Départements</a></li>
+                <li><a href="#actualites">Filières & Formations</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
 
@@ -1830,17 +1830,15 @@
             <div class="hero-content">
                 <!-- En-tête sobre sans cadre ni fond coloré -->
                 <div class="section-eyebrow">
-                    Programme d'Excellence Technique (PFPT)
+                    CFPT Manager — CFPT Sénégal-Japon
                 </div>
-                <h1>Formez-vous aux standards industriels du Japon à Dakar</h1>
-                <p>Le Programme de Formation en Pays Tiers (PFPT) au CFPT Sénégal-Japon, soutenu par la JICA, prépare
-                    l'élite des techniciens, formateurs et ingénieurs de l'industrie sénégalaise et d'Afrique
-                    subsaharienne.</p>
+                <h1>Centre de Formation Professionnelle et Technique Sénégal-Japon</h1>
+                <p>Plateforme officielle de gestion pédagogique des 3 départements (Informatique, Mécanique, Électrique) et des Formations Continues pour entreprises partenaires : emplois du temps, salles, présences, évaluations, bulletins de notes et attestations.</p>
 
                 <div class="hero-cta">
-                    <a href="{{ route('public.postuler') }}" class="btn btn-primary">Déposer sa Candidature</a>
+                    <a href="{{ route('public.postuler') }}" class="btn btn-primary">S'inscrire à une Filière</a>
                     <a href="#actualites" class="btn btn-outline">
-                        Voir les Séminaires
+                        Voir les Filières
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5">
                             <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -1882,16 +1880,16 @@
                     </div>
                 </div>
 
-                <!-- Widget Liste Déroulante Interactive des Séminaires -->
+                <!-- Widget Liste Déroulante Interactive des Filières -->
                 <div class="hero-seminar-picker-widget">
                     <div class="hero-picker-header">
                         <div class="hero-picker-title">
-                            <span>Sélectionnez un Séminaire</span>
+                            <span>Sélectionnez une Filière</span>
                         </div>
                         <span class="hero-picker-badge">
                             <span
                                 style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #059669; animation: pulse 2s infinite;"></span>
-                            {{ $seminars->count() }} Sessions Disponibles
+                            {{ $seminars->count() }} Filières Ouvertes
                         </span>
                     </div>
 
@@ -1899,7 +1897,7 @@
                         <!-- Select standard interactif (avec redirection instantanée au clic/choix) -->
                         <select class="hero-picker-select" id="hero-seminar-select"
                             onchange="if(this.value) { window.location.href = this.value; }">
-                            <option value="" disabled selected>-- Cliquez pour choisir un séminaire & postuler --
+                            <option value="" disabled selected>-- Cliquez pour choisir une filière & s'inscrire --
                             </option>
                             @foreach ($seminars as $sem)
                                 <option value="{{ route('public.postuler', ['seminar_id' => $sem->id]) }}">
@@ -1923,13 +1921,13 @@
                         <button type="button" @click="dropdownOpen = !dropdownOpen"
                             style="background: transparent; border: none; color: var(--primary-dark); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; padding: 4px 0; cursor: pointer;">
                             <span
-                                x-text="dropdownOpen ? '▲ Masquer la liste complète' : '▼ Voir la liste détaillée des séminaires'"></span>
+                                x-text="dropdownOpen ? '▲ Masquer la liste complète' : '▼ Voir la liste détaillée des filières'"></span>
                         </button>
 
                         <a :href="document.getElementById('hero-seminar-select')?.value || '{{ route('public.postuler') }}'"
                             class="btn btn-primary"
                             style="padding: 6px 14px; font-size: 11px; font-weight: 700; border-radius: var(--radius-full);">
-                            Postuler en direct →
+                            S'inscrire →
                         </a>
                     </div>
 
@@ -2500,17 +2498,16 @@
         </div>
     </section>
 
-    <!-- 9. SECTION ACTUALITÉS & SÉMINAIRES EN COURS (JUSTE AVANT CONTACT) -->
+    <!-- 9. SECTION FILIÈRES & FORMATIONS EN COURS (JUSTE AVANT CONTACT) -->
     <section class="news-section" id="actualites">
         <div class="container">
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
                 <div>
-                    <div class="section-eyebrow">Actualités</div>
+                    <div class="section-eyebrow">Filières & Formations</div>
                     <h2 style="font-size: 34px; font-weight: 800; color: var(--primary-dark); letter-spacing: -0.8px;">
-                        Séminaires d'Appui & Thèmes en Cours</h2>
-                    <p style="font-size: 15px; color: var(--text-muted); margin-top: 4px;">Découvrez les sessions
-                        actuellement ouvertes et postulez aux modules programmés.</p>
+                        Filières & Spécialités Ouvertes</h2>
+                    <p style="font-size: 15px; color: var(--text-muted); margin-top: 4px;">Découvrez les filières des 3 départements et les formations continues actuellement programmées.</p>
                 </div>
                 <div>
                     <a href="{{ route('public.postuler') }}" class="btn btn-primary">
@@ -2521,7 +2518,7 @@
                             <line x1="12" y1="18" x2="12" y2="12"></line>
                             <line x1="9" y1="15" x2="15" y2="15"></line>
                         </svg>
-                        Formulaire de Candidature
+                        Formulaire d'Inscription
                     </a>
                 </div>
             </div>
@@ -2593,7 +2590,7 @@
                                     <div x-show="showDetails" x-transition x-cloak
                                         style="display: none; padding: 12px; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px; font-size: 12px; color: var(--text-dark); line-height: 1.5;">
                                         @if ($seminar->cohort)
-                                            <div style="margin-bottom: 4px;"><strong>Édition :</strong>
+                                            <div style="margin-bottom: 4px;"><strong>Année Académique :</strong>
                                                 {{ $seminar->cohort->title }}</div>
                                         @endif
                                         <div style="margin-bottom: 4px;"><strong>Dates complètes :</strong> Du
@@ -2602,15 +2599,15 @@
                                             {{ $seminar->end_date ? \Carbon\Carbon::parse($seminar->end_date)->format('d/m/Y') : 'Non spécifié' }}
                                         </div>
                                         <div style="margin-bottom: 4px;"><strong>Capacité :</strong>
-                                            {{ $seminar->max_participants ?: 30 }} participants ({{ $enrolledCount }}
-                                            validés)</div>
+                                            {{ $seminar->max_participants ?: 30 }} étudiants ({{ $enrolledCount }}
+                                            inscrits)</div>
                                         @if ($seminar->departments->isNotEmpty())
-                                            <div style="margin-bottom: 4px;"><strong>Pôle(s) :</strong>
+                                            <div style="margin-bottom: 4px;"><strong>Département(s) :</strong>
                                                 {{ $seminar->departments->pluck('name')->join(', ') }}</div>
                                         @endif
                                         @if ($seminar->topics->isNotEmpty())
                                             <div>
-                                                <strong>Thèmes de spécialisation :</strong>
+                                                <strong>Matières / Modules :</strong>
                                                 <ul style="margin: 4px 0 0 16px; padding: 0; list-style-type: disc;">
                                                     @foreach ($seminar->topics as $t)
                                                         <li>{{ $t->name }}</li>
@@ -2668,7 +2665,7 @@
                                         <a href="{{ route('public.postuler', ['seminar_id' => $seminar->id]) }}"
                                             class="btn btn-primary"
                                             style="width: 100%; font-size: 13px; padding: 10px;">
-                                            Postuler à ce Séminaire
+                                            S'inscrire à cette Filière
                                         </a>
                                     @elseif($seminar->isOngoing())
                                         <button type="button" disabled class="btn"

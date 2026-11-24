@@ -13,6 +13,13 @@ class Registration extends Model
         'seminar_id',
         'topic_id',
         'status',
+        'company_name',
+        'certificate_issued_at',
+        'certificate_number',
+    ];
+
+    protected $casts = [
+        'certificate_issued_at' => 'datetime',
     ];
 
     public function user()
