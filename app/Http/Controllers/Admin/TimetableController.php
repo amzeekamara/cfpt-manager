@@ -51,10 +51,31 @@ class TimetableController extends Controller
 
         $timetables = $timetablesQuery->orderBy('start_time')->get();
 
+        // All active slots across all departments to compute live room & trainer availability
+        $allSlots = Timetable::with(['classroom', 'trainer', 'seminar', 'topic'])
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'day_of_week' => $s->day_of_week,
+                    'start_time' => Carbon::parse($s->start_time)->format('H:i'),
+                    'end_time' => Carbon::parse($s->end_time)->format('H:i'),
+                    'classroom_id' => (string) $s->classroom_id,
+                    'classroom_name' => $s->classroom?->name ?? 'Salle',
+                    'trainer_id' => (string) $s->trainer_id,
+                    'trainer_name' => $s->trainer?->name ?? 'Formateur',
+                    'seminar_id' => (string) $s->seminar_id,
+                    'seminar_title' => $s->seminar?->title ?? 'Filière',
+                    'topic_name' => $s->topic?->name ?? 'Tronc commun',
+                ];
+            });
+
         $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
         return view('admin.timetables.index', compact(
             'timetables',
+            'allSlots',
             'departments',
             'seminars',
             'trainers',
@@ -91,30 +112,63 @@ class TimetableController extends Controller
         }
         $enrolledCount = $enrolledQuery->count();
 
-        // 2. Check classroom availability conflict on the same day & time slot
-        $roomConflict = Timetable::where('classroom_id', $request->classroom_id)
+        // 2. Check classroom availability conflict on the same day & time slot (Une salle occupée n'est plus disponible)
+        $roomConflict = Timetable::with(['trainer', 'seminar'])
+            ->where('classroom_id', $request->classroom_id)
             ->where('day_of_week', $request->day_of_week)
             ->where(function ($q) use ($request) {
                 $q->where('start_time', '<', $request->end_time)
                   ->where('end_time', '>', $request->start_time);
             })
-            ->exists();
+            ->first();
 
         if ($roomConflict) {
-            return back()->withInput()->with('error', "Conflit de salle : La salle {$classroom->name} est déjà occupée le {$request->day_of_week} sur ce créneau horaire.");
+            $occTrainer = $roomConflict->trainer?->name ?? 'un formateur';
+            $occFiliere = $roomConflict->seminar?->title ?? 'une filière';
+            $occStart = Carbon::parse($roomConflict->start_time)->format('H:i');
+            $occEnd = Carbon::parse($roomConflict->end_time)->format('H:i');
+            return back()->withInput()->with('error', "Salle indisponible : La salle « {$classroom->name} » est déjà occupée le {$request->day_of_week} de {$occStart} à {$occEnd} par {$occTrainer} ({$occFiliere}). Elle n'est plus disponible sur ce créneau.");
         }
 
-        // 3. Check trainer availability conflict on the same day & time slot
-        $trainerConflict = Timetable::where('trainer_id', $request->trainer_id)
+        // 3. Check trainer availability conflict (Un formateur ne peut dérouler des cours que dans une seule salle à une heure déterminée)
+        $trainerConflict = Timetable::with(['classroom', 'seminar'])
+            ->where('trainer_id', $request->trainer_id)
             ->where('day_of_week', $request->day_of_week)
             ->where(function ($q) use ($request) {
                 $q->where('start_time', '<', $request->end_time)
                   ->where('end_time', '>', $request->start_time);
             })
-            ->exists();
+            ->first();
 
         if ($trainerConflict) {
-            return back()->withInput()->with('error', "Conflit d'emploi du temps : Ce formateur a déjà un cours programmé le {$request->day_of_week} sur ce créneau horaire.");
+            $trName = $trainerConflict->trainer?->name ?? 'Ce formateur';
+            $trRoom = $trainerConflict->classroom?->name ?? 'une autre salle';
+            $trFiliere = $trainerConflict->seminar?->title ?? 'une autre filière';
+            $trStart = Carbon::parse($trainerConflict->start_time)->format('H:i');
+            $trEnd = Carbon::parse($trainerConflict->end_time)->format('H:i');
+            return back()->withInput()->with('error', "Duplication de formateur bloquée : {$trName} déroule déjà un cours le {$request->day_of_week} de {$trStart} à {$trEnd} dans la salle « {$trRoom} » ({$trFiliere}). Un formateur ne peut enseigner que dans une seule salle à la fois.");
+        }
+
+        // 4. Check student class (filière) conflict on the same day & time slot
+        $classConflict = Timetable::with(['classroom', 'trainer'])
+            ->where('seminar_id', $request->seminar_id)
+            ->where('day_of_week', $request->day_of_week)
+            ->where(function ($q) use ($request) {
+                if ($request->filled('topic_id')) {
+                    $q->whereNull('topic_id')->orWhere('topic_id', $request->topic_id);
+                }
+            })
+            ->where(function ($q) use ($request) {
+                $q->where('start_time', '<', $request->end_time)
+                  ->where('end_time', '>', $request->start_time);
+            })
+            ->first();
+
+        if ($classConflict) {
+            $clRoom = $classConflict->classroom?->name ?? 'une salle';
+            $clStart = Carbon::parse($classConflict->start_time)->format('H:i');
+            $clEnd = Carbon::parse($classConflict->end_time)->format('H:i');
+            return back()->withInput()->with('error', "Conflit pour les étudiants : Cette filière a déjà un cours programmé le {$request->day_of_week} de {$clStart} à {$clEnd} en salle « {$clRoom} ».");
         }
 
         Timetable::create([

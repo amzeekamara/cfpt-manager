@@ -22,8 +22,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <a href="{{ route('portal.candidate.workspace') }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-full shadow-sm flex items-center gap-2 transition-all">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span>Mes Cours & Évaluations (OpenClassrooms)</span>
+            </a>
             @if($registration && $registration->seminar?->training_type === 'continue')
-                <a href="{{ route('portal.candidate.continuing-certificate.pdf') }}" data-no-loader class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-full shadow-2xs flex items-center gap-2 transition-all">
+                <a href="{{ route('portal.candidate.continuing-certificate.pdf') }}" data-no-loader class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-full shadow-2xs flex items-center gap-2 transition-all">
                     <i data-lucide="award" class="w-4 h-4"></i>
                     <span>Télécharger mon Attestation PDF</span>
                 </a>

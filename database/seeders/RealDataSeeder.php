@@ -279,6 +279,7 @@ class RealDataSeeder extends Seeder
             'topic_id' => $topReseaux->id,
             'trainer_id' => $trainer1->id,
             'title' => 'Devoir Surveillé N°1 — Routage & VLAN',
+            'instructions' => "Objectif de l'évaluation :\n1. Configurer 3 VLANs distincts (Administration, Atelier API, Laboratoire) sur un commutateur Cisco Catalyst.\n2. Mettre en place le routage inter-VLAN (Router-on-a-stick) et vérifier la connectivité.\n3. Déposer votre fichier Packet Tracer (.pkt) ou votre rapport technique PDF dans votre espace d'évaluation.",
             'type' => 'devoir',
             'coefficient' => 1,
             'max_score' => 20,
@@ -291,11 +292,63 @@ class RealDataSeeder extends Seeder
             'topic_id' => $topEmbarque->id,
             'trainer_id' => $trainer1->id,
             'title' => 'TP Laboratoire — Programmation Microcontrôleur',
+            'instructions' => "Travail Pratique en Laboratoire :\nRéaliser un système d'acquisition de température avec affichage LCD et alerte seuil critique.\nLivrable attendu : Code source commenté en C/C++ et schéma de câblage.",
             'type' => 'tp',
             'coefficient' => 2,
             'max_score' => 20,
             'evaluation_date' => '2026-11-18',
             'is_published' => true,
+        ]);
+
+        // Chapitres de cours structurés (Style OpenClassrooms)
+        \App\Models\CourseChapter::create([
+            'seminar_id' => $filiereInfo1->id,
+            'topic_id' => $topReseaux->id,
+            'trainer_id' => $trainer1->id,
+            'title' => 'Chapitre 1 — Architecture des Réseaux Industriels & Segmentation VLAN',
+            'content' => "Bienvenue dans ce premier chapitre consacré à l'architecture des réseaux locaux industriels au CFPT Sénégal-Japon.\n\n1. Pourquoi segmenter un réseau industriel ?\nDans un environnement de production (usine, centrale électrique, automate), la séparation des flux entre le réseau bureautique (IT) et le réseau des automates (OT) est indispensable pour garantir la sécurité et le temps réel.\n\n2. Configuration standard IEEE 802.1Q (Trunking) :\n- Création des VLANs par département technique.\n- Affectation des ports en mode Access pour les équipements terminaux.\n- Configuration des liens Trunk entre commutateurs fédérateurs.\n\nExercice pratique à préparer avant la séance en Labo Réseaux Info-1 :\nPréparez le plan d'adressage IP /24 pour 3 sous-réseaux distincts.",
+            'duration_minutes' => 60,
+            'order_index' => 1,
+        ]);
+
+        \App\Models\CourseChapter::create([
+            'seminar_id' => $filiereInfo1->id,
+            'topic_id' => $topEmbarque->id,
+            'trainer_id' => $trainer1->id,
+            'title' => 'Chapitre 2 — Programmation des Microcontrôleurs & Interfaces Capteurs',
+            'content' => "Ce chapitre aborde l'interfaçage matériel et logiciel des microcontrôleurs utilisés dans les systèmes industriels embarqués.\n\nPoints clés du cours :\n- Architecture interne : Ports GPIO, Convertisseur Analogique-Numérique (ADC), Timers et PWM.\n- Protocoles de communication série sur carte : I2C, SPI et UART.\n- Méthodologie Kaizen 5S au laboratoire d'électronique : vérification systématique des tensions d'alimentation avant mise sous tension.",
+            'duration_minutes' => 90,
+            'order_index' => 2,
+        ]);
+
+        \App\Models\CourseChapter::create([
+            'seminar_id' => $filiereElec1->id,
+            'topic_id' => $topApi->id,
+            'trainer_id' => $trainer2->id,
+            'title' => 'Chapitre 1 — Programmation GRAFCET & Automates Siemens S7-1500',
+            'content' => "Introduction à l'automatisation des systèmes de production industrielle.\n\n1. Structure d'un Automate Programmable Industriel (API) :\n- Module d'alimentation, CPU, modules d'entrées numériques (TOR) et sorties relais/transistors.\n2. Règles d'évolution du GRAFCET :\n- Étapes initiales, transitions, réceptivités et actions associées.\n- Traduction en langage Ladder (CONT) sous TIA Portal.",
+            'duration_minutes' => 75,
+            'order_index' => 1,
+        ]);
+
+        // Discussions / Questions-Réponses du cours (Style OpenClassrooms)
+        \App\Models\CourseDiscussion::create([
+            'seminar_id' => $filiereInfo1->id,
+            'topic_id' => $topReseaux->id,
+            'evaluation_id' => $evalInfo1->id,
+            'author_name' => 'Ousmane Diallo',
+            'author_role' => 'Étudiant',
+            'body' => 'Bonjour Monsieur Sow, pour le Devoir Surveillé N°1 sur les VLANs, faut-il également configurer le serveur DHCP sur le routeur principal ou utiliser des adresses IP statiques ?',
+        ]);
+
+        \App\Models\CourseDiscussion::create([
+            'seminar_id' => $filiereInfo1->id,
+            'topic_id' => $topReseaux->id,
+            'evaluation_id' => $evalInfo1->id,
+            'trainer_id' => $trainer1->id,
+            'author_name' => 'M. Amadou Sow',
+            'author_role' => 'Formateur',
+            'body' => 'Bonjour Ousmane, excellente question ! Configurez un pool DHCP par sous-interface sur le routeur pour les VLANs 10 et 20, et gardez des adresses IP statiques pour le VLAN Administration (VLAN 99). Bon courage à tous !',
         ]);
 
         foreach ($studentsData as $s) {
@@ -332,13 +385,20 @@ class RealDataSeeder extends Seeder
                     'evaluation_id' => $evalInfo1->id,
                     'registration_id' => $reg->id,
                     'score' => $s['score1'],
-                    'appreciation' => $s['score1'] >= 16 ? 'Très Bien' : 'Bien',
+                    'appreciation' => $s['score1'] >= 16 ? 'Très Bien — Configuration VLAN et routage inter-VLAN parfaitement fonctionnels.' : 'Bien — Bon travail technique.',
                 ]);
                 Grade::create([
                     'evaluation_id' => $evalInfo2->id,
                     'registration_id' => $reg->id,
                     'score' => $s['score2'],
                     'appreciation' => $s['score2'] >= 16 ? 'Très Bien' : 'Bien',
+                ]);
+                \App\Models\EvaluationSubmission::create([
+                    'evaluation_id' => $evalInfo1->id,
+                    'registration_id' => $reg->id,
+                    'student_comment' => 'Voici mon rapport de configuration des 3 VLANs et des sous-interfaces du routeur Cisco Catalyst.',
+                    'submitted_at' => now()->subDays(2),
+                    'trainer_feedback' => $s['score1'] >= 16 ? 'Excellent livrable, plan d\'adressage et trunking 802.1Q conformes au cahier des charges.' : 'Travail sérieux et fonctionnel.',
                 ]);
             }
         }

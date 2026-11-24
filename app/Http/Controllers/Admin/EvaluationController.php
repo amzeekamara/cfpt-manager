@@ -79,6 +79,11 @@ class EvaluationController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if (!$user || !$user->isDepartmentHead()) {
+            return back()->with('error', 'Action non autorisée : Seuls les Chefs de Département et les Formateurs peuvent créer des évaluations. La Direction des Études supervise les notes et édite les bulletins.');
+        }
+
         $request->validate([
             'seminar_id' => 'required|exists:seminars,id',
             'topic_id' => 'nullable|exists:topics,id',
@@ -88,6 +93,7 @@ class EvaluationController extends Controller
             'coefficient' => 'required|numeric|min:0.5|max:20',
             'max_score' => 'required|numeric|min:5|max:100',
             'evaluation_date' => 'required|date',
+            'instructions' => 'nullable|string',
             'is_published' => 'nullable|boolean',
         ]);
 
@@ -100,13 +106,14 @@ class EvaluationController extends Controller
             'coefficient' => $request->coefficient,
             'max_score' => $request->max_score,
             'evaluation_date' => $request->evaluation_date,
+            'instructions' => $request->instructions,
             'is_published' => $request->boolean('is_published', true),
         ]);
 
         return redirect()->route('admin.evaluations.index', [
             'seminar_id' => $eval->seminar_id,
             'evaluation_id' => $eval->id,
-        ])->with('success', "Évaluation « {$eval->title} » créée. Vous pouvez maintenant saisir les notes.");
+        ])->with('success', "Évaluation « {$eval->title} » créée par le Chef de Département.");
     }
 
     public function storeGrades(Request $request, Evaluation $evaluation)

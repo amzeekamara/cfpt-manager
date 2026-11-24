@@ -1833,7 +1833,9 @@
                     CFPT Manager — CFPT Sénégal-Japon
                 </div>
                 <h1>Centre de Formation Professionnelle et Technique Sénégal-Japon</h1>
-                <p>Plateforme officielle de gestion pédagogique des 3 départements (Informatique, Mécanique, Électrique) et des Formations Continues pour entreprises partenaires : emplois du temps, salles, présences, évaluations, bulletins de notes et attestations.</p>
+                <p>Plateforme officielle de gestion pédagogique des 3 départements (Informatique, Mécanique, Électrique)
+                    et des Formations Continues pour entreprises partenaires : emplois du temps, salles, présences,
+                    évaluations, bulletins de notes et attestations.</p>
 
                 <div class="hero-cta">
                     <a href="{{ route('public.postuler') }}" class="btn btn-primary">S'inscrire à une Filière</a>
@@ -1897,7 +1899,8 @@
                         <!-- Select standard interactif (avec redirection instantanée au clic/choix) -->
                         <select class="hero-picker-select" id="hero-seminar-select"
                             onchange="if(this.value) { window.location.href = this.value; }">
-                            <option value="" disabled selected>-- Cliquez pour choisir une filière & s'inscrire --
+                            <option value="" disabled selected>-- Cliquez pour choisir une filière & s'inscrire
+                                --
                             </option>
                             @foreach ($seminars as $sem)
                                 <option value="{{ route('public.postuler', ['seminar_id' => $sem->id]) }}">
@@ -2507,7 +2510,8 @@
                     <div class="section-eyebrow">Filières & Formations</div>
                     <h2 style="font-size: 34px; font-weight: 800; color: var(--primary-dark); letter-spacing: -0.8px;">
                         Filières & Spécialités Ouvertes</h2>
-                    <p style="font-size: 15px; color: var(--text-muted); margin-top: 4px;">Découvrez les filières des 3 départements et les formations continues actuellement programmées.</p>
+                    <p style="font-size: 15px; color: var(--text-muted); margin-top: 4px;">Découvrez les filières des 3
+                        départements et les formations continues actuellement programmées.</p>
                 </div>
                 <div>
                     <a href="{{ route('public.postuler') }}" class="btn btn-primary">

@@ -210,18 +210,26 @@
                         class="px-5 py-2 rounded-full font-bold transition {{ request()->routeIs('portal.trainer.dashboard') ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         Vue d'ensemble & Emploi du temps
                     </a>
+                    <a href="{{ route('portal.trainer.workspace') }}"
+                        class="px-4 py-2 rounded-full transition {{ request()->routeIs('portal.trainer.workspace*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        Cours & Évaluations (OpenClassrooms)
+                    </a>
                     <a href="{{ route('portal.trainer.attendances') }}"
                         class="px-4 py-2 rounded-full transition {{ request()->routeIs('portal.trainer.attendances*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         Présences & Heures de cours
                     </a>
                     <a href="{{ route('portal.trainer.evaluations') }}"
                         class="px-4 py-2 rounded-full transition {{ request()->routeIs('portal.trainer.evaluations*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        Évaluations & Notes
+                        Grille de Notes
                     </a>
                 @elseif($isCandidate)
                     <a href="{{ route('portal.candidate.dashboard') }}"
                         class="px-5 py-2 rounded-full font-bold transition {{ request()->routeIs('portal.candidate.dashboard') ? 'bg-[#4B6A95] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         Mon Tableau de bord
+                    </a>
+                    <a href="{{ route('portal.candidate.workspace') }}"
+                        class="px-4 py-2 rounded-full transition {{ request()->routeIs('portal.candidate.workspace*') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        Mes Cours & Évaluations (OpenClassrooms)
                     </a>
                     <a href="{{ route('portal.candidate.profile.edit') }}"
                         class="px-4 py-2 rounded-full transition {{ request()->routeIs('portal.candidate.profile.edit') ? 'bg-[#4B6A95] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">

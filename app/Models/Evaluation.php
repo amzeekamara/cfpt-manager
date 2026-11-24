@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Evaluation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'seminar_id',
         'topic_id',
         'trainer_id',
         'title',
+        'instructions',
+        'attachment_path',
         'type',
         'coefficient',
         'max_score',
@@ -19,9 +24,9 @@ class Evaluation extends Model
     ];
 
     protected $casts = [
-        'coefficient' => 'float',
-        'max_score' => 'float',
         'evaluation_date' => 'date',
+        'coefficient' => 'decimal:2',
+        'max_score' => 'decimal:2',
         'is_published' => 'boolean',
     ];
 
@@ -43,5 +48,15 @@ class Evaluation extends Model
     public function grades()
     {
         return $this->hasMany(Grade::class);
+    }
+
+    public function submissions()
+    {
+        return $this->hasMany(EvaluationSubmission::class);
+    }
+
+    public function discussions()
+    {
+        return $this->hasMany(CourseDiscussion::class);
     }
 }

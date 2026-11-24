@@ -8,8 +8,15 @@
     viewMode: 'grid',
     selectedDepartmentId: '{{ $effectiveDeptId ?: ($departments->first()?->id ?? '') }}',
     selectedSeminarId: '{{ $seminars->first()?->id ?? '' }}',
+    selectedDay: 'Lundi',
     startTime: '08:00',
     endTime: '12:00',
+    allSlots: @js($allSlots ?? []),
+    trainersList: [
+        @foreach($trainers as $tr)
+            { id: '{{ $tr->id }}', name: '{{ addslashes($tr->name) }}', email: '{{ addslashes($tr->email) }}' },
+        @endforeach
+    ],
     seminarsMap: {
         @foreach($seminars as $sem)
             '{{ $sem->id }}': {
@@ -46,6 +53,20 @@
         const [eh, em] = this.endTime.split(':').map(Number);
         const diff = ((eh * 60 + em) - (sh * 60 + sm)) / 60;
         return diff > 0 ? diff.toFixed(1) : 0;
+    },
+    overlaps(slot) {
+        if (slot.day_of_week !== this.selectedDay) return false;
+        if (!this.startTime || !this.endTime) return false;
+        return slot.start_time < this.endTime && slot.end_time > this.startTime;
+    },
+    getRoomConflict(roomId) {
+        return this.allSlots.find(s => String(s.classroom_id) === String(roomId) && this.overlaps(s)) || null;
+    },
+    getTrainerConflict(trainerId) {
+        return this.allSlots.find(s => String(s.trainer_id) === String(trainerId) && this.overlaps(s)) || null;
+    },
+    getSeminarConflict(seminarId) {
+        return this.allSlots.find(s => String(s.seminar_id) === String(seminarId) && this.overlaps(s)) || null;
     }
 }">
     <div class="w-full max-w-[1600px] mx-auto space-y-6">
@@ -295,6 +316,14 @@
                                             {{ $enrolled }} inscrits / {{ $roomCap }} places
                                         </span>
                                     </div>
+
+                                    <div class="mt-1 pt-2 border-t border-dashed border-slate-100 flex items-center justify-between text-[10px]">
+                                        <span class="text-slate-500 font-bold flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[13px] text-[#4B6A95]">fact_check</span>
+                                            Appel / Présences :
+                                        </span>
+                                        <span class="font-extrabold text-[#4B6A95]">Par {{ $slot->trainer?->name ?? 'le formateur' }}</span>
+                                    </div>
                                 </div>
                             </div>
                         @empty
@@ -390,9 +419,36 @@
 
             <form action="{{ route('admin.timetables.store') }}" method="POST" class="space-y-4 text-xs">
                 @csrf
+                <!-- ÉTAPE 1 : CHOIX DU CRÉNEAU HORAIRE (POUR CALCULER EN TEMPS RÉEL LES SALLES & FORMATEURS DISPONIBLES) -->
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-[#4B6A95]">1. Jour & Créneau Horaire du Cours</span>
+                        <span class="text-[11px] font-bold text-emerald-700">Filtrage anti-conflit actif</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Jour de la semaine <span class="text-rose-500">*</span></label>
+                            <select name="day_of_week" x-model="selectedDay" required class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-bold outline-none focus:border-[#4B6A95]">
+                                @foreach($days as $d)
+                                    <option value="{{ $d }}">{{ $d }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Heure début <span class="text-rose-500">*</span></label>
+                            <input type="time" name="start_time" x-model="startTime" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 font-bold outline-none focus:border-[#4B6A95]">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Heure fin <span class="text-rose-500">*</span></label>
+                            <input type="time" name="end_time" x-model="endTime" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 font-bold outline-none focus:border-[#4B6A95]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ÉTAPE 2 : DÉPARTEMENT, SALLE DISPONIBLE & FORMATEUR DISPONIBLE -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Département <span class="text-rose-500">*</span></label>
+                        <label class="block font-bold text-slate-700 mb-1">2. Département <span class="text-rose-500">*</span></label>
                         <select name="department_id" x-model="selectedDepartmentId" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
                             @foreach($departments as $dept)
                                 <option value="{{ $dept->id }}">{{ $dept->name }} ({{ $dept->classrooms->count() }} salles)</option>
@@ -401,65 +457,62 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Salle / Atelier disponible <span class="text-rose-500">*</span></label>
+                        <label class="block font-bold text-slate-700 mb-1">3. Salle / Atelier (Salles occupées verrouillées) <span class="text-rose-500">*</span></label>
                         <select name="classroom_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
                             <template x-if="availableClassrooms.length === 0">
                                 <option value="">-- Aucune salle dans ce département --</option>
                             </template>
                             <template x-for="room in availableClassrooms" :key="room.id">
-                                <option :value="room.id" x-text="room.name + ' (' + room.capacity + ' places - ' + room.type + ')'"></option>
+                                <option :value="room.id"
+                                        :disabled="getRoomConflict(room.id) !== null"
+                                        x-text="getRoomConflict(room.id)
+                                            ? '🔒 ' + room.name + ' — OCCUPÉE (' + getRoomConflict(room.id).start_time + '-' + getRoomConflict(room.id).end_time + ' par ' + getRoomConflict(room.id).trainer_name + ')'
+                                            : '✓ ' + room.name + ' (' + room.capacity + ' places - ' + room.type + ') — DISPONIBLE'">
+                                </option>
                             </template>
                         </select>
                     </div>
 
                     <div class="sm:col-span-2">
                         <label class="block font-bold text-slate-700 mb-1">
-                            Filière / Classe (avec effectif des étudiants inscrits) <span class="text-rose-500">*</span>
+                            4. Formateur assigné (Un formateur ne peut être que dans une seule salle à la fois) <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="trainer_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
+                            <template x-for="tr in trainersList" :key="tr.id">
+                                <option :value="tr.id"
+                                        :disabled="getTrainerConflict(tr.id) !== null"
+                                        x-text="getTrainerConflict(tr.id)
+                                            ? '🔒 ' + tr.name + ' — INDISPONIBLE (Déjà en cours en ' + getTrainerConflict(tr.id).classroom_name + ' de ' + getTrainerConflict(tr.id).start_time + ' à ' + getTrainerConflict(tr.id).end_time + ')'
+                                            : '✓ ' + tr.name + ' (' + tr.email + ') — DISPONIBLE'">
+                                </option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">
+                            5. Filière / Classe (avec effectif des étudiants inscrits) <span class="text-rose-500">*</span>
                         </label>
                         <select name="seminar_id" x-model="selectedSeminarId" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
                             @foreach($seminars as $sem)
                                 <option value="{{ $sem->id }}">{{ $sem->title }} — {{ $sem->enrolled_count }} étudiant(s) inscrit(s)</option>
                             @endforeach
                         </select>
+                        <template x-if="getSeminarConflict(selectedSeminarId)">
+                            <p class="mt-1 text-[11px] font-bold text-amber-700">
+                                ⚠ Attention : Cette filière a déjà un cours sur ce créneau (<span x-text="getSeminarConflict(selectedSeminarId).topic_name + ' en ' + getSeminarConflict(selectedSeminarId).classroom_name"></span>).
+                            </p>
+                        </template>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Matière / Module</label>
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">6. Matière / Module enseigné</label>
                         <select name="topic_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
                             <option value="">-- Toute la classe / Tronc commun --</option>
                             <template x-for="top in currentTopics" :key="top.id">
                                 <option :value="top.id" x-text="top.name"></option>
                             </template>
                         </select>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Formateur assigné <span class="text-rose-500">*</span></label>
-                        <select name="trainer_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
-                            @foreach($trainers as $tr)
-                                <option value="{{ $tr->id }}">{{ $tr->name }} ({{ $tr->email }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Jour de la semaine <span class="text-rose-500">*</span></label>
-                        <select name="day_of_week" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold outline-none focus:border-[#4B6A95]">
-                            @foreach($days as $d)
-                                <option value="{{ $d }}">{{ $d }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Heure début <span class="text-rose-500">*</span></label>
-                            <input type="time" name="start_time" x-model="startTime" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 font-bold outline-none focus:border-[#4B6A95]">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Heure fin <span class="text-rose-500">*</span></label>
-                            <input type="time" name="end_time" x-model="endTime" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 font-bold outline-none focus:border-[#4B6A95]">
-                        </div>
                     </div>
                 </div>
 

@@ -522,6 +522,8 @@ class TrainerController extends Controller
             'seminar_id' => 'required|exists:seminars,id',
             'topic_id' => 'nullable|exists:topics,id',
             'title' => 'required|string|max:255',
+            'instructions' => 'nullable|string',
+            'attachment' => 'nullable|file|max:10240',
             'type' => 'required|in:devoir,tp,examen',
             'coefficient' => 'required|numeric|min:0.5|max:20',
             'max_score' => 'required|numeric|min:5|max:100',
@@ -532,11 +534,18 @@ class TrainerController extends Controller
             abort(403, 'Accès non autorisé à ce cours.');
         }
 
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('evaluations_subjects', 'public');
+        }
+
         $eval = \App\Models\Evaluation::create([
             'seminar_id' => $request->seminar_id,
             'topic_id' => $request->topic_id,
             'trainer_id' => $trainerId,
             'title' => $request->title,
+            'instructions' => $request->instructions,
+            'attachment_path' => $attachmentPath,
             'type' => $request->type,
             'coefficient' => $request->coefficient,
             'max_score' => $request->max_score,
@@ -544,10 +553,185 @@ class TrainerController extends Controller
             'is_published' => true,
         ]);
 
+        if ($request->boolean('from_workspace')) {
+            return redirect()->route('portal.trainer.workspace', [
+                'seminar_id' => $eval->seminar_id,
+                'evaluation_id' => $eval->id,
+                'tab' => 'evaluations',
+            ])->with('success', "Évaluation « {$eval->title} » publiée dans l'espace de cours.");
+        }
+
         return redirect()->route('portal.trainer.evaluations', [
             'seminar_id' => $eval->seminar_id,
             'evaluation_id' => $eval->id,
         ])->with('success', "Évaluation « {$eval->title} » créée. Vous pouvez saisir les notes des étudiants.");
+    }
+
+    public function workspace(Request $request)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with(['seminars.topics', 'seminars.departments'])->findOrFail($trainerId);
+
+        $selectedSeminarId = $request->get('seminar_id', $trainer->seminars->first()?->id);
+        $activeSeminar = $trainer->seminars->firstWhere('id', $selectedSeminarId) ?? $trainer->seminars->first();
+
+        $chapters = collect();
+        $evaluations = collect();
+        $discussions = collect();
+        $registrations = collect();
+        $activeChapter = null;
+        $activeEvaluation = null;
+
+        if ($activeSeminar) {
+            $chapters = \App\Models\CourseChapter::with(['topic', 'trainer'])
+                ->where('seminar_id', $activeSeminar->id)
+                ->orderBy('order_index')
+                ->orderBy('id')
+                ->get();
+
+            $activeChapterId = $request->get('chapter_id', $chapters->first()?->id);
+            $activeChapter = $chapters->firstWhere('id', $activeChapterId) ?? $chapters->first();
+
+            $evaluations = \App\Models\Evaluation::with(['topic', 'grades', 'submissions.registration.user'])
+                ->where('seminar_id', $activeSeminar->id)
+                ->orderByDesc('evaluation_date')
+                ->get();
+
+            $activeEvaluationId = $request->get('evaluation_id', $evaluations->first()?->id);
+            $activeEvaluation = $evaluations->firstWhere('id', $activeEvaluationId) ?? $evaluations->first();
+
+            $discussions = \App\Models\CourseDiscussion::with(['topic', 'evaluation'])
+                ->where('seminar_id', $activeSeminar->id)
+                ->latest()
+                ->get();
+
+            $registrations = \App\Models\Registration::with(['user.candidateProfile', 'topic', 'grades'])
+                ->where('seminar_id', $activeSeminar->id)
+                ->where('status', 'approved')
+                ->get();
+        }
+
+        return view('portal.trainer.workspace', compact(
+            'trainer',
+            'activeSeminar',
+            'chapters',
+            'activeChapter',
+            'evaluations',
+            'activeEvaluation',
+            'discussions',
+            'registrations'
+        ));
+    }
+
+    public function storeChapter(Request $request)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with('seminars')->findOrFail($trainerId);
+
+        $request->validate([
+            'seminar_id' => 'required|exists:seminars,id',
+            'topic_id' => 'nullable|exists:topics,id',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'video_url' => 'nullable|string|max:255',
+            'duration_minutes' => 'nullable|integer|min:5|max:600',
+            'attachment' => 'nullable|file|max:10240',
+        ]);
+
+        if (!$trainer->seminars->contains('id', $request->seminar_id)) {
+            abort(403);
+        }
+
+        $path = null;
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('course_chapters', 'public');
+        }
+
+        $nextOrder = \App\Models\CourseChapter::where('seminar_id', $request->seminar_id)->max('order_index') + 1;
+
+        $chapter = \App\Models\CourseChapter::create([
+            'seminar_id' => $request->seminar_id,
+            'topic_id' => $request->topic_id,
+            'trainer_id' => $trainerId,
+            'title' => $request->title,
+            'content' => $request->content,
+            'video_url' => $request->video_url,
+            'attachment_path' => $path,
+            'duration_minutes' => $request->duration_minutes ?: 45,
+            'order_index' => $nextOrder,
+        ]);
+
+        return redirect()->route('portal.trainer.workspace', [
+            'seminar_id' => $chapter->seminar_id,
+            'chapter_id' => $chapter->id,
+        ])->with('success', "Chapitre « {$chapter->title} » publié dans le parcours de cours.");
+    }
+
+    public function destroyChapter(Request $request, \App\Models\CourseChapter $chapter)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with('seminars')->findOrFail($trainerId);
+        if (!$trainer->seminars->contains('id', $chapter->seminar_id)) {
+            abort(403);
+        }
+        $semId = $chapter->seminar_id;
+        $chapter->delete();
+        return redirect()->route('portal.trainer.workspace', ['seminar_id' => $semId])->with('success', 'Chapitre supprimé.');
+    }
+
+    public function storeDiscussion(Request $request)
+    {
+        $trainerId = $request->session()->get('portal_trainer_id');
+        $trainer = Trainer::with('seminars')->findOrFail($trainerId);
+
+        $request->validate([
+            'seminar_id' => 'required|exists:seminars,id',
+            'topic_id' => 'nullable|exists:topics,id',
+            'evaluation_id' => 'nullable|exists:evaluations,id',
+            'body' => 'required|string|max:3000',
+        ]);
+
+        \App\Models\CourseDiscussion::create([
+            'seminar_id' => $request->seminar_id,
+            'topic_id' => $request->topic_id,
+            'evaluation_id' => $request->evaluation_id,
+            'trainer_id' => $trainerId,
+            'author_name' => $trainer->name,
+            'author_role' => 'Formateur',
+            'body' => $request->body,
+        ]);
+
+        return back()->with('success', 'Votre réponse a été publiée dans le fil de discussion du cours.');
+    }
+
+    public function storeSubmissionFeedback(Request $request, \App\Models\Evaluation $evaluation, \App\Models\EvaluationSubmission $submission)
+    {
+        $request->validate([
+            'score' => 'nullable|numeric|min:0|max:' . $evaluation->max_score,
+            'trainer_feedback' => 'nullable|string|max:2000',
+        ]);
+
+        $submission->update([
+            'trainer_feedback' => $request->trainer_feedback,
+        ]);
+
+        if ($request->filled('score')) {
+            $score = (float) $request->score;
+            $norm = ($score / max(1, $evaluation->max_score)) * 20;
+            $appreciation = match (true) {
+                $norm >= 16 => 'Très Bien',
+                $norm >= 14 => 'Bien',
+                $norm >= 12 => 'Assez Bien',
+                $norm >= 10 => 'Passable',
+                default => 'Insuffisant',
+            };
+            \App\Models\Grade::updateOrCreate(
+                ['evaluation_id' => $evaluation->id, 'registration_id' => $submission->registration_id],
+                ['score' => $score, 'appreciation' => $request->trainer_feedback ?: $appreciation]
+            );
+        }
+
+        return back()->with('success', 'Correction, commentaire et note enregistrés pour le livrable de l\'étudiant.');
     }
 
     public function storeGrades(Request $request, \App\Models\Evaluation $evaluation)

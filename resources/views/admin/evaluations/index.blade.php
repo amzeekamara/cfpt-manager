@@ -46,7 +46,7 @@
                     <div class="bg-slate-900/40 backdrop-blur-xs p-1 rounded-full border border-white/15 flex items-center text-xs font-bold">
                         <button type="button" @click="activeTab = 'saisie'" :class="activeTab === 'saisie' ? 'bg-white text-slate-900 shadow-xs' : 'text-white/80 hover:text-white'" class="px-4 py-1.5 rounded-full transition flex items-center gap-1.5 cursor-pointer">
                             <span class="material-symbols-outlined text-[16px]">edit_note</span>
-                            <span>1. Saisie des Notes</span>
+                            <span>1. Notes par Évaluation</span>
                         </button>
                         <button type="button" @click="activeTab = 'bulletins'" :class="activeTab === 'bulletins' ? 'bg-white text-slate-900 shadow-xs' : 'text-white/80 hover:text-white'" class="px-4 py-1.5 rounded-full transition flex items-center gap-1.5 cursor-pointer">
                             <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
@@ -54,10 +54,17 @@
                         </button>
                     </div>
 
-                    <button type="button" @click="createModalOpen = true" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-extrabold flex items-center gap-2 shadow-md transition cursor-pointer">
-                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                        <span>+ Nouvelle Évaluation</span>
-                    </button>
+                    @if(auth()->user() && auth()->user()->isDepartmentHead())
+                        <button type="button" @click="createModalOpen = true" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-extrabold flex items-center gap-2 shadow-md transition cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                            <span>+ Nouvelle Évaluation</span>
+                        </button>
+                    @else
+                        <div class="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-[11px] font-bold text-blue-100 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-amber-300">verified_user</span>
+                            <span>Création réservée aux Formateurs & Chefs de Département</span>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -233,10 +240,12 @@
                 <div class="py-16 text-center text-slate-400">
                     <span class="material-symbols-outlined text-5xl opacity-30 mb-2">grading</span>
                     <p class="text-base font-bold text-slate-700">Aucune évaluation créée pour cette filière.</p>
-                    <p class="text-xs mt-1">Créez un devoir, un TP ou un examen pour saisir et restituer les notes des étudiants.</p>
-                    <button type="button" @click="createModalOpen = true" class="mt-4 px-6 py-2.5 bg-[#4B6A95] text-white rounded-full text-xs font-bold cursor-pointer">
-                        + Créer une première évaluation
-                    </button>
+                    <p class="text-xs mt-1">Les évaluations (devoirs, TP, examens) sont créées par les Formateurs et les Chefs de Département.</p>
+                    @if(auth()->user() && auth()->user()->isDepartmentHead())
+                        <button type="button" @click="createModalOpen = true" class="mt-4 px-6 py-2.5 bg-[#4B6A95] text-white rounded-full text-xs font-bold cursor-pointer">
+                            + Créer une première évaluation
+                        </button>
+                    @endif
                 </div>
             @endif
         </div>

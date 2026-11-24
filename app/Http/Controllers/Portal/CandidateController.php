@@ -328,6 +328,115 @@ class CandidateController extends Controller
             'reason' => $request->reason,
         ]);
 
-        return redirect()->back()->with('success', 'Votre demande de changement de séminaire a été envoyée à l\'administration.');
+        return redirect()->back()->with('success', 'Votre demande de changement de filière a été envoyée à l\'administration.');
+    }
+
+    public function workspace(Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $registration = \App\Models\Registration::with(['seminar.topics', 'seminar.departments', 'seminar.cohort', 'topic', 'grades'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->first();
+
+        $chapters = collect();
+        $evaluations = collect();
+        $discussions = collect();
+        $activeChapter = null;
+        $activeEvaluation = null;
+
+        if ($registration && $registration->seminar) {
+            $chapters = \App\Models\CourseChapter::with(['topic', 'trainer'])
+                ->where('seminar_id', $registration->seminar_id)
+                ->orderBy('order_index')
+                ->orderBy('id')
+                ->get();
+
+            $activeChapterId = $request->get('chapter_id', $chapters->first()?->id);
+            $activeChapter = $chapters->firstWhere('id', $activeChapterId) ?? $chapters->first();
+
+            $evaluations = \App\Models\Evaluation::with(['topic', 'trainer', 'grades', 'submissions'])
+                ->where('seminar_id', $registration->seminar_id)
+                ->where('is_published', true)
+                ->orderByDesc('evaluation_date')
+                ->get();
+
+            $activeEvaluationId = $request->get('evaluation_id', $evaluations->first()?->id);
+            $activeEvaluation = $evaluations->firstWhere('id', $activeEvaluationId) ?? $evaluations->first();
+
+            $discussions = \App\Models\CourseDiscussion::with(['topic', 'evaluation'])
+                ->where('seminar_id', $registration->seminar_id)
+                ->latest()
+                ->get();
+        }
+
+        return view('portal.candidate.workspace', compact(
+            'user',
+            'registration',
+            'chapters',
+            'activeChapter',
+            'evaluations',
+            'activeEvaluation',
+            'discussions'
+        ));
+    }
+
+    public function submitEvaluation(Request $request, \App\Models\Evaluation $evaluation)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $registration = \App\Models\Registration::where('user_id', $user->id)
+            ->where('seminar_id', $evaluation->seminar_id)
+            ->firstOrFail();
+
+        $request->validate([
+            'student_comment' => 'nullable|string|max:2000',
+            'livrable' => 'nullable|file|max:10240',
+        ]);
+
+        $existing = \App\Models\EvaluationSubmission::where('evaluation_id', $evaluation->id)
+            ->where('registration_id', $registration->id)
+            ->first();
+
+        $path = $existing?->file_path;
+        if ($request->hasFile('livrable')) {
+            $path = $request->file('livrable')->store('evaluation_submissions', 'public');
+        }
+
+        \App\Models\EvaluationSubmission::updateOrCreate(
+            [
+                'evaluation_id' => $evaluation->id,
+                'registration_id' => $registration->id,
+            ],
+            [
+                'student_comment' => $request->student_comment,
+                'file_path' => $path,
+                'submitted_at' => now(),
+            ]
+        );
+
+        return back()->with('success', "Votre travail / livrable pour « {$evaluation->title} » a été transmis au formateur.");
+    }
+
+    public function storeDiscussion(Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $request->validate([
+            'seminar_id' => 'required|exists:seminars,id',
+            'topic_id' => 'nullable|exists:topics,id',
+            'evaluation_id' => 'nullable|exists:evaluations,id',
+            'body' => 'required|string|max:3000',
+        ]);
+
+        \App\Models\CourseDiscussion::create([
+            'seminar_id' => $request->seminar_id,
+            'topic_id' => $request->topic_id,
+            'evaluation_id' => $request->evaluation_id,
+            'user_id' => $user->id,
+            'author_name' => $user->name,
+            'author_role' => 'Étudiant',
+            'body' => $request->body,
+        ]);
+
+        return back()->with('success', 'Votre message / question a été publié dans l\'espace d\'échange du cours.');
     }
 }

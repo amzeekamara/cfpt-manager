@@ -179,6 +179,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
     // MODULE 4 : ESPACE PERSONNEL ÉTUDIANT
     Route::middleware('portal.auth:candidate')->prefix('candidat')->name('candidate.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Portal\CandidateController::class, 'dashboard'])->name('dashboard');
+        Route::get('/cours', [\App\Http\Controllers\Portal\CandidateController::class, 'workspace'])->name('workspace');
+        Route::post('/evaluations/{evaluation}/submit', [\App\Http\Controllers\Portal\CandidateController::class, 'submitEvaluation'])->name('evaluations.submit');
+        Route::post('/cours/discussions', [\App\Http\Controllers\Portal\CandidateController::class, 'storeDiscussion'])->name('discussions.store');
         Route::get('/report-card/pdf', [\App\Http\Controllers\Portal\CandidateController::class, 'downloadReportCard'])->name('report-card.pdf');
         Route::get('/continuing-certificate/pdf', [\App\Http\Controllers\Portal\CandidateController::class, 'downloadContinuingCertificate'])->name('continuing-certificate.pdf');
         Route::get('/profile/edit', [\App\Http\Controllers\Portal\CandidateController::class, 'editProfile'])->name('profile.edit');
@@ -190,6 +193,11 @@ Route::prefix('portal')->name('portal.')->group(function () {
     // MODULE 5 & 6 : ESPACE INTERVENANT / FORMATEUR
     Route::middleware('portal.auth:trainer')->prefix('formateur')->name('trainer.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Portal\TrainerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/cours', [\App\Http\Controllers\Portal\TrainerController::class, 'workspace'])->name('workspace');
+        Route::post('/cours/chapters', [\App\Http\Controllers\Portal\TrainerController::class, 'storeChapter'])->name('chapters.store');
+        Route::delete('/cours/chapters/{chapter}', [\App\Http\Controllers\Portal\TrainerController::class, 'destroyChapter'])->name('chapters.destroy');
+        Route::post('/cours/discussions', [\App\Http\Controllers\Portal\TrainerController::class, 'storeDiscussion'])->name('discussions.store');
+        Route::post('/evaluations/{evaluation}/feedback/{submission}', [\App\Http\Controllers\Portal\TrainerController::class, 'storeSubmissionFeedback'])->name('evaluations.feedback');
         Route::post('/messages', [\App\Http\Controllers\Portal\TrainerController::class, 'sendMessage'])->name('messages.send');
         Route::get('/attendances', [\App\Http\Controllers\Portal\TrainerController::class, 'attendances'])->name('attendances');
         Route::post('/attendances', [\App\Http\Controllers\Portal\TrainerController::class, 'storeAttendances'])->name('attendances.store');
