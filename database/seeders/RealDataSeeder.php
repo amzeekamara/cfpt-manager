@@ -16,6 +16,9 @@ use App\Models\CandidateProfile;
 use App\Models\Timetable;
 use App\Models\Evaluation;
 use App\Models\Grade;
+use App\Models\CourseChapter;
+use App\Models\CourseDiscussion;
+use App\Models\EvaluationSubmission;
 use Illuminate\Support\Facades\Hash;
 
 class RealDataSeeder extends Seeder
@@ -29,7 +32,7 @@ class RealDataSeeder extends Seeder
         $trainerRole  = Role::firstOrCreate(['name' => 'Formateur'], ['description' => 'Formateur / Enseignant du CFPT']);
         $studentRole  = Role::firstOrCreate(['name' => 'Candidat'], ['description' => 'Étudiant inscrit au CFPT']);
 
-        // 1. Deux Années Académiques pour illustrer que les filières de chaque département peuvent varier selon les années
+        // 1. Années Académiques
         $cohortPrev = Cohort::create([
             'title' => 'Année Académique 2025 - 2026',
             'start_date' => '2025-10-01',
@@ -79,7 +82,7 @@ class RealDataSeeder extends Seeder
         $deptInfo = Department::create([
             'name' => 'Département Informatique',
             'head_user_id' => $headInfo->id,
-            'description' => 'Filières en Informatique Industrielle, Réseaux, Télécommunications, Systèmes Embarqués et Développement.',
+            'description' => 'Filières en Informatique Industrielle, Réseaux, Télécommunications, Systèmes Embarqués, Développement Logiciel et Cloud.',
             'is_active' => true,
         ]);
         $headInfo->update(['department_id' => $deptInfo->id]);
@@ -102,45 +105,124 @@ class RealDataSeeder extends Seeder
         ]);
         $headElec->update(['department_id' => $deptElec->id]);
 
-        // 3. Salles de cours, Ateliers & Laboratoires disponibles par département
-        $roomInfo1 = Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Labo Réseaux & Cisco Info-1', 'capacity' => 28, 'type' => 'labo']);
-        $roomInfo2 = Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Salle Informatique Info-2', 'capacity' => 35, 'type' => 'cours']);
+        // =========================================================================
+        // 3. SALLES DU DÉPARTEMENT INFORMATIQUE (8 Salles / Labos) + Autres Dpts
+        // =========================================================================
+        $sallesInfo = [
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Labo Réseaux & Cisco Info-1', 'capacity' => 25, 'type' => 'labo']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Labo Développement Web & Mobile Info-2', 'capacity' => 25, 'type' => 'cours']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Labo Systèmes Embarqués & IoT Info-3', 'capacity' => 25, 'type' => 'labo']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Salle Multimédia & Infographie Info-4', 'capacity' => 25, 'type' => 'cours']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Labo Cybersécurité & Serveurs Info-5', 'capacity' => 25, 'type' => 'labo']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Salle de Cours Magistral Info-6', 'capacity' => 30, 'type' => 'cours']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Salle Programmation & Bases de Données Info-7', 'capacity' => 25, 'type' => 'cours']),
+            Classroom::create(['department_id' => $deptInfo->id, 'name' => 'Labo Maintenance & Architecture Matérielle Info-8', 'capacity' => 25, 'type' => 'atelier']),
+        ];
 
+        // Salles Mécanique
         $roomMeca1 = Classroom::create(['department_id' => $deptMeca->id, 'name' => 'Atelier Moteurs & Engins Méca-1', 'capacity' => 25, 'type' => 'atelier']);
         $roomMeca2 = Classroom::create(['department_id' => $deptMeca->id, 'name' => 'Salle de Cours Méca-2', 'capacity' => 32, 'type' => 'cours']);
 
+        // Salles Électrique
         $roomElec1 = Classroom::create(['department_id' => $deptElec->id, 'name' => 'Atelier Automatisme & API Élec-1', 'capacity' => 24, 'type' => 'atelier']);
         $roomElec2 = Classroom::create(['department_id' => $deptElec->id, 'name' => 'Salle Électrotechnique Élec-2', 'capacity' => 32, 'type' => 'cours']);
 
-        // 4. Filières par Département (Variables selon l'année académique)
-        // --- Année 2026-2027 : Département Informatique (2 filières) ---
-        $filiereInfo1 = Seminar::create([
-            'title' => 'BTS Informatique Industrielle & Réseaux',
-            'description' => 'Formation technique supérieure en administration réseaux, programmation embarquée et supervision industrielle.',
+        // =========================================================================
+        // 4. LES 3 FILIÈRES DU DÉPARTEMENT INFO (Chacune avec Classe 1 et Classe 2)
+        //    Total = 6 Classes au Département Informatique
+        // =========================================================================
+
+        // Filière 1 : BTS Informatique Industrielle & Réseaux (IIR)
+        $filiereIIR_C1 = Seminar::create([
+            'title' => 'BTS Informatique Industrielle & Réseaux — Classe 1',
+            'description' => 'Filière 1 / Classe 1 : Administration réseaux Cisco, protocoles industriels et systèmes temps réel.',
             'cohort_id' => $cohort->id,
             'start_date' => '2026-10-05',
             'end_date' => '2027-06-30',
-            'max_participants' => 28,
+            'max_participants' => 25,
             'status' => 'active',
         ]);
-        $filiereInfo1->departments()->attach([$deptInfo->id]);
+        $filiereIIR_C1->departments()->attach([$deptInfo->id]);
+        $topIIR_C1_Reseaux = Topic::create(['seminar_id' => $filiereIIR_C1->id, 'name' => 'Architecture Réseaux & Routage Cisco', 'is_active' => true]);
+        $topIIR_C1_Embarque = Topic::create(['seminar_id' => $filiereIIR_C1->id, 'name' => 'Systèmes Embarqués & Microcontrôleurs', 'is_active' => true]);
 
-        $topReseaux = Topic::create(['seminar_id' => $filiereInfo1->id, 'name' => 'Architecture Réseaux & Sécurité', 'is_active' => true]);
-        $topEmbarque = Topic::create(['seminar_id' => $filiereInfo1->id, 'name' => 'Systèmes Embarqués & Microcontrôleurs', 'is_active' => true]);
-
-        $filiereInfo2 = Seminar::create([
-            'title' => 'BTS Développement d\'Applications & Systèmes',
-            'description' => 'Conception logicielle, bases de données, développement web/mobile et administration cloud.',
+        $filiereIIR_C2 = Seminar::create([
+            'title' => 'BTS Informatique Industrielle & Réseaux — Classe 2',
+            'description' => 'Filière 1 / Classe 2 : Administration réseaux Cisco, protocoles industriels et supervision SCADA.',
             'cohort_id' => $cohort->id,
             'start_date' => '2026-10-05',
             'end_date' => '2027-06-30',
-            'max_participants' => 35,
+            'max_participants' => 25,
             'status' => 'active',
         ]);
-        $filiereInfo2->departments()->attach([$deptInfo->id]);
-        $topDevWeb = Topic::create(['seminar_id' => $filiereInfo2->id, 'name' => 'Génie Logiciel & Bases de Données', 'is_active' => true]);
+        $filiereIIR_C2->departments()->attach([$deptInfo->id]);
+        $topIIR_C2_Reseaux = Topic::create(['seminar_id' => $filiereIIR_C2->id, 'name' => 'Architecture Réseaux & Routage Cisco', 'is_active' => true]);
+        $topIIR_C2_Embarque = Topic::create(['seminar_id' => $filiereIIR_C2->id, 'name' => 'Systèmes Embarqués & Microcontrôleurs', 'is_active' => true]);
 
-        // --- Année 2026-2027 : Département Mécanique (2 filières) ---
+        // Filière 2 : BTS Développement d'Applications & Systèmes (DAS)
+        $filiereDAS_C1 = Seminar::create([
+            'title' => 'BTS Développement d\'Applications & Systèmes — Classe 1',
+            'description' => 'Filière 2 / Classe 1 : Conception logicielle, bases de données, applications web et mobiles.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-10-05',
+            'end_date' => '2027-06-30',
+            'max_participants' => 25,
+            'status' => 'active',
+        ]);
+        $filiereDAS_C1->departments()->attach([$deptInfo->id]);
+        $topDAS_C1_Dev = Topic::create(['seminar_id' => $filiereDAS_C1->id, 'name' => 'Développement Web & Frameworks PHP/JS', 'is_active' => true]);
+        $topDAS_C1_Bdd = Topic::create(['seminar_id' => $filiereDAS_C1->id, 'name' => 'Bases de Données & Modélisation UML', 'is_active' => true]);
+
+        $filiereDAS_C2 = Seminar::create([
+            'title' => 'BTS Développement d\'Applications & Systèmes — Classe 2',
+            'description' => 'Filière 2 / Classe 2 : Conception logicielle, algorithmique avancée et développement cloud.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-10-05',
+            'end_date' => '2027-06-30',
+            'max_participants' => 25,
+            'status' => 'active',
+        ]);
+        $filiereDAS_C2->departments()->attach([$deptInfo->id]);
+        $topDAS_C2_Dev = Topic::create(['seminar_id' => $filiereDAS_C2->id, 'name' => 'Développement Web & Frameworks PHP/JS', 'is_active' => true]);
+        $topDAS_C2_Bdd = Topic::create(['seminar_id' => $filiereDAS_C2->id, 'name' => 'Bases de Données & Modélisation UML', 'is_active' => true]);
+
+        // Filière 3 : BTS Systèmes Réseaux, Télécoms & Cloud (SRTC)
+        $filiereSRTC_C1 = Seminar::create([
+            'title' => 'BTS Systèmes Réseaux, Télécoms & Cloud — Classe 1',
+            'description' => 'Filière 3 / Classe 1 : Administration serveurs Linux/Windows, virtualisation et sécurité cloud.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-10-05',
+            'end_date' => '2027-06-30',
+            'max_participants' => 25,
+            'status' => 'active',
+        ]);
+        $filiereSRTC_C1->departments()->attach([$deptInfo->id]);
+        $topSRTC_C1_Sys = Topic::create(['seminar_id' => $filiereSRTC_C1->id, 'name' => 'Administration Systèmes & Sécurité Linux', 'is_active' => true]);
+        $topSRTC_C1_Cloud = Topic::create(['seminar_id' => $filiereSRTC_C1->id, 'name' => 'Cloud Computing & Virtualisation', 'is_active' => true]);
+
+        $filiereSRTC_C2 = Seminar::create([
+            'title' => 'BTS Systèmes Réseaux, Télécoms & Cloud — Classe 2',
+            'description' => 'Filière 3 / Classe 2 : Télécommunications optiques, réseaux sans fil et architecture cloud.',
+            'cohort_id' => $cohort->id,
+            'start_date' => '2026-10-05',
+            'end_date' => '2027-06-30',
+            'max_participants' => 25,
+            'status' => 'active',
+        ]);
+        $filiereSRTC_C2->departments()->attach([$deptInfo->id]);
+        $topSRTC_C2_Sys = Topic::create(['seminar_id' => $filiereSRTC_C2->id, 'name' => 'Administration Systèmes & Sécurité Linux', 'is_active' => true]);
+        $topSRTC_C2_Cloud = Topic::create(['seminar_id' => $filiereSRTC_C2->id, 'name' => 'Cloud Computing & Virtualisation', 'is_active' => true]);
+
+        $classesInfo = [
+            ['seminar' => $filiereIIR_C1, 'topic' => $topIIR_C1_Reseaux, 'prefix' => 'IIR1'],
+            ['seminar' => $filiereIIR_C2, 'topic' => $topIIR_C2_Reseaux, 'prefix' => 'IIR2'],
+            ['seminar' => $filiereDAS_C1, 'topic' => $topDAS_C1_Dev, 'prefix' => 'DAS1'],
+            ['seminar' => $filiereDAS_C2, 'topic' => $topDAS_C2_Dev, 'prefix' => 'DAS2'],
+            ['seminar' => $filiereSRTC_C1, 'topic' => $topSRTC_C1_Sys, 'prefix' => 'SRTC1'],
+            ['seminar' => $filiereSRTC_C2, 'topic' => $topSRTC_C2_Sys, 'prefix' => 'SRTC2'],
+        ];
+
+        // --- Autres Filières : Département Mécanique (2 filières) ---
         $filiereMeca1 = Seminar::create([
             'title' => 'BTS Maintenance des Véhicules Moteurs & Engins',
             'description' => 'Diagnostic électronique moteur, hydraulique, transmission et maintenance préventive.',
@@ -165,7 +247,7 @@ class RealDataSeeder extends Seeder
         $filiereMeca2->departments()->attach([$deptMeca->id]);
         $topUsinage = Topic::create(['seminar_id' => $filiereMeca2->id, 'name' => 'Usinage & Dessin Industriel (CAO)', 'is_active' => true]);
 
-        // --- Année 2026-2027 : Département Électrique (2 filières) ---
+        // --- Autres Filières : Département Électrique (2 filières) ---
         $filiereElec1 = Seminar::create([
             'title' => 'BTS Automatisme & Électrotechnique',
             'description' => 'Maîtrise des automates programmables industriels (API), installations électriques et électronique de puissance.',
@@ -191,40 +273,119 @@ class RealDataSeeder extends Seeder
         $filiereElec2->departments()->attach([$deptElec->id]);
         $topFroid = Topic::create(['seminar_id' => $filiereElec2->id, 'name' => 'Thermodynamique & Installations Frigorifiques', 'is_active' => true]);
 
-        // --- Année précédente 2025-2026 (exemple de variation annuelle des filières) ---
-        $filierePrev = Seminar::create([
-            'title' => 'BT Électromécanique (Promotion 2025-2026)',
-            'description' => 'Filière ouverte lors de l\'année académique 2025-2026.',
-            'cohort_id' => $cohortPrev->id,
-            'start_date' => '2025-10-05',
-            'end_date' => '2026-06-30',
-            'max_participants' => 25,
-            'status' => 'completed',
-        ]);
-        $filierePrev->departments()->attach([$deptElec->id]);
-
-        // 5. Formateurs des 3 départements
-        $trUser1 = User::firstOrCreate(
-            ['email' => 'amadou.sow@cfptsj.sn'],
+        // =========================================================================
+        // 5. LES 11 FORMATEURS DU DÉPARTEMENT INFORMATIQUE
+        // =========================================================================
+        $trainersInfoData = [
             [
                 'name' => 'M. Amadou Sow',
-                'password' => Hash::make('password'),
-                'role_id' => $trainerRole->id,
-                'department_id' => $deptInfo->id,
-                'specialty' => 'Réseaux & Systèmes Embarqués',
-            ]
-        );
-        $trainer1 = Trainer::create([
-            'name' => $trUser1->name,
-            'email' => $trUser1->email,
-            'phone' => '+221 77 412 88 90',
-            'seminar_id' => $filiereInfo1->id,
-            'remuneration' => 0,
-            'payment_status' => 'paid',
-        ]);
-        $trainer1->seminars()->attach([$filiereInfo1->id, $filiereInfo2->id], ['remuneration' => 0, 'payment_status' => 'paid']);
+                'email' => 'amadou.sow@cfptsj.sn',
+                'phone' => '+221 77 412 88 90',
+                'specialty' => 'Architecture Réseaux & Routage Cisco CCNA/CCNP',
+                'seminar' => $filiereIIR_C1,
+            ],
+            [
+                'name' => 'M. Mamadou Lamine Ndiaye',
+                'email' => 'mamadou.ndiaye@cfptsj.sn',
+                'phone' => '+221 77 520 14 33',
+                'specialty' => 'Développement Web Fullstack (Laravel & Vue.js)',
+                'seminar' => $filiereDAS_C1,
+            ],
+            [
+                'name' => 'Mme Astou Diallo',
+                'email' => 'astou.diallo@cfptsj.sn',
+                'phone' => '+221 77 633 45 12',
+                'specialty' => 'Bases de Données Relationnelles & NoSQL',
+                'seminar' => $filiereDAS_C1,
+            ],
+            [
+                'name' => 'M. Ousmane Diop',
+                'email' => 'ousmane.diop@cfptsj.sn',
+                'phone' => '+221 77 210 99 87',
+                'specialty' => 'Systèmes Embarqués, IoT & Microcontrôleurs',
+                'seminar' => $filiereIIR_C1,
+            ],
+            [
+                'name' => 'M. Abdoulaye Ba',
+                'email' => 'abdoulaye.ba@cfptsj.sn',
+                'phone' => '+221 77 340 77 55',
+                'specialty' => 'Cybersécurité, Pare-feu & Administration Linux',
+                'seminar' => $filiereSRTC_C1,
+            ],
+            [
+                'name' => 'Mme Fatou Kiné Fall',
+                'email' => 'fatou.fall@cfptsj.sn',
+                'phone' => '+221 77 888 22 11',
+                'specialty' => 'Génie Logiciel, Modélisation UML & Méthodes Agiles',
+                'seminar' => $filiereDAS_C2,
+            ],
+            [
+                'name' => 'M. Babacar Faye',
+                'email' => 'babacar.faye@cfptsj.sn',
+                'phone' => '+221 77 910 66 44',
+                'specialty' => 'Cloud Computing, Virtualisation Docker & Kubernetes',
+                'seminar' => $filiereSRTC_C1,
+            ],
+            [
+                'name' => 'M. Cheikh Tidiane Cissé',
+                'email' => 'cheikh.cisse@cfptsj.sn',
+                'phone' => '+221 77 125 36 47',
+                'specialty' => 'Algorithmique & Programmation Python / IA',
+                'seminar' => $filiereDAS_C2,
+            ],
+            [
+                'name' => 'Mme Mariama Badji',
+                'email' => 'mariama.badji@cfptsj.sn',
+                'phone' => '+221 77 450 18 29',
+                'specialty' => 'Architecture Matérielle & Maintenance Informatique',
+                'seminar' => $filiereIIR_C2,
+            ],
+            [
+                'name' => 'M. Ibrahima Sarr',
+                'email' => 'ibrahima.sarr@cfptsj.sn',
+                'phone' => '+221 77 789 44 20',
+                'specialty' => 'Télécommunications, Fibre Optique & Réseaux Mobiles',
+                'seminar' => $filiereSRTC_C2,
+            ],
+            [
+                'name' => 'M. Modou Touré',
+                'email' => 'modou.toure@cfptsj.sn',
+                'phone' => '+221 77 601 23 88',
+                'specialty' => 'DevOps, Intégration Continue & Automatisation',
+                'seminar' => $filiereSRTC_C2,
+            ],
+        ];
 
-        $trUser2 = User::firstOrCreate(
+        $trainersInfo = [];
+        $allInfoSeminarIds = [$filiereIIR_C1->id, $filiereIIR_C2->id, $filiereDAS_C1->id, $filiereDAS_C2->id, $filiereSRTC_C1->id, $filiereSRTC_C2->id];
+
+        foreach ($trainersInfoData as $tData) {
+            $user = User::firstOrCreate(
+                ['email' => $tData['email']],
+                [
+                    'name' => $tData['name'],
+                    'password' => Hash::make('password'),
+                    'role_id' => $trainerRole->id,
+                    'department_id' => $deptInfo->id,
+                    'specialty' => $tData['specialty'],
+                ]
+            );
+
+            $trainer = Trainer::create([
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $tData['phone'],
+                'seminar_id' => $tData['seminar']->id,
+                'remuneration' => 0,
+                'payment_status' => 'paid',
+            ]);
+            // Attacher le formateur aux filières de son département
+            $trainer->seminars()->attach($allInfoSeminarIds, ['remuneration' => 0, 'payment_status' => 'paid']);
+            $trainersInfo[] = $trainer;
+        }
+
+        // Formateur Électrique
+        $trUserElec = User::firstOrCreate(
             ['email' => 'fatou.gueye@cfptsj.sn'],
             [
                 'name' => 'Mme Fatou Gueye',
@@ -234,17 +395,18 @@ class RealDataSeeder extends Seeder
                 'specialty' => 'Automatisme Industriel & Électrotechnique',
             ]
         );
-        $trainer2 = Trainer::create([
-            'name' => $trUser2->name,
-            'email' => $trUser2->email,
+        $trainerElec = Trainer::create([
+            'name' => $trUserElec->name,
+            'email' => $trUserElec->email,
             'phone' => '+221 77 654 21 10',
             'seminar_id' => $filiereElec1->id,
             'remuneration' => 0,
             'payment_status' => 'paid',
         ]);
-        $trainer2->seminars()->attach([$filiereElec1->id, $filiereElec2->id], ['remuneration' => 0, 'payment_status' => 'paid']);
+        $trainerElec->seminars()->attach([$filiereElec1->id, $filiereElec2->id], ['remuneration' => 0, 'payment_status' => 'paid']);
 
-        $trUser3 = User::firstOrCreate(
+        // Formateur Mécanique
+        $trUserMeca = User::firstOrCreate(
             ['email' => 'babacar.ndour@cfptsj.sn'],
             [
                 'name' => 'M. Babacar Ndour',
@@ -254,172 +416,425 @@ class RealDataSeeder extends Seeder
                 'specialty' => 'Diagnostic Moteur & Mécanique',
             ]
         );
-        $trainer3 = Trainer::create([
-            'name' => $trUser3->name,
-            'email' => $trUser3->email,
+        $trainerMeca = Trainer::create([
+            'name' => $trUserMeca->name,
+            'email' => $trUserMeca->email,
             'phone' => '+221 77 321 45 67',
             'seminar_id' => $filiereMeca1->id,
             'remuneration' => 0,
             'payment_status' => 'paid',
         ]);
-        $trainer3->seminars()->attach([$filiereMeca1->id, $filiereMeca2->id], ['remuneration' => 0, 'payment_status' => 'paid']);
+        $trainerMeca->seminars()->attach([$filiereMeca1->id, $filiereMeca2->id], ['remuneration' => 0, 'payment_status' => 'paid']);
 
-        // 6. Étudiants inscrits dans les 3 départements
-        $studentsData = [
-            ['name' => 'Ousmane Diallo', 'email' => 'ousmane.diallo@etu.cfptsj.sn', 'matricule' => 'CFPT-INF-001', 'seminar' => $filiereInfo1, 'topic' => $topReseaux, 'score1' => 16.5, 'score2' => 15.0],
-            ['name' => 'Aïssatou Ba', 'email' => 'aissatou.ba@etu.cfptsj.sn', 'matricule' => 'CFPT-INF-002', 'seminar' => $filiereInfo1, 'topic' => $topReseaux, 'score1' => 18.0, 'score2' => 17.5],
-            ['name' => 'Mamadou Lamine Sy', 'email' => 'mamadou.sy@etu.cfptsj.sn', 'matricule' => 'CFPT-INF-003', 'seminar' => $filiereInfo2, 'topic' => $topDevWeb, 'score1' => 14.0, 'score2' => 15.5],
-            ['name' => 'Mariama Sarr', 'email' => 'mariama.sarr@etu.cfptsj.sn', 'matricule' => 'CFPT-MEC-001', 'seminar' => $filiereMeca1, 'topic' => $topDiag, 'score1' => 15.0, 'score2' => 16.0],
-            ['name' => 'Abdoulaye Wade', 'email' => 'abdoulaye.wade@etu.cfptsj.sn', 'matricule' => 'CFPT-ELE-001', 'seminar' => $filiereElec1, 'topic' => $topApi, 'score1' => 14.5, 'score2' => 13.0],
-            ['name' => 'Khadija Thiam', 'email' => 'khadija.thiam@etu.cfptsj.sn', 'matricule' => 'CFPT-ELE-002', 'seminar' => $filiereElec1, 'topic' => $topPuissance, 'score1' => 17.0, 'score2' => 16.5],
+        // =========================================================================
+        // 6. LES ÉTUDIANTS DU DÉPARTEMENT INFO (~20 APPRENANTS PAR CLASSE x 6 = 120)
+        // =========================================================================
+        $senegaleseNames = [
+            // Prénoms et Noms variés pour les 120 apprenants
+            'Ousmane Diallo', 'Aïssatou Ba', 'Mamadou Lamine Sy', 'Fatou Kiné Diop', 'Cheikh Bamba Seck',
+            'Khady Fall', 'Amadou Tidiane Ndiaye', 'Mariama Sow', 'Ibrahima Sarr', 'Aminata Cissé',
+            'Abdoulaye Touré', 'Ramatoulaye Gueye', 'Babacar Kane', 'Mame Diarra Bousso', 'Mouhamadou Faye',
+            'Seynabou Mbaye', 'Alioune Badara Diagne', 'Ndèye Coumba Thiam', 'Papa Demba Camara', 'Khadidiatou Samb',
+
+            'Mansour Samb', 'Ndeye Fatou Diouf', 'Pape Momar Sene', 'Astou Ndour', 'Serigne Fallou Seck',
+            'Salimata Kane', 'Alassane Ly', 'Maimouna Traore', 'Boubacar Baldé', 'Sokhna Mai Diop',
+            'Daouda Traore', 'Diarra Ndao', 'El Hadji Malick Wade', 'Khadija Gomis', 'Moustapha Niang',
+            'Awa Badiane', 'Tidiane Coly', 'Fatimata Sakho', 'Oumar Diallo', 'Adja Astou Diop',
+
+            'Cheikh Ahmadou Bamba Fall', 'Binta Ndiaye', 'Souleymane Ba', 'Dieynaba Sow', 'Mamadou Dieng',
+            'Aïda Thiaw', 'Modou Kara Mboup', 'Rokhaya Diouf', 'Lamine Gassama', 'Yaye Fatou Sarr',
+            'Mamadou Faye', 'Ndeye Marie Ciss', 'Abdourahmane Dia', 'Coumba Diakhaté', 'Ibrahima Khalil Thiam',
+            'Marie Madeleine Mendy', 'Alpha Oumar Diallo', 'Sokhna Anta Fall', 'Pape Amadou Seck', 'Nafissatou Niang',
+
+            'Babacar Thiaw', 'Fatoumata Binetou Ba', 'Demba Sow', 'Ndèye Yacine Diop', 'Assane Ndiaye',
+            'Aminata Diatta', 'Mouhamed Lamine Faye', 'Aissatou Diallo', 'Idrissa Manga', 'Marieme Sy',
+            'Ousseynou Diagne', 'Fatou Bintou Sarr', 'Assane Cissé', 'Khady Diouf', 'Samba Ka',
+            'Fama Ndao', 'El Hadji Oumar Ndiaye', 'Mame Fama Gueye', 'Lamine Sonko', 'Dior Mbaye',
+
+            'Gorgui Ndiaye', 'Safietou Ly', 'Youssouph Badji', 'Amy Collé Seck', 'Mamadou Salif Diallo',
+            'Mame Bousso Ndao', 'Cheikh Tidiane Diop', 'Marietou Faye', 'Abdou Karim Sané', 'Fatou Diagne',
+            'Ibrahima Ndao', 'Khadija Sylla', 'Mamadou Moustapha Ba', 'Ndèye Awa Seck', 'Oumar Farouk Diop',
+            'Ramatoulaye Thiam', 'Boucounta Cissé', 'Ndeye Khady Fall', 'Aly Diouf', 'Mame Diarra Dieng',
+
+            'Seydina Oumar Ly', 'Fatou Seck', 'Mouhamadou Moustapha Kane', 'Aïssatou Ndiaye', 'Pape Landing Diatta',
+            'Maimouna Diallo', 'Cheikhouna Bousso', 'Khadidiatou Sarr', 'Abdoulaye Diouf', 'Fatimata Binetou Sow',
+            'Ibrahima Kalilou Ba', 'Coumba Ndoffene Diouf', 'Mamadou Alpha Diallo', 'Awa Cheikh Fall', 'Babacar Sène',
+            'Marie Jeanne Mendy', 'Moussa Camara', 'Aminata Niang', 'Ousmane Sonko Mané', 'Binetou Diop'
         ];
 
-        $evalInfo1 = Evaluation::create([
-            'seminar_id' => $filiereInfo1->id,
-            'topic_id' => $topReseaux->id,
-            'trainer_id' => $trainer1->id,
-            'title' => 'Devoir Surveillé N°1 — Routage & VLAN',
-            'instructions' => "Objectif de l'évaluation :\n1. Configurer 3 VLANs distincts (Administration, Atelier API, Laboratoire) sur un commutateur Cisco Catalyst.\n2. Mettre en place le routage inter-VLAN (Router-on-a-stick) et vérifier la connectivité.\n3. Déposer votre fichier Packet Tracer (.pkt) ou votre rapport technique PDF dans votre espace d'évaluation.",
-            'type' => 'devoir',
-            'coefficient' => 1,
-            'max_score' => 20,
-            'evaluation_date' => '2026-11-10',
-            'is_published' => true,
-        ]);
+        $globalStudentIndex = 0;
+        $evalIIR1 = null;
+        $evalIIR2 = null;
 
-        $evalInfo2 = Evaluation::create([
-            'seminar_id' => $filiereInfo1->id,
-            'topic_id' => $topEmbarque->id,
-            'trainer_id' => $trainer1->id,
-            'title' => 'TP Laboratoire — Programmation Microcontrôleur',
-            'instructions' => "Travail Pratique en Laboratoire :\nRéaliser un système d'acquisition de température avec affichage LCD et alerte seuil critique.\nLivrable attendu : Code source commenté en C/C++ et schéma de câblage.",
-            'type' => 'tp',
-            'coefficient' => 2,
-            'max_score' => 20,
-            'evaluation_date' => '2026-11-18',
-            'is_published' => true,
-        ]);
+        foreach ($classesInfo as $classIndex => $classInfo) {
+            $classSeminar = $classInfo['seminar'];
+            $classTopic = $classInfo['topic'];
+            $prefix = $classInfo['prefix'];
 
-        // Chapitres de cours structurés (Style OpenClassrooms)
-        \App\Models\CourseChapter::create([
-            'seminar_id' => $filiereInfo1->id,
-            'topic_id' => $topReseaux->id,
-            'trainer_id' => $trainer1->id,
+            // Créer une évaluation test pour la classe
+            $trainerForClass = $trainersInfo[$classIndex % count($trainersInfo)];
+            $evaluation = Evaluation::create([
+                'seminar_id' => $classSeminar->id,
+                'topic_id' => $classTopic->id,
+                'trainer_id' => $trainerForClass->id,
+                'title' => 'Évaluation N°1 — ' . $classTopic->name,
+                'instructions' => "Directives de l'évaluation :\n1. Lire attentivement les consignes techniques.\n2. Réaliser les configurations et tester la validation des modules.\n3. Rédiger un compte rendu synthétique et téléverser votre livrable (PDF/ZIP) dans votre espace candidat.",
+                'type' => 'devoir',
+                'coefficient' => 1,
+                'max_score' => 20,
+                'evaluation_date' => '2026-11-20',
+                'is_published' => true,
+            ]);
+
+            if ($classIndex === 0) {
+                $evalIIR1 = $evaluation;
+            }
+
+            // Générer 20 étudiants pour cette classe
+            for ($i = 1; $i <= 20; $i++) {
+                $studentName = $senegaleseNames[$globalStudentIndex % count($senegaleseNames)];
+                $globalStudentIndex++;
+
+                $cleanName = strtolower(iconv('UTF-8', 'ASCII//TRANSLIT', $studentName));
+                $cleanName = preg_replace('/[^a-z0-9]/', '.', $cleanName);
+                $email = "etu.{$prefix}.{$i}@etu.cfptsj.sn";
+                $matricule = sprintf('CFPT-INF-%s-%02d', $prefix, $i);
+
+                $stuUser = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => $studentName,
+                        'password' => Hash::make('password'),
+                        'role_id' => $studentRole->id,
+                        'department_id' => $deptInfo->id,
+                    ]
+                );
+
+                $parts = explode(' ', $studentName, 2);
+                CandidateProfile::updateOrCreate(
+                    ['user_id' => $stuUser->id],
+                    [
+                        'first_names' => $parts[0] ?? $studentName,
+                        'last_name' => $parts[1] ?? '',
+                        'matricule' => $matricule,
+                        'phone' => sprintf('+221 77 %03d %02d %02d', rand(100, 999), rand(10, 99), rand(10, 99)),
+                        'nationality' => 'Sénégalaise',
+                        'current_profession' => 'Étudiant CFPT',
+                        'current_employer' => 'CFPT Sénégal-Japon',
+                    ]
+                );
+
+                $reg = Registration::create([
+                    'user_id' => $stuUser->id,
+                    'seminar_id' => $classSeminar->id,
+                    'topic_id' => $classTopic->id,
+                    'status' => 'approved',
+                ]);
+
+                // Ajouter des notes et livrables pour quelques étudiants pour tester
+                if ($i <= 5) {
+                    $note = rand(12, 19);
+                    Grade::create([
+                        'evaluation_id' => $evaluation->id,
+                        'registration_id' => $reg->id,
+                        'score' => $note,
+                        'appreciation' => $note >= 16 ? 'Excellent travail technique, très bonne maîtrise.' : 'Travail satisfaisant et sérieux.',
+                    ]);
+
+                    EvaluationSubmission::create([
+                        'evaluation_id' => $evaluation->id,
+                        'registration_id' => $reg->id,
+                        'student_comment' => "Bonjour Monsieur, voici mon compte rendu pour l'évaluation N°1 de {$classTopic->name}.",
+                        'submitted_at' => now()->subDays(rand(1, 4)),
+                        'trainer_feedback' => $note >= 16 ? 'Très bonne rigueur méthodologique, continuez ainsi !' : 'Bon travail, attention à soigner la documentation.',
+                    ]);
+                }
+            }
+        }
+
+        // Étudiants Mécanique & Électrique
+        $studentsMecaElec = [
+            ['name' => 'Mariama Sarr', 'email' => 'mariama.sarr@etu.cfptsj.sn', 'matricule' => 'CFPT-MEC-001', 'seminar' => $filiereMeca1, 'topic' => $topDiag],
+            ['name' => 'Abdoulaye Wade', 'email' => 'abdoulaye.wade@etu.cfptsj.sn', 'matricule' => 'CFPT-ELE-001', 'seminar' => $filiereElec1, 'topic' => $topApi],
+            ['name' => 'Khadija Thiam', 'email' => 'khadija.thiam@etu.cfptsj.sn', 'matricule' => 'CFPT-ELE-002', 'seminar' => $filiereElec1, 'topic' => $topPuissance],
+        ];
+        foreach ($studentsMecaElec as $sme) {
+            $u = User::firstOrCreate(['email' => $sme['email']], ['name' => $sme['name'], 'password' => Hash::make('password'), 'role_id' => $studentRole->id]);
+            $p = explode(' ', $sme['name'], 2);
+            CandidateProfile::updateOrCreate(['user_id' => $u->id], ['first_names' => $p[0], 'last_name' => $p[1] ?? '', 'matricule' => $sme['matricule'], 'phone' => '+221 77 111 22 33', 'nationality' => 'Sénégalaise', 'current_profession' => 'Étudiant CFPT', 'current_employer' => 'CFPT Sénégal-Japon']);
+            Registration::create(['user_id' => $u->id, 'seminar_id' => $sme['seminar']->id, 'topic_id' => $sme['topic']->id, 'status' => 'approved']);
+        }
+
+        // =========================================================================
+        // 7. CONTENUS STYLE OPENCLASSROOMS (Chapitres, Discussions)
+        // =========================================================================
+        CourseChapter::create([
+            'seminar_id' => $filiereIIR_C1->id,
+            'topic_id' => $topIIR_C1_Reseaux->id,
+            'trainer_id' => $trainersInfo[0]->id, // Amadou Sow
             'title' => 'Chapitre 1 — Architecture des Réseaux Industriels & Segmentation VLAN',
-            'content' => "Bienvenue dans ce premier chapitre consacré à l'architecture des réseaux locaux industriels au CFPT Sénégal-Japon.\n\n1. Pourquoi segmenter un réseau industriel ?\nDans un environnement de production (usine, centrale électrique, automate), la séparation des flux entre le réseau bureautique (IT) et le réseau des automates (OT) est indispensable pour garantir la sécurité et le temps réel.\n\n2. Configuration standard IEEE 802.1Q (Trunking) :\n- Création des VLANs par département technique.\n- Affectation des ports en mode Access pour les équipements terminaux.\n- Configuration des liens Trunk entre commutateurs fédérateurs.\n\nExercice pratique à préparer avant la séance en Labo Réseaux Info-1 :\nPréparez le plan d'adressage IP /24 pour 3 sous-réseaux distincts.",
+            'content' => "Bienvenue dans ce premier chapitre consacré à l'architecture des réseaux locaux industriels au CFPT Sénégal-Japon.\n\n1. Pourquoi segmenter un réseau industriel ?\nDans un environnement de production (usine, centrale électrique, atelier robotisé), la séparation des flux entre le réseau bureautique (IT) et le réseau des automates (OT) est indispensable pour garantir la sécurité et la réactivité temps réel.\n\n2. Configuration standard IEEE 802.1Q (Trunking) :\n- Création des VLANs par zone de production et département technique.\n- Affectation des ports de commutation en mode Access pour les équipements terminaux.\n- Configuration des liens Trunk 802.1Q entre commutateurs fédérateurs Cisco Catalyst.\n\nExercice pratique à préparer pour la prochaine séance au Labo Réseaux Info-1 :\nDéfinissez le plan d'adressage IP /24 pour 3 sous-réseaux (Administration, Automates, Laboratoire).",
             'duration_minutes' => 60,
             'order_index' => 1,
         ]);
 
-        \App\Models\CourseChapter::create([
-            'seminar_id' => $filiereInfo1->id,
-            'topic_id' => $topEmbarque->id,
-            'trainer_id' => $trainer1->id,
-            'title' => 'Chapitre 2 — Programmation des Microcontrôleurs & Interfaces Capteurs',
-            'content' => "Ce chapitre aborde l'interfaçage matériel et logiciel des microcontrôleurs utilisés dans les systèmes industriels embarqués.\n\nPoints clés du cours :\n- Architecture interne : Ports GPIO, Convertisseur Analogique-Numérique (ADC), Timers et PWM.\n- Protocoles de communication série sur carte : I2C, SPI et UART.\n- Méthodologie Kaizen 5S au laboratoire d'électronique : vérification systématique des tensions d'alimentation avant mise sous tension.",
+        CourseChapter::create([
+            'seminar_id' => $filiereDAS_C1->id,
+            'topic_id' => $topDAS_C1_Dev->id,
+            'trainer_id' => $trainersInfo[1]->id, // Mamadou Lamine Ndiaye
+            'title' => 'Chapitre 1 — Conception MVC & Architecture des Applications Web Modernes',
+            'content' => "Introduction à l'ingénierie logicielle avec le framework Laravel et l'architecture Modèle-Vue-Contrôleur.\n\nObjectifs d'apprentissage :\n- Structuration des routes, contrôleurs de ressources et requêtes de validation (Form Requests).\n- Modélisation Eloquent ORM : relations One-to-Many, Many-to-Many et pivots personnalisés.\n- Sécurité applicative : protection CSRF, hachage sécurisé bcrypt/argon2, et politiques d'autorisation (Policies).",
             'duration_minutes' => 90,
-            'order_index' => 2,
-        ]);
-
-        \App\Models\CourseChapter::create([
-            'seminar_id' => $filiereElec1->id,
-            'topic_id' => $topApi->id,
-            'trainer_id' => $trainer2->id,
-            'title' => 'Chapitre 1 — Programmation GRAFCET & Automates Siemens S7-1500',
-            'content' => "Introduction à l'automatisation des systèmes de production industrielle.\n\n1. Structure d'un Automate Programmable Industriel (API) :\n- Module d'alimentation, CPU, modules d'entrées numériques (TOR) et sorties relais/transistors.\n2. Règles d'évolution du GRAFCET :\n- Étapes initiales, transitions, réceptivités et actions associées.\n- Traduction en langage Ladder (CONT) sous TIA Portal.",
-            'duration_minutes' => 75,
             'order_index' => 1,
         ]);
 
-        // Discussions / Questions-Réponses du cours (Style OpenClassrooms)
-        \App\Models\CourseDiscussion::create([
-            'seminar_id' => $filiereInfo1->id,
-            'topic_id' => $topReseaux->id,
-            'evaluation_id' => $evalInfo1->id,
-            'author_name' => 'Ousmane Diallo',
-            'author_role' => 'Étudiant',
-            'body' => 'Bonjour Monsieur Sow, pour le Devoir Surveillé N°1 sur les VLANs, faut-il également configurer le serveur DHCP sur le routeur principal ou utiliser des adresses IP statiques ?',
-        ]);
-
-        \App\Models\CourseDiscussion::create([
-            'seminar_id' => $filiereInfo1->id,
-            'topic_id' => $topReseaux->id,
-            'evaluation_id' => $evalInfo1->id,
-            'trainer_id' => $trainer1->id,
-            'author_name' => 'M. Amadou Sow',
-            'author_role' => 'Formateur',
-            'body' => 'Bonjour Ousmane, excellente question ! Configurez un pool DHCP par sous-interface sur le routeur pour les VLANs 10 et 20, et gardez des adresses IP statiques pour le VLAN Administration (VLAN 99). Bon courage à tous !',
-        ]);
-
-        foreach ($studentsData as $s) {
-            $stuUser = User::firstOrCreate(
-                ['email' => $s['email']],
-                [
-                    'name' => $s['name'],
-                    'password' => Hash::make('password'),
-                    'role_id' => $studentRole->id,
-                ]
-            );
-            $parts = explode(' ', $s['name'], 2);
-            CandidateProfile::updateOrCreate(
-                ['user_id' => $stuUser->id],
-                [
-                    'first_names' => $parts[0] ?? $s['name'],
-                    'last_name' => $parts[1] ?? '',
-                    'matricule' => $s['matricule'],
-                    'phone' => '+221 77 000 00 00',
-                    'nationality' => 'Sénégalaise',
-                    'current_profession' => 'Étudiant CFPT',
-                    'current_employer' => 'CFPT Sénégal-Japon',
-                ]
-            );
-            $reg = Registration::create([
-                'user_id' => $stuUser->id,
-                'seminar_id' => $s['seminar']->id,
-                'topic_id' => $s['topic']->id,
-                'status' => 'approved',
+        if ($evalIIR1) {
+            CourseDiscussion::create([
+                'seminar_id' => $filiereIIR_C1->id,
+                'topic_id' => $topIIR_C1_Reseaux->id,
+                'evaluation_id' => $evalIIR1->id,
+                'author_name' => 'Ousmane Diallo',
+                'author_role' => 'Étudiant',
+                'body' => 'Bonjour Monsieur Sow, pour l\'évaluation sur les VLANs, devons-nous configurer les routes statiques ou activer le protocole OSPF entre les commutateurs ?',
             ]);
 
-            if ($s['seminar']->id === $filiereInfo1->id) {
-                Grade::create([
-                    'evaluation_id' => $evalInfo1->id,
-                    'registration_id' => $reg->id,
-                    'score' => $s['score1'],
-                    'appreciation' => $s['score1'] >= 16 ? 'Très Bien — Configuration VLAN et routage inter-VLAN parfaitement fonctionnels.' : 'Bien — Bon travail technique.',
-                ]);
-                Grade::create([
-                    'evaluation_id' => $evalInfo2->id,
-                    'registration_id' => $reg->id,
-                    'score' => $s['score2'],
-                    'appreciation' => $s['score2'] >= 16 ? 'Très Bien' : 'Bien',
-                ]);
-                \App\Models\EvaluationSubmission::create([
-                    'evaluation_id' => $evalInfo1->id,
-                    'registration_id' => $reg->id,
-                    'student_comment' => 'Voici mon rapport de configuration des 3 VLANs et des sous-interfaces du routeur Cisco Catalyst.',
-                    'submitted_at' => now()->subDays(2),
-                    'trainer_feedback' => $s['score1'] >= 16 ? 'Excellent livrable, plan d\'adressage et trunking 802.1Q conformes au cahier des charges.' : 'Travail sérieux et fonctionnel.',
-                ]);
-            }
+            CourseDiscussion::create([
+                'seminar_id' => $filiereIIR_C1->id,
+                'topic_id' => $topIIR_C1_Reseaux->id,
+                'evaluation_id' => $evalIIR1->id,
+                'trainer_id' => $trainersInfo[0]->id,
+                'author_name' => 'M. Amadou Sow',
+                'author_role' => 'Formateur',
+                'body' => 'Bonjour Ousmane, commencez par le routage inter-VLAN avec sous-interfaces Router-on-a-Stick, puis activez une route par défaut vers la passerelle. Bon travail !',
+            ]);
         }
 
-        // 7. Emplois du temps des 3 départements
-        $slots = [
-            ['department_id' => $deptInfo->id, 'seminar_id' => $filiereInfo1->id, 'topic_id' => $topReseaux->id, 'trainer_id' => $trainer1->id, 'classroom_id' => $roomInfo1->id, 'day_of_week' => 'Lundi', 'start_time' => '08:00', 'end_time' => '12:00', 'planned_hours' => 4],
-            ['department_id' => $deptInfo->id, 'seminar_id' => $filiereInfo1->id, 'topic_id' => $topEmbarque->id, 'trainer_id' => $trainer1->id, 'classroom_id' => $roomInfo2->id, 'day_of_week' => 'Mardi', 'start_time' => '14:00', 'end_time' => '17:00', 'planned_hours' => 3],
-            ['department_id' => $deptInfo->id, 'seminar_id' => $filiereInfo2->id, 'topic_id' => $topDevWeb->id, 'trainer_id' => $trainer1->id, 'classroom_id' => $roomInfo2->id, 'day_of_week' => 'Jeudi', 'start_time' => '08:00', 'end_time' => '12:00', 'planned_hours' => 4],
-            ['department_id' => $deptMeca->id, 'seminar_id' => $filiereMeca1->id, 'topic_id' => $topDiag->id, 'trainer_id' => $trainer3->id, 'classroom_id' => $roomMeca1->id, 'day_of_week' => 'Mardi', 'start_time' => '08:00', 'end_time' => '12:00', 'planned_hours' => 4],
-            ['department_id' => $deptMeca->id, 'seminar_id' => $filiereMeca2->id, 'topic_id' => $topUsinage->id, 'trainer_id' => $trainer3->id, 'classroom_id' => $roomMeca2->id, 'day_of_week' => 'Jeudi', 'start_time' => '14:00', 'end_time' => '17:00', 'planned_hours' => 3],
-            ['department_id' => $deptElec->id, 'seminar_id' => $filiereElec1->id, 'topic_id' => $topApi->id, 'trainer_id' => $trainer2->id, 'classroom_id' => $roomElec1->id, 'day_of_week' => 'Mercredi', 'start_time' => '08:00', 'end_time' => '12:00', 'planned_hours' => 4],
-            ['department_id' => $deptElec->id, 'seminar_id' => $filiereElec1->id, 'topic_id' => $topPuissance->id, 'trainer_id' => $trainer2->id, 'classroom_id' => $roomElec2->id, 'day_of_week' => 'Vendredi', 'start_time' => '09:00', 'end_time' => '12:00', 'planned_hours' => 3],
-            ['department_id' => $deptElec->id, 'seminar_id' => $filiereElec2->id, 'topic_id' => $topFroid->id, 'trainer_id' => $trainer2->id, 'classroom_id' => $roomElec2->id, 'day_of_week' => 'Samedi', 'start_time' => '08:00', 'end_time' => '12:00', 'planned_hours' => 4],
+        // =========================================================================
+        // 8. EMPLOIS DU TEMPS ANTI-CONFLIT DU DÉPARTEMENT INFO (8 Salles, 11 Formateurs)
+        // =========================================================================
+        // Aucun chevauchement : chaque formateur est dans 1 seule salle par créneau,
+        // chaque salle n'accueille qu'1 seule classe par créneau.
+        $timetableSlots = [
+            // LUNDI 08h00 - 12h00 (4h)
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereIIR_C1->id,
+                'topic_id' => $topIIR_C1_Reseaux->id,
+                'trainer_id' => $trainersInfo[0]->id, // Amadou Sow
+                'classroom_id' => $sallesInfo[0]->id, // Labo Réseaux Info-1
+                'day_of_week' => 'Lundi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereDAS_C1->id,
+                'topic_id' => $topDAS_C1_Dev->id,
+                'trainer_id' => $trainersInfo[1]->id, // Mamadou Lamine Ndiaye
+                'classroom_id' => $sallesInfo[1]->id, // Labo Dev Web Info-2
+                'day_of_week' => 'Lundi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereSRTC_C1->id,
+                'topic_id' => $topSRTC_C1_Sys->id,
+                'trainer_id' => $trainersInfo[4]->id, // Abdoulaye Ba
+                'classroom_id' => $sallesInfo[4]->id, // Labo Cybersécurité Info-5
+                'day_of_week' => 'Lundi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+
+            // LUNDI 14h00 - 18h00 (4h)
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereIIR_C2->id,
+                'topic_id' => $topIIR_C2_Embarque->id,
+                'trainer_id' => $trainersInfo[3]->id, // Ousmane Diop
+                'classroom_id' => $sallesInfo[2]->id, // Labo Embarqué Info-3
+                'day_of_week' => 'Lundi',
+                'start_time' => '14:00',
+                'end_time' => '18:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereDAS_C2->id,
+                'topic_id' => $topDAS_C2_Dev->id,
+                'trainer_id' => $trainersInfo[5]->id, // Fatou Kiné Fall
+                'classroom_id' => $sallesInfo[5]->id, // Salle Magistrale Info-6
+                'day_of_week' => 'Lundi',
+                'start_time' => '14:00',
+                'end_time' => '18:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereSRTC_C2->id,
+                'topic_id' => $topSRTC_C2_Cloud->id,
+                'trainer_id' => $trainersInfo[6]->id, // Babacar Faye
+                'classroom_id' => $sallesInfo[3]->id, // Salle Multimédia Info-4
+                'day_of_week' => 'Lundi',
+                'start_time' => '14:00',
+                'end_time' => '18:00',
+                'planned_hours' => 4,
+            ],
+
+            // MARDI 08h00 - 12h00 (4h)
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereIIR_C2->id,
+                'topic_id' => $topIIR_C2_Reseaux->id,
+                'trainer_id' => $trainersInfo[0]->id, // Amadou Sow
+                'classroom_id' => $sallesInfo[0]->id, // Labo Réseaux Info-1
+                'day_of_week' => 'Mardi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereDAS_C1->id,
+                'topic_id' => $topDAS_C1_Bdd->id,
+                'trainer_id' => $trainersInfo[2]->id, // Astou Diallo
+                'classroom_id' => $sallesInfo[6]->id, // Salle BDD Info-7
+                'day_of_week' => 'Mardi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereSRTC_C1->id,
+                'topic_id' => $topSRTC_C1_Cloud->id,
+                'trainer_id' => $trainersInfo[6]->id, // Babacar Faye
+                'classroom_id' => $sallesInfo[4]->id, // Labo Cybersécurité Info-5
+                'day_of_week' => 'Mardi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+
+            // MERCREDI 08h00 - 12h00 (4h)
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereIIR_C1->id,
+                'topic_id' => $topIIR_C1_Embarque->id,
+                'trainer_id' => $trainersInfo[3]->id, // Ousmane Diop
+                'classroom_id' => $sallesInfo[2]->id, // Labo Embarqué Info-3
+                'day_of_week' => 'Mercredi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereDAS_C2->id,
+                'topic_id' => $topDAS_C2_Bdd->id,
+                'trainer_id' => $trainersInfo[7]->id, // Cheikh Tidiane Cissé
+                'classroom_id' => $sallesInfo[6]->id, // Salle BDD Info-7
+                'day_of_week' => 'Mercredi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereSRTC_C2->id,
+                'topic_id' => $topSRTC_C2_Sys->id,
+                'trainer_id' => $trainersInfo[9]->id, // Ibrahima Sarr
+                'classroom_id' => $sallesInfo[7]->id, // Labo Maintenance Info-8
+                'day_of_week' => 'Mercredi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+
+            // JEUDI 08h00 - 12h00 (4h)
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereDAS_C1->id,
+                'topic_id' => $topDAS_C1_Dev->id,
+                'trainer_id' => $trainersInfo[1]->id, // Mamadou Lamine Ndiaye
+                'classroom_id' => $sallesInfo[1]->id, // Labo Dev Web Info-2
+                'day_of_week' => 'Jeudi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereIIR_C2->id,
+                'topic_id' => $topIIR_C2_Reseaux->id,
+                'trainer_id' => $trainersInfo[8]->id, // Mariama Badji
+                'classroom_id' => $sallesInfo[7]->id, // Labo Maintenance Info-8
+                'day_of_week' => 'Jeudi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereSRTC_C1->id,
+                'topic_id' => $topSRTC_C1_Sys->id,
+                'trainer_id' => $trainersInfo[10]->id, // Modou Touré
+                'classroom_id' => $sallesInfo[4]->id, // Labo Cybersécurité Info-5
+                'day_of_week' => 'Jeudi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+
+            // VENDREDI 08h30 - 12h30 (4h)
+            [
+                'department_id' => $deptInfo->id,
+                'seminar_id' => $filiereSRTC_C2->id,
+                'topic_id' => $topSRTC_C2_Cloud->id,
+                'trainer_id' => $trainersInfo[10]->id, // Modou Touré
+                'classroom_id' => $sallesInfo[4]->id, // Labo Cybersécurité Info-5
+                'day_of_week' => 'Vendredi',
+                'start_time' => '08:30',
+                'end_time' => '12:30',
+                'planned_hours' => 4,
+            ],
+
+            // Salles Mécanique & Électrique
+            [
+                'department_id' => $deptMeca->id,
+                'seminar_id' => $filiereMeca1->id,
+                'topic_id' => $topDiag->id,
+                'trainer_id' => $trainerMeca->id,
+                'classroom_id' => $roomMeca1->id,
+                'day_of_week' => 'Mardi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
+            [
+                'department_id' => $deptElec->id,
+                'seminar_id' => $filiereElec1->id,
+                'topic_id' => $topApi->id,
+                'trainer_id' => $trainerElec->id,
+                'classroom_id' => $roomElec1->id,
+                'day_of_week' => 'Mercredi',
+                'start_time' => '08:00',
+                'end_time' => '12:00',
+                'planned_hours' => 4,
+            ],
         ];
 
-        foreach ($slots as $slot) {
+        foreach ($timetableSlots as $slot) {
             Timetable::create($slot + ['is_active' => true]);
         }
 
-        // 8. Formations Continues (Courte durée : 1, 2 ou 3 mois — Payantes — Entreprises partenaires & Attestations PDF)
+        // =========================================================================
+        // 9. FORMATIONS CONTINUES (À la demande des entreprises partenaires)
+        // =========================================================================
         $fc1 = Seminar::create([
             'title' => 'Perfectionnement Automates Programmables Siemens S7-1500 & Supervision SCADA',
             'training_type' => 'continue',
@@ -471,7 +886,7 @@ class RealDataSeeder extends Seeder
         $fc3->departments()->attach([$deptInfo->id]);
         $fc3Topic = Topic::create(['seminar_id' => $fc3->id, 'name' => 'Sécurisation Réseaux & Supervision SOC', 'is_active' => true]);
 
-        // Inscription de stagiaires professionnels avec numéro d'attestation pour les Formations Continues
+        // Inscription des stagiaires professionnels
         $continuingTrainees = [
             ['name' => 'Moustapha Dieng', 'email' => 'moustapha.dieng@senelec.sn', 'phone' => '+221 77 810 11 22', 'company' => 'SENELEC', 'function' => 'Technicien Supérieur Automatisme', 'fc' => $fc1, 'topic' => $fc1Topic, 'cert' => 'ATT-CFPT-2026-0001'],
             ['name' => 'Ndèye Astou Cissé', 'email' => 'astou.cisse@senelec.sn', 'phone' => '+221 77 810 33 44', 'company' => 'SENELEC', 'function' => 'Ingénieure Contrôle-Commande', 'fc' => $fc1, 'topic' => $fc1Topic, 'cert' => 'ATT-CFPT-2026-0002'],
